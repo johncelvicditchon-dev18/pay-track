@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "TCGC PayTrack — student payment tracking portal",
+  "description": "TCGC PayTrack — institute payment and contribution tracking portal",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -31,7 +31,7 @@ function TrackRecord({ record, studentId }) {
   return (
     <div className="track-view">
       <div className="track-head">
-        <span className="eyebrow">Payment record</span>
+        <span className="eyebrow">Institute payment record</span>
         <div className="track-head__person">
           <span className="track-avatar">{initials(record.name)}</span>
           <div>

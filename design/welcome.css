@@ -612,6 +612,14 @@
   color: var(--green-900);
 }
 
+.about-description {
+  max-width: 62ch;
+  margin-top: 16px;
+  font-size: 1rem;
+  line-height: 1.72;
+  color: var(--muted);
+}
+
 .about-actions {
   display: flex;
   flex-wrap: wrap;

@@ -10,7 +10,7 @@ const ASIDE_COPY = {
       </>
     ),
     description:
-      "Your balance, deadlines, and receipts — always current, always in one place. Sign in to pick up right where you left off.",
+      "Your contributions, balances, deadlines, and receipts — always current, always in one place. Sign in to pick up right where you left off.",
     items: [
       {
         title: "Balances updated in real time",
@@ -34,11 +34,11 @@ const ASIDE_COPY = {
       </>
     ),
     description:
-      "Create a free account and get a single, trustworthy record of every payment you make at Tangub City Global College.",
+      "Create a free account and get a single, trustworthy record of every institute payment and contribution you make at Tangub City Global College.",
     items: [
       {
         title: "One account, all your records",
-        detail: "From first prelim to final balance",
+        detail: "From activity fees to final balance",
       },
       {
         title: "No more queueing for balances",

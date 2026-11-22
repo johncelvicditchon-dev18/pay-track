@@ -8,19 +8,19 @@ import { useToast } from "../context/ToastContext";
 
 const dashboardRows = [
   {
-    label: "Tuition — Prelim",
+    label: "Activity contribution",
     date: "Paid Aug 15, 2026",
     status: "Paid",
     paid: true,
   },
   {
-    label: "Laboratory fees",
+    label: "Membership fee",
     date: "Paid Sep 02, 2026",
     status: "Paid",
     paid: true,
   },
   {
-    label: "Tuition — Midterm",
+    label: "T-shirt fee",
     date: "Due Oct 15, 2026",
     status: "Due soon",
     paid: false,
@@ -111,9 +111,10 @@ export default function Welcome() {
                 </h1>
 
                 <p className="hero-lead">
-                  One calm, secure place to see your tuition balance, upcoming due
-                  dates, and verified receipts — no more lining up at the finance
-                  office just to ask, “How much do I still owe?”
+                  One calm, secure place to trace your institute payments and
+                  contributions — activity contributions, membership fees, t-shirt
+                  payments, and other miscellaneous charges — with balances, due
+                  dates, and verified receipts in plain sight.
                 </p>
 
                 {user ? (
@@ -153,7 +154,7 @@ export default function Welcome() {
                     <span className="check-dot" aria-hidden="true">
                       <CheckIcon />
                     </span>
-                    Deadline reminders
+                    Activity &amp; membership fees
                   </li>
                   <li>
                     <span className="check-dot" aria-hidden="true">
@@ -177,17 +178,17 @@ export default function Welcome() {
                   <div className="dash-balance">
                     <div className="dash-balance-row">
                       <span>Outstanding balance</span>
-                      <span className="dash-percent">62% paid</span>
+                      <span className="dash-percent">74% paid</span>
                     </div>
                     <p className="dash-amount">
-                      ₱12,450<span>.00</span>
+                      ₱450<span>.00</span>
                     </p>
                     <div className="dash-bar">
-                      <span style={{ "--w": "62%" }} />
+                      <span style={{ "--w": "74%" }} />
                     </div>
                     <div className="dash-balance-foot">
-                      <span>Paid ₱20,300.00</span>
-                      <span>Total ₱32,750.00</span>
+                      <span>Paid ₱1,300.00</span>
+                      <span>Total ₱1,750.00</span>
                     </div>
                   </div>
 
@@ -252,7 +253,7 @@ export default function Welcome() {
                   </span>
                   <div>
                     <strong>Receipt verified</strong>
-                    <small>₱3,500.00 · Ref #A-10428</small>
+                    <small>₱500.00 · Ref #A-10428</small>
                   </div>
                 </div>
 
@@ -272,7 +273,7 @@ export default function Welcome() {
                   </span>
                   <div>
                     <strong>Next due in 6 days</strong>
-                    <small>Tuition — Midterm</small>
+                    <small>T-shirt fee</small>
                   </div>
                 </div>
               </div>
@@ -303,8 +304,12 @@ export default function Welcome() {
                 <span className="eyebrow">About PayTrack</span>
                 <p className="about-statement">
                   A <em>student-first</em> payment portal for{" "}
-                  <strong>Tangub City Global College</strong>, keeping every
-                  balance, deadline, and receipt in plain sight.
+                  <strong>Tangub City Global College</strong>.
+                </p>
+                <p className="about-description">
+                  Track institute payments and contributions — activity fees,
+                  membership dues, t-shirt payments, and other miscellaneous
+                  charges — with every balance and receipt in plain sight.
                 </p>
                 <div className="about-actions">
                   <Link className="btn btn--primary" to={user ? "/#top" : "/signup"}>
