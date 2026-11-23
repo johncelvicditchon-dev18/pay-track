@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { findUserByStudentId, initials } from "../lib/auth";
-import { DEMO_RECORDS } from "../data/paymentRecords";
+import { DEMO_RECORDS, summarizeRecord } from "../data/paymentRecords";
+import { INSTITUTE_ORGANIZATIONS } from "../data/academic";
 
 const ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
 
@@ -10,6 +11,18 @@ function money(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+function slug(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
+}
+
+function chargeStatus(charge) {
+  if (charge.balance <= 0) return { label: "Paid", tone: "paid" };
+  if (charge.paid > 0) return { label: "Partial", tone: "partial" };
+  return { label: "Unpaid", tone: "due" };
 }
 
 function iconProps() {
@@ -25,37 +38,75 @@ function iconProps() {
 }
 
 function TrackRecord({ record, studentId }) {
-  const percent = record.total > 0 ? Math.round((record.paid / record.total) * 100) : 0;
-  const isPaid = record.balance <= 0;
+  const summary = summarizeRecord(record);
+  const isPaid = summary.balance <= 0;
+  const openCharges = summary.charges.filter((charge) => charge.balance > 0).length;
 
   return (
     <div className="track-view">
       <div className="track-head">
-        <span className="eyebrow">Institute payment record</span>
+        <span className="eyebrow">Payment record</span>
         <div className="track-head__person">
           <span className="track-avatar">{initials(record.name)}</span>
           <div>
             <h2 id="track-dialog-title">{record.name}</h2>
             <p className="track-head__meta">
-              {studentId} · {record.institute} · {record.program} · {record.yearLevel}
+              {studentId} · {record.program} · {record.yearLevel}
             </p>
           </div>
+        </div>
+        <div className="track-chips">
+          <span className="track-chip">Institute · {record.institute}</span>
+          <span className="track-chip track-chip--org">
+            Organization · {record.organization}
+          </span>
+          <span className="track-chip track-chip--muted">{record.statement}</span>
         </div>
       </div>
 
       <div className="track-balance">
         <div className="track-balance__row">
           <span>Outstanding balance</span>
-          <span>{percent}% paid</span>
+          <span>{summary.percent}% paid</span>
         </div>
-        <p className="track-balance__amount">{money(record.balance)}</p>
+        <p className="track-balance__amount">{money(summary.balance)}</p>
         <div className="track-bar">
-          <span style={{ width: `${percent}%` }} />
+          <span style={{ width: `${summary.percent}%` }} />
         </div>
         <div className="track-balance__foot">
-          <span>Paid {money(record.paid)}</span>
-          <span>Total {money(record.total)}</span>
+          <span>Paid {money(summary.paid)}</span>
+          <span>Total {money(summary.total)}</span>
         </div>
+      </div>
+
+      <div className="track-scopes">
+        {summary.scopes.map((scope) => (
+          <div className="track-scope" key={scope.scope}>
+            <div className="track-scope__head">
+              <span className="track-scope__label">{scope.scope}</span>
+              <span className="track-scope__count">
+                {scope.count} {scope.count === 1 ? "charge" : "charges"}
+              </span>
+            </div>
+            <strong className="track-scope__unit">{scope.unit}</strong>
+            <div className="track-scope__row">
+              <span>Charged</span>
+              <span>{money(scope.total)}</span>
+            </div>
+            <div className="track-scope__row">
+              <span>Paid</span>
+              <span>{money(scope.paid)}</span>
+            </div>
+            <div
+              className={`track-scope__row track-scope__row--balance ${
+                scope.balance > 0 ? "is-due" : "is-clear"
+              }`}
+            >
+              <span>Balance</span>
+              <span>{money(scope.balance)}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       <dl className="track-meta">
@@ -63,7 +114,7 @@ function TrackRecord({ record, studentId }) {
           <dt>Status</dt>
           <dd>
             <span className={`track-tag ${isPaid ? "track-tag--paid" : "track-tag--due"}`}>
-              {isPaid ? "Fully paid" : "With balance"}
+              {isPaid ? "Fully paid" : `${openCharges} charge${openCharges === 1 ? "" : "s"} open`}
             </span>
           </dd>
         </div>
@@ -73,35 +124,85 @@ function TrackRecord({ record, studentId }) {
         </div>
       </dl>
 
-      <h3 className="track-section-title">Recent payments</h3>
+      <div className="track-section-head">
+        <h3 className="track-section-title">All charges</h3>
+        <span className="track-section-note">
+          {openCharges} with balance · {summary.charges.length} total
+        </span>
+      </div>
+      <ul className="track-charges">
+        {summary.charges.map((charge) => {
+          const status = chargeStatus(charge);
+          return (
+            <li className="track-charge" key={charge.id}>
+              <div className="track-charge__top">
+                <span className={`track-cat track-cat--${slug(charge.category)}`}>
+                  {charge.category}
+                </span>
+                <div className="track-charge__title">
+                  <strong>{charge.label}</strong>
+                  <small>
+                    {charge.scope} · {charge.unit} · Due {charge.dueDate}
+                  </small>
+                </div>
+                <span className={`track-tag track-tag--${status.tone}`}>{status.label}</span>
+              </div>
+              <div className="track-charge__money">
+                <span>
+                  Amount <b>{money(charge.amount)}</b>
+                </span>
+                <span>
+                  Paid <b>{money(charge.paid)}</b>
+                </span>
+                <span className={charge.balance > 0 ? "is-due" : "is-clear"}>
+                  Balance <b>{money(charge.balance)}</b>
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="track-section-head">
+        <h3 className="track-section-title">Payments &amp; official receipts</h3>
+        <span className="track-section-note">{record.payments.length} receipts</span>
+      </div>
       <ul className="track-payments">
         {record.payments.map((payment) => (
-          <li key={`${payment.ref}-${payment.date}`}>
+          <li key={payment.id}>
             <span className="track-payment__icon">
               <svg {...iconProps()}>
                 <path d="M20 6 9 17l-5-5" />
               </svg>
             </span>
-            <div>
+            <div className="track-payment__body">
               <strong>{payment.label}</strong>
               <small>
-                {payment.date} · Ref #{payment.ref}
+                {payment.date} · {payment.method}
               </small>
             </div>
-            <span className="track-amount">{money(payment.amount)}</span>
+            <span className="track-receipt">
+              <span className="track-amount">{money(payment.amount)}</span>
+              <span className="track-ref">
+                {payment.ref} · {payment.status}
+              </span>
+            </span>
           </li>
         ))}
       </ul>
 
       <p className="track-note">
-        Questions or corrections? Contact the Finance Office at{" "}
-        <a href="mailto:finance@tcgc.edu.ph">finance@tcgc.edu.ph</a>.
+        Balances updated {record.updated}. Questions or corrections? Contact the
+        Finance Office at <a href="mailto:finance@tcgc.edu.ph">finance@tcgc.edu.ph</a>.
       </p>
     </div>
   );
 }
 
 function RegisteredPreview({ account, studentId, onClose }) {
+  const organization =
+    INSTITUTE_ORGANIZATIONS[account.institute] || account.organization || "—";
+
   return (
     <div className="track-empty">
       <span className="track-empty__icon">
@@ -116,7 +217,8 @@ function RegisteredPreview({ account, studentId, onClose }) {
         <strong>{account.name}</strong> ({studentId}) is registered under{" "}
         <strong>
           {account.institute || "—"} · {account.program || "—"}
-        </strong>
+        </strong>{" "}
+        with <strong>{organization}</strong>
         {account.yearLevel ? ` · ${account.yearLevel}` : ""}. Your payment
         assessment has not been posted yet. Check back after enrollment or visit
         the Finance Office.
@@ -247,7 +349,7 @@ export default function PaymentTracker() {
             <rect x="3" y="5" width="18" height="14" rx="2" />
             <path d="M7 9h4M7 13h7M15 9h2" />
           </svg>
-          Track your payment
+          Track your payments
         </label>
 
         <div className="hero-track__row">

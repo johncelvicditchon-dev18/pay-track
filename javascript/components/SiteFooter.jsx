@@ -9,9 +9,9 @@ export default function SiteFooter() {
           <div className="footer-brand">
             <Brand to="/" />
             <p>
-              Track your institute contributions, deadlines, and official
-              receipts in one secure student portal built for Tangub City Global
-              College.
+              Track your institute and organization contributions, deadlines, and
+              official receipts in one secure student portal built for Tangub
+              City Global College.
             </p>
           </div>
 

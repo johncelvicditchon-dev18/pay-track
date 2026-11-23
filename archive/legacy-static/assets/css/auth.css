@@ -284,7 +284,7 @@
 .field select:focus {
   outline: none;
   border-color: var(--green-500);
-  background: #fff;
+  background-color: #fff;
   box-shadow: 0 0 0 4px rgba(21, 125, 84, 0.1);
 }
 
@@ -352,7 +352,7 @@
 .field.has-error input,
 .field.has-error select {
   border-color: #dc8a77;
-  background: #fff9f6;
+  background-color: #fff9f6;
 }
 
 .field.has-error input:focus,
@@ -564,5 +564,242 @@
   .field input,
   .field select {
     font-size: 0.9rem;
+  }
+}
+
+/* =========================================================
+   Centered green auth layout
+   Login and sign-up sit directly on the college gradient with
+   no white page or card background.
+   ========================================================= */
+
+.auth-page {
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  min-height: 100svh;
+  padding: 96px 24px 56px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(245, 147, 69, 0.18), transparent 36%),
+    radial-gradient(circle at 88% 92%, rgba(75, 181, 132, 0.2), transparent 42%),
+    var(--grad-primary-deep);
+}
+
+.auth-aside {
+  display: none;
+}
+
+.auth-main {
+  width: 100%;
+  max-width: 520px;
+  display: block;
+  padding: 0;
+  background: transparent;
+}
+
+.auth-back {
+  position: fixed;
+  top: 26px;
+  left: 28px;
+  z-index: 5;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.auth-back:hover {
+  color: var(--accent-soft);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 38px 38px 34px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.075);
+  color: #fff;
+  box-shadow: 0 40px 80px -38px rgba(2, 18, 11, 0.72);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+}
+
+.auth-card-head h1 {
+  color: #fff;
+}
+
+.auth-card-head p {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.auth-card-head .mobile-brand {
+  display: inline-flex;
+  color: #fff;
+}
+
+.auth-card-head .mobile-brand .brand-text span {
+  opacity: 0.62;
+}
+
+.field label {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.link-quiet {
+  color: var(--accent-soft);
+}
+
+.link-quiet:hover {
+  color: #fff;
+}
+
+.field input,
+.field select {
+  border-color: rgba(255, 255, 255, 0.24);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.field input::placeholder {
+  color: rgba(255, 255, 255, 0.46);
+}
+
+.field input:hover,
+.field select:hover {
+  border-color: rgba(255, 255, 255, 0.42);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--accent);
+  background-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 4px rgba(245, 147, 69, 0.18);
+}
+
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23d7f0e0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+.field select:invalid {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.field select option {
+  background: #0b3c29;
+  color: #fff;
+}
+
+.field input:disabled,
+.field select:disabled {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.38);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.38);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.pw-toggle {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.pw-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.field-error {
+  color: #ffc9ba;
+}
+
+.field.has-error input,
+.field.has-error select {
+  border-color: #ff9d84;
+  background-color: rgba(178, 58, 34, 0.16);
+}
+
+.field.has-error input:focus,
+.field.has-error select:focus {
+  box-shadow: 0 0 0 4px rgba(255, 157, 132, 0.18);
+}
+
+.check {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.check input {
+  accent-color: var(--accent);
+}
+
+.check a {
+  color: var(--accent-soft);
+}
+
+.check.has-error {
+  color: #ffc9ba;
+}
+
+.strength-bars span {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.strength-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.auth-form .btn--primary {
+  background: var(--grad-accent);
+  color: #3d1a05;
+  box-shadow: 0 18px 36px -20px rgba(240, 138, 50, 0.7);
+}
+
+.auth-form .btn--primary:hover {
+  box-shadow: 0 24px 42px -20px rgba(240, 138, 50, 0.85);
+}
+
+.demo-note {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.auth-switch {
+  border-top-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.auth-switch a {
+  color: var(--accent-soft);
+}
+
+.auth-switch a:hover {
+  color: #fff;
+}
+
+.form-footnote {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.auth-card input:-webkit-autofill,
+.auth-card input:-webkit-autofill:hover,
+.auth-card input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px #0d3f2d inset;
+  caret-color: #fff;
+  transition: background-color 9999s ease-out 0s;
+}
+
+@media (max-width: 560px) {
+  .auth-page {
+    padding: 86px 16px 40px;
+  }
+
+  .auth-back {
+    top: 20px;
+    left: 18px;
+  }
+
+  .auth-card {
+    padding: 28px 22px 26px;
   }
 }

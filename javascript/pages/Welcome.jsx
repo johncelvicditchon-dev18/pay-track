@@ -9,29 +9,36 @@ import { useToast } from "../context/ToastContext";
 const dashboardRows = [
   {
     label: "Activity contribution",
+    meta: "Institute · ICS",
     date: "Paid Aug 15, 2026",
+    amount: "₱500.00",
     status: "Paid",
-    paid: true,
+    tone: "paid",
   },
   {
     label: "Membership fee",
+    meta: "Organization · ICS Student Council",
     date: "Paid Sep 02, 2026",
+    amount: "₱300.00",
     status: "Paid",
-    paid: true,
+    tone: "paid",
   },
   {
     label: "T-shirt fee",
+    meta: "Institute · ICS",
     date: "Due Oct 15, 2026",
-    status: "Due soon",
-    paid: false,
+    amount: "₱250.00 left",
+    status: "Partial",
+    tone: "partial",
   },
-];
-
-const stats = [
-  { value: "12,400+", label: "Students served" },
-  { value: "₱8.6M+", label: "Payments recorded" },
-  { value: "98.2%", label: "On-time payments" },
-  { value: "24/7", label: "Balance visibility" },
+  {
+    label: "Miscellaneous charge",
+    meta: "Institute · ICS",
+    date: "Due Oct 20, 2026",
+    amount: "₱200.00 due",
+    status: "Unpaid",
+    tone: "due",
+  },
 ];
 
 function CheckIcon() {
@@ -111,10 +118,9 @@ export default function Welcome() {
                 </h1>
 
                 <p className="hero-lead">
-                  One calm, secure place to trace your institute payments and
-                  contributions — activity contributions, membership fees, t-shirt
-                  payments, and other miscellaneous charges — with balances, due
-                  dates, and verified receipts in plain sight.
+                  Track institute and organization fees — activity, membership,
+                  t-shirt, and miscellaneous charges — with every balance and
+                  receipt in plain sight.
                 </p>
 
                 {user ? (
@@ -148,19 +154,19 @@ export default function Welcome() {
                     <span className="check-dot" aria-hidden="true">
                       <CheckIcon />
                     </span>
-                    Real-time balances
+                    Institute &amp; organization
                   </li>
                   <li>
                     <span className="check-dot" aria-hidden="true">
                       <CheckIcon />
                     </span>
-                    Activity &amp; membership fees
+                    Every charge &amp; balance
                   </li>
                   <li>
                     <span className="check-dot" aria-hidden="true">
                       <CheckIcon />
                     </span>
-                    Verified receipts
+                    Every receipt in view
                   </li>
                 </ul>
               </div>
@@ -196,7 +202,7 @@ export default function Welcome() {
                     {dashboardRows.map((row) => (
                       <li key={row.label}>
                         <span className="dash-icon">
-                          {row.paid ? (
+                          {row.tone === "paid" ? (
                             <svg
                               viewBox="0 0 24 24"
                               fill="none"
@@ -223,14 +229,21 @@ export default function Welcome() {
                         </span>
                         <div>
                           <strong>{row.label}</strong>
-                          <small>{row.date}</small>
+                          <small>
+                            {row.meta} · {row.date}
+                          </small>
                         </div>
-                        <span
-                          className={`status ${
-                            row.paid ? "status--paid" : "status--due"
-                          }`}
-                        >
-                          {row.status}
+                        <span className="dash-row-end">
+                          <span
+                            className={`dash-row-amount${
+                              row.tone === "paid" ? "" : " is-due"
+                            }`}
+                          >
+                            {row.amount}
+                          </span>
+                          <span className={`status status--${row.tone}`}>
+                            {row.status}
+                          </span>
                         </span>
                       </li>
                     ))}
@@ -253,7 +266,7 @@ export default function Welcome() {
                   </span>
                   <div>
                     <strong>Receipt verified</strong>
-                    <small>₱500.00 · Ref #A-10428</small>
+                    <small>₱500.00 · OR-2026-10428</small>
                   </div>
                 </div>
 
@@ -278,15 +291,6 @@ export default function Welcome() {
                 </div>
               </div>
             </div>
-
-            <div className="hero-stats" aria-label="System highlights">
-              {stats.map((stat) => (
-                <div key={stat.label}>
-                  <strong>{stat.value}</strong>
-                  <span>{stat.label}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
@@ -307,9 +311,10 @@ export default function Welcome() {
                   <strong>Tangub City Global College</strong>.
                 </p>
                 <p className="about-description">
-                  Track institute payments and contributions — activity fees,
-                  membership dues, t-shirt payments, and other miscellaneous
-                  charges — with every balance and receipt in plain sight.
+                  Track institute and organization payments and contributions —
+                  activity fees, membership fees, t-shirt payments, and other
+                  miscellaneous charges — with every balance and payment in plain
+                  sight.
                 </p>
                 <div className="about-actions">
                   <Link className="btn btn--primary" to={user ? "/#top" : "/signup"}>

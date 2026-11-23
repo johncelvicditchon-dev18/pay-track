@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TCGC Payment Tracking System</title>
+    <title>TCGC PayTrack — Payment Tracking System</title>
     <meta
       name="description"
-      content="TCGC PayTrack gives Tangub City Global College students a clear, real-time view of tuition and school payments — balances, due dates, and official receipts in one place."
+      content="Track institute and organization fees, balances, and official receipts at Tangub City Global College."
     />
     <link rel="icon" type="image/png" href="assets/logo-toggle.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,70 +35,28 @@
           </span>
         </a>
 
-        <nav class="nav" id="primary-nav" aria-label="Primary">
-          <a href="#top">Home</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
-          <a class="nav-login" href="pages/login.html">Log in</a>
-          <a class="nav-auth" href="pages/signup.html">Create account</a>
-        </nav>
-
-        <div class="header-actions" id="header-actions">
-          <a class="header-login" href="pages/login.html">Log in</a>
-          <a class="btn btn--light" href="pages/signup.html">
-            Get started
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </a>
-          <button
-            class="nav-toggle"
-            type="button"
-            aria-expanded="false"
-            aria-controls="primary-nav"
-            aria-label="Open menu"
-          >
-            <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-            <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-        </div>
+        <div class="header-actions" id="header-actions"></div>
       </div>
     </header>
 
     <main id="main">
-      <!-- ================= HERO ================= -->
       <section class="hero" id="top">
         <div class="container">
           <div class="hero-grid">
             <div class="hero-copy">
-              <span class="hero-pill">
-                <b>Official</b>
-                Tangub City Global College
-              </span>
-
               <h1>Every payment,<br /><span class="accent">perfectly tracked.</span></h1>
 
               <p class="hero-lead">
-                One calm, secure place to see your tuition balance, upcoming due
-                dates, and verified receipts — no more lining up at the finance
-                office just to ask, “How much do I still owe?”
+                Track institute and organization fees, balances, and official
+                receipts in one place.
               </p>
 
-              <div class="hero-actions">
-                <a class="btn btn--light" href="pages/signup.html">
-                  Create your account
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </a>
-                <a class="btn btn--outline-light" href="pages/login.html">Log in to your portal</a>
+              <div class="home-actions">
+                <a class="btn btn--outline-light" href="pages/login.html">Log in</a>
+                <a class="btn btn--accent" href="#track">Track payment</a>
               </div>
 
-              <form class="hero-track" id="track-form" novalidate>
+              <form class="hero-track" id="track" novalidate>
                 <label class="hero-track__label" for="track-student-id">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -133,213 +91,11 @@
                 </p>
                 <p class="hero-track__error" id="track-error" role="alert" hidden></p>
               </form>
-
-              <ul class="hero-points">
-                <li>
-                  <span class="check-dot" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                  </span>
-                  Real-time balances
-                </li>
-                <li>
-                  <span class="check-dot" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                  </span>
-                  Deadline reminders
-                </li>
-                <li>
-                  <span class="check-dot" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                  </span>
-                  Verified receipts
-                </li>
-              </ul>
-            </div>
-
-            <div class="hero-visual">
-              <div class="dash" aria-hidden="true">
-                <div class="dash-top">
-                  <div>
-                    <p class="dash-eyebrow">Student portal</p>
-                    <h2>My payments</h2>
-                  </div>
-                  <span class="dash-chip">A.Y. 2026–2027</span>
-                </div>
-
-                <div class="dash-balance">
-                  <div class="dash-balance-row">
-                    <span>Outstanding balance</span>
-                    <span class="dash-percent">62% paid</span>
-                  </div>
-                  <p class="dash-amount">₱12,450<span>.00</span></p>
-                  <div class="dash-bar"><span style="--w: 62%"></span></div>
-                  <div class="dash-balance-foot">
-                    <span>Paid ₱20,300.00</span>
-                    <span>Total ₱32,750.00</span>
-                  </div>
-                </div>
-
-                <ul class="dash-list">
-                  <li>
-                    <span class="dash-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                    </span>
-                    <div>
-                      <strong>Tuition — Prelim</strong>
-                      <small>Paid Aug 15, 2026</small>
-                    </div>
-                    <span class="status status--paid">Paid</span>
-                  </li>
-                  <li>
-                    <span class="dash-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                    </span>
-                    <div>
-                      <strong>Laboratory fees</strong>
-                      <small>Paid Sep 02, 2026</small>
-                    </div>
-                    <span class="status status--paid">Paid</span>
-                  </li>
-                  <li>
-                    <span class="dash-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-                    </span>
-                    <div>
-                      <strong>Tuition — Midterm</strong>
-                      <small>Due Oct 15, 2026</small>
-                    </div>
-                    <span class="status status--due">Due soon</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div class="float-card float-card--receipt" aria-hidden="true">
-                <span class="float-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2Z" /><path d="M9 7h6M9 11h6" /></svg>
-                </span>
-                <div>
-                  <strong>Receipt verified</strong>
-                  <small>₱3,500.00 · Ref #A-10428</small>
-                </div>
-              </div>
-
-              <div class="float-card float-card--reminder" aria-hidden="true">
-                <span class="float-icon float-icon--accent">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M10.3 21a2 2 0 0 0 3.4 0" /></svg>
-                </span>
-                <div>
-                  <strong>Next due in 6 days</strong>
-                  <small>Tuition — Midterm</small>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="hero-stats" aria-label="System highlights">
-            <div>
-              <strong>12,400+</strong>
-              <span>Students served</span>
-            </div>
-            <div>
-              <strong>₱8.6M+</strong>
-              <span>Payments recorded</span>
-            </div>
-            <div>
-              <strong>98.2%</strong>
-              <span>On-time payments</span>
-            </div>
-            <div>
-              <strong>24/7</strong>
-              <span>Balance visibility</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= ABOUT ================= -->
-      <section class="section section--tint" id="about">
-        <div class="container">
-          <div class="about-card">
-            <img
-              class="about-watermark"
-              src="assets/logo-toggle.png"
-              alt=""
-              aria-hidden="true"
-            />
-            <div class="about-copy">
-              <span class="eyebrow">About PayTrack</span>
-              <p class="about-statement">
-                A <em>student-first</em> payment portal for
-                <strong>Tangub City Global College</strong>, keeping every
-                balance, deadline, and receipt in plain sight.
-              </p>
-              <div class="about-actions">
-                <a class="btn btn--primary" href="pages/signup.html">
-                  Create your account
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </a>
-                <a class="btn btn--outline" href="pages/login.html">Log in</a>
-              </div>
             </div>
           </div>
         </div>
       </section>
     </main>
-
-    <footer class="site-footer" id="contact">
-      <div class="container">
-        <div class="footer-grid">
-          <div class="footer-brand">
-            <a class="brand" href="index.html" aria-label="TCGC PayTrack home">
-              <img class="brand-logo" src="assets/logo-toggle.png" alt="TCGC logo" />
-              <span class="brand-text">
-                <strong>TCGC PayTrack</strong>
-                <span>Payment Tracking System</span>
-              </span>
-            </a>
-            <p>
-              Track your tuition, deadlines, and official receipts in one secure
-              student portal built for Tangub City Global College.
-            </p>
-          </div>
-
-          <div class="footer-col">
-            <h3>Product</h3>
-            <ul>
-              <li><a href="#top">Home</a></li>
-              <li><a href="#about">About PayTrack</a></li>
-              <li><a href="pages/signup.html">Create account</a></li>
-              <li><a href="pages/login.html">Student login</a></li>
-            </ul>
-          </div>
-
-          <div class="footer-col">
-            <h3>Support</h3>
-            <ul>
-              <li><a href="pages/login.html">Account help</a></li>
-              <li><a href="#contact">Contact finance</a></li>
-              <li><a href="#top">Back to top</a></li>
-            </ul>
-          </div>
-
-          <div class="footer-col">
-            <h3>Visit us</h3>
-            <p>Tangub City Global College</p>
-            <p>Tangub City, Misamis Occidental</p>
-            <p style="margin-top: 10px">
-              <a href="mailto:finance@tcgc.edu.ph">finance@tcgc.edu.ph</a>
-            </p>
-          </div>
-        </div>
-
-        <div class="footer-bottom">
-          <span>&copy; <span id="year">2026</span> TCGC PayTrack. All rights reserved.</span>
-          <span>Made for Tangub City Global College</span>
-        </div>
-      </div>
-    </footer>
 
     <dialog class="track-dialog" id="track-dialog" aria-labelledby="track-dialog-title">
       <button

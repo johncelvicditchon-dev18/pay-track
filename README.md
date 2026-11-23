@@ -1,18 +1,22 @@
 # TCGC PayTrack
 
 A React + Vite front-end for the Tangub City Global College payment tracking
-system. PayTrack is all about tracing **institute payments and contributions** —
-activity contributions, membership fees, t-shirt fees, and other miscellaneous
-charges. Students can create an account, log in, and look up their balance, due
-dates, and receipt history with their student ID.
+system. PayTrack is all about tracing **institute and organization payments and
+contributions** — activity fees, membership fees, t-shirt fees, and other
+miscellaneous charges. Students can create an account, log in, and look up every
+charge balance, payment, and official receipt with their student ID.
 
 ## What PayTrack tracks
 
-- Activity contributions
+- Activity fees
 - Institute / organization membership fees
-- T-shirt fees
-- Other miscellaneous institute charges
-- Payments, balances, and official receipts
+- T-shirt payments
+- Other miscellaneous institute and organization charges
+- Every charge balance, payment, and official receipt
+
+Each charge is tagged with its **scope** (institute or organization) and the
+collecting unit, so students can see exactly who is charging them and how much is
+still unpaid. Each payment keeps its official receipt (OR) number.
 
 ## Run locally
 
@@ -76,6 +80,11 @@ Payment tracker student IDs:
 - `2024-00123` — with an outstanding balance
 - `2023-00456` — with an outstanding balance
 - `2025-00789` — fully paid
+
+The tracker shows the overall balance, separate institute and organization
+subtotals, every charge with its own amount/paid/balance, and every payment with
+its official receipt (OR) number. Charges are grouped by category (Activity,
+Membership, T-shirt, Miscellaneous) and tagged by scope.
 
 ## Project structure
 
