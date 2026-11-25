@@ -12,6 +12,23 @@
   var empty = document.getElementById("accounts-empty");
   var count = document.getElementById("accounts-count");
 
+  var dialog = document.getElementById("account-dialog");
+  var form = document.getElementById("account-form");
+  var errorEl = document.getElementById("account-form-error");
+  var closeButton = document.getElementById("account-dialog-close");
+  var cancelButton = document.getElementById("account-form-cancel");
+
+  var fields = {
+    name: document.getElementById("edit-account-name"),
+    studentId: document.getElementById("edit-account-student-id"),
+    position: document.getElementById("edit-account-position"),
+    yearLevel: document.getElementById("edit-account-year"),
+    institute: document.getElementById("edit-account-institute"),
+    program: document.getElementById("edit-account-program")
+  };
+
+  var editingId = null;
+
   if (!api || !body) return;
 
   function escapeHtml(value) {
@@ -28,44 +45,296 @@
     return text ? escapeHtml(text) : "—";
   }
 
-  var users = api.getUsers();
+  function currentId() {
+    var session = api.getSession ? api.getSession() : null;
+    return session ? api.normalizeStudentId(session.studentId) : "";
+  }
 
-  if (api.DEMO_ACCOUNT) {
-    var demoId = api.normalizeStudentId(api.DEMO_ACCOUNT.studentId);
-    var hasDemo = users.some(function (user) {
-      return api.normalizeStudentId(user.studentId) === demoId;
+  function demoId() {
+    return api.DEMO_ACCOUNT
+      ? api.normalizeStudentId(api.DEMO_ACCOUNT.studentId)
+      : "";
+  }
+
+  function findStoredAccount(studentId) {
+    var needle = api.normalizeStudentId(studentId);
+    var match = null;
+
+    api.getUsers().forEach(function (user) {
+      if (!match && api.normalizeStudentId(user.studentId) === needle) {
+        match = user;
+      }
     });
-    if (!hasDemo) {
-      users = users.concat([api.DEMO_ACCOUNT]);
+
+    return match;
+  }
+
+  function render() {
+    var users = api.getUsers();
+    var builtInId = demoId();
+
+    if (api.DEMO_ACCOUNT) {
+      var hasDemo = users.some(function (user) {
+        return api.normalizeStudentId(user.studentId) === builtInId;
+      });
+
+      if (!hasDemo) {
+        users = users.concat([api.DEMO_ACCOUNT]);
+      }
     }
+
+    users.sort(function (a, b) {
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
+    if (count) {
+      count.textContent =
+        users.length + (users.length === 1 ? " account" : " accounts");
+    }
+
+    if (!users.length) {
+      body.innerHTML = "";
+      if (empty) empty.hidden = false;
+      return;
+    }
+
+    if (empty) empty.hidden = true;
+
+    var sessionId = currentId();
+
+    body.innerHTML = users
+      .map(function (user) {
+        var id = api.normalizeStudentId(user.studentId);
+        var isDemo = builtInId && id === builtInId;
+        var isCurrent = sessionId && id === sessionId;
+        var actions = isDemo
+          ? '<span class="row-note">Built-in</span>'
+          : '<span class="row-actions">' +
+            '<button class="row-action" type="button" data-action="edit" data-id="' +
+            escapeHtml(user.studentId) +
+            '">Edit</button>' +
+            '<button class="row-action row-action--danger" type="button" data-action="delete" data-id="' +
+            escapeHtml(user.studentId) +
+            '">Delete</button>' +
+            "</span>";
+
+        return (
+          "<tr" +
+          (isCurrent ? ' class="is-you"' : "") +
+          ">" +
+          '<td class="cell-name">' + cell(user.name) + "</td>" +
+          "<td>" + cell(user.studentId) + "</td>" +
+          '<td class="cell-position">' + cell(user.position) + "</td>" +
+          "<td>" + cell(user.yearLevel) + "</td>" +
+          "<td>" + cell(user.institute) + "</td>" +
+          "<td>" + cell(user.program) + "</td>" +
+          '<td class="cell-actions">' + actions + "</td>" +
+          "</tr>"
+        );
+      })
+      .join("");
   }
 
-  users.sort(function (a, b) {
-    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-  });
-
-  if (count) {
-    count.textContent = users.length + (users.length === 1 ? " account" : " accounts");
+  /* ---------- edit dialog ---------- */
+  function setError(message) {
+    if (!errorEl) return;
+    errorEl.textContent = message || "";
+    errorEl.hidden = !message;
   }
 
-  if (!users.length) {
-    body.innerHTML = "";
-    if (empty) empty.hidden = false;
-    return;
+  function closeDialog() {
+    if (!dialog) return;
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+    editingId = null;
   }
 
-  if (empty) empty.hidden = true;
+  function uppercaseField(input) {
+    if (!input) return;
 
-  body.innerHTML = users.map(function (user) {
-    return (
-      "<tr>" +
-        '<td class="cell-name">' + cell(user.name) + "</td>" +
-        "<td>" + cell(user.studentId) + "</td>" +
-        '<td class="cell-position">' + cell(user.position) + "</td>" +
-        "<td>" + cell(user.yearLevel) + "</td>" +
-        "<td>" + cell(user.institute) + "</td>" +
-        "<td>" + cell(user.program) + "</td>" +
-      "</tr>"
-    );
-  }).join("");
+    input.addEventListener("input", function () {
+      var start = input.selectionStart;
+      var end = input.selectionEnd;
+      input.value = input.value.toUpperCase();
+      if (start !== null) input.setSelectionRange(start, end);
+    });
+  }
+
+  function openDialog(studentId) {
+    var user = findStoredAccount(studentId);
+    if (!user || !dialog || !form) return;
+
+    editingId = api.normalizeStudentId(user.studentId);
+    fields.name.value = user.name || "";
+    fields.studentId.value = user.studentId || "";
+    fields.position.value = user.position || "";
+    fields.yearLevel.value = user.yearLevel || "";
+    fields.institute.value = user.institute || "";
+    fields.program.value = user.program || "";
+
+    setError("");
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "open");
+
+    window.setTimeout(function () {
+      fields.name.focus();
+      if (fields.name.select) fields.name.select();
+    }, 60);
+  }
+
+  function handleSave(event) {
+    event.preventDefault();
+    if (!editingId) return;
+
+    var name = fields.name.value.trim().toUpperCase();
+    var studentId = api.normalizeStudentId(fields.studentId.value);
+    var position = fields.position.value.trim().toUpperCase();
+    var yearLevel = fields.yearLevel.value.trim();
+    var institute = fields.institute.value.trim();
+    var program = fields.program.value.trim();
+
+    if (!name || !studentId || !position || !yearLevel || !institute || !program) {
+      setError("Fill in every field before saving.");
+      return;
+    }
+
+    if (studentId === demoId()) {
+      setError("The built-in demo account cannot use that Student ID.");
+      return;
+    }
+
+    var users = api.getUsers();
+    var duplicate = users.some(function (user) {
+      var id = api.normalizeStudentId(user.studentId);
+      return id === studentId && id !== editingId;
+    });
+
+    if (duplicate) {
+      setError("Another account already uses that Student ID.");
+      fields.studentId.focus();
+      return;
+    }
+
+    var index = -1;
+    users.forEach(function (user, i) {
+      if (api.normalizeStudentId(user.studentId) === editingId) index = i;
+    });
+
+    if (index === -1) {
+      setError("That account no longer exists. Refresh the page.");
+      return;
+    }
+
+    var oldId = editingId;
+    users[index] = Object.assign({}, users[index], {
+      name: name,
+      studentId: studentId,
+      position: position,
+      yearLevel: yearLevel,
+      institute: institute,
+      program: program
+    });
+
+    api.saveUsers(users);
+
+    var session = api.getSession ? api.getSession() : null;
+    var isCurrent = session && api.normalizeStudentId(session.studentId) === oldId;
+
+    if (isCurrent && api.updateSession) {
+      api.updateSession({
+        name: name,
+        studentId: studentId,
+        position: position,
+        yearLevel: yearLevel,
+        institute: institute,
+        program: program
+      });
+      closeDialog();
+      api.toast(
+        "Account updated",
+        "Your account details were saved. Refreshing…",
+        "success"
+      );
+      window.setTimeout(function () {
+        window.location.reload();
+      }, 700);
+      return;
+    }
+
+    render();
+    closeDialog();
+    api.toast("Account updated", "The account details were saved.", "success");
+  }
+
+  function handleDelete(studentId) {
+    var user = findStoredAccount(studentId);
+    if (!user) return;
+
+    var label =
+      (user.name || "this account") + " (" + user.studentId + ")";
+    if (!window.confirm("Delete " + label + "?")) return;
+
+    var remaining = api.getUsers().filter(function (entry) {
+      return api.normalizeStudentId(entry.studentId) !== api.normalizeStudentId(user.studentId);
+    });
+
+    api.saveUsers(remaining);
+
+    var session = api.getSession ? api.getSession() : null;
+    var isCurrent =
+      session &&
+      api.normalizeStudentId(session.studentId) ===
+        api.normalizeStudentId(user.studentId);
+
+    if (isCurrent) {
+      api.clearSession();
+      api.toast(
+        "Account deleted",
+        "Your account was removed. Redirecting to login…",
+        "info"
+      );
+      window.setTimeout(function () {
+        window.location.href = "login.html";
+      }, 700);
+      return;
+    }
+
+    render();
+    api.toast("Account deleted", "The account was removed.", "info");
+  }
+
+  /* ---------- events ---------- */
+  if (body) {
+    body.addEventListener("click", function (event) {
+      var button =
+        event.target && event.target.closest
+          ? event.target.closest("[data-action]")
+          : null;
+      if (!button) return;
+
+      var studentId = button.getAttribute("data-id");
+      var action = button.getAttribute("data-action");
+
+      if (action === "edit") openDialog(studentId);
+      else if (action === "delete") handleDelete(studentId);
+    });
+  }
+
+  if (form) form.addEventListener("submit", handleSave);
+  if (closeButton) closeButton.addEventListener("click", closeDialog);
+  if (cancelButton) cancelButton.addEventListener("click", closeDialog);
+  if (dialog) {
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) closeDialog();
+    });
+    dialog.addEventListener("close", function () {
+      editingId = null;
+    });
+  }
+
+  uppercaseField(fields.name);
+  uppercaseField(fields.studentId);
+  uppercaseField(fields.position);
+
+  render();
 })();

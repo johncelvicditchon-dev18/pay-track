@@ -3,12 +3,14 @@ import { useToast } from "../context/ToastContext";
 import {
   STUDENT_COLUMNS,
   buildTemplateCsv,
+  deleteStudentFromFirestore,
   filterStudents,
   firebaseSyncHint,
   importStudentRows,
   importSummary,
   loadStudents,
   loadStudentsFromFirestore,
+  normalizeStudentId,
   rowsFromWorkbook,
   saveStudents,
   saveStudentsToFirestore,
@@ -20,12 +22,39 @@ const MAX_FILE_SIZE = 12 * 1024 * 1024;
 export default function StudentsPanel() {
   const toast = useToast();
   const fileRef = useRef(null);
+  const dialogRef = useRef(null);
 
   const [students, setStudents] = useState(loadStudents);
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
   const [tone, setTone] = useState("");
   const [importing, setImporting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formError, setFormError] = useState("");
+  const [form, setForm] = useState({
+    studentId: "",
+    lastName: "",
+    firstName: "",
+    middleName: "",
+    program: "",
+    year: "",
+    classification: ""
+  });
+
+  useEffect(() => {
+    if (!editingId) return;
+
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+
+      const input = dialog.querySelector("#react-edit-last-name");
+      if (input) {
+        input.focus();
+        input.select?.();
+      }
+    }
+  }, [editingId]);
 
   useEffect(() => {
     let active = true;
@@ -97,6 +126,142 @@ export default function StudentsPanel() {
   const handleImportClick = () => {
     if (importing) return;
     fileRef.current?.click();
+  };
+
+  const openEdit = (student) => {
+    setEditingId(student.studentId);
+    setForm({
+      studentId: student.studentId || "",
+      lastName: student.lastName || "",
+      firstName: student.firstName || "",
+      middleName: student.middleName || "",
+      program: student.program || "",
+      year: student.year || "",
+      classification: student.classification || ""
+    });
+    setFormError("");
+  };
+
+  const closeEdit = () => {
+    if (dialogRef.current && dialogRef.current.open) {
+      dialogRef.current.close();
+    }
+    setEditingId(null);
+  };
+
+  const updateField = (key, value) => {
+    const upper = ["studentId", "lastName", "firstName", "middleName"].includes(
+      key
+    );
+
+    setForm((current) => ({
+      ...current,
+      [key]: upper ? value.toUpperCase() : value
+    }));
+
+    if (formError) setFormError("");
+  };
+
+  const handleEditSubmit = (event) => {
+    event.preventDefault();
+    if (!editingId) return;
+
+    const studentId = normalizeStudentId(form.studentId);
+    const lastName = form.lastName.trim().toUpperCase();
+    const firstName = form.firstName.trim().toUpperCase();
+    const middleName = form.middleName.trim().toUpperCase();
+
+    if (!studentId || !lastName || !firstName) {
+      setFormError("Student ID, last name, and first name are required.");
+      return;
+    }
+
+    const duplicate = students.some(
+      (student) => student.studentId === studentId && student.studentId !== editingId
+    );
+
+    if (duplicate) {
+      setFormError("Another student already uses that Student ID.");
+      return;
+    }
+
+    const index = students.findIndex((student) => student.studentId === editingId);
+    if (index === -1) {
+      setFormError("That record no longer exists.");
+      return;
+    }
+
+    const oldId = editingId;
+    const updated = {
+      studentId,
+      lastName,
+      firstName,
+      middleName,
+      program: form.program.trim(),
+      year: form.year.trim(),
+      classification: form.classification.trim()
+    };
+
+    const next = students.slice();
+    next[index] = updated;
+
+    if (!saveStudents(next)) {
+      setFormError("Couldn't save the changes. Browser storage may be full.");
+      return;
+    }
+
+    setStudents(next);
+    closeEdit();
+    report("Student updated.", "success");
+
+    const tasks = [];
+    if (oldId !== studentId) {
+      tasks.push(deleteStudentFromFirestore(oldId));
+    }
+    tasks.push(saveStudentsToFirestore([updated]));
+
+    Promise.all(tasks)
+      .then(() => {
+        report("Student updated and saved to Firebase.", "success");
+      })
+      .catch((error) => {
+        console.warn("[students] Firebase update failed:", error);
+        report(
+          "Student updated in this browser; Firebase sync failed. " +
+            firebaseSyncHint(error),
+          "error"
+        );
+      });
+  };
+
+  const handleDelete = (student) => {
+    const label = `${student.firstName} ${student.lastName} (${student.studentId})`.trim();
+    if (!window.confirm(`Delete ${label}?`)) return;
+
+    const next = students.filter(
+      (entry) => entry.studentId !== student.studentId
+    );
+
+    if (!saveStudents(next)) {
+      report("Couldn't delete that record. Please try again.", "error");
+      return;
+    }
+
+    setStudents(next);
+    report("Student deleted.", "success");
+
+    deleteStudentFromFirestore(student.studentId)
+      .then(() => {
+        report("Student deleted from this browser and Firebase.", "success");
+      })
+      .catch((error) => {
+        console.warn("[students] Firebase delete failed:", error);
+        report(
+          "Student deleted in this browser; Firebase delete failed. " +
+            firebaseSyncHint(error),
+          "error"
+        );
+      });
   };
 
   const handleFile = async (event) => {
@@ -267,6 +432,7 @@ export default function StudentsPanel() {
                         {column.label}
                       </th>
                     ))}
+                    <th scope="col">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -275,6 +441,26 @@ export default function StudentsPanel() {
                       {STUDENT_COLUMNS.map((column) => (
                         <td key={column.key}>{student[column.key] || "—"}</td>
                       ))}
+                      <td className="cell-actions">
+                        <span className="row-actions">
+                          <button
+                            className="row-action"
+                            type="button"
+                            onClick={() => openEdit(student)}
+                            aria-label={`Edit ${student.firstName} ${student.lastName}`}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="row-action row-action--danger"
+                            type="button"
+                            onClick={() => handleDelete(student)}
+                            aria-label={`Delete ${student.firstName} ${student.lastName}`}
+                          >
+                            Delete
+                          </button>
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -302,6 +488,137 @@ export default function StudentsPanel() {
           )}
         </div>
       )}
+
+      <dialog
+        className="edit-dialog"
+        ref={dialogRef}
+        aria-labelledby="react-edit-student-title"
+        onClose={() => setEditingId(null)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) closeEdit();
+        }}
+      >
+        <form className="edit-form" onSubmit={handleEditSubmit} noValidate>
+          <header className="edit-form__head">
+            <h2 id="react-edit-student-title">Edit student</h2>
+            <button
+              className="edit-form__close"
+              type="button"
+              onClick={closeEdit}
+              aria-label="Close"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </header>
+
+          <div className="edit-grid">
+            <div className="field">
+              <label htmlFor="react-edit-student-id">Student ID</label>
+              <input
+                type="text"
+                id="react-edit-student-id"
+                value={form.studentId}
+                onChange={(event) => updateField("studentId", event.target.value)}
+                autoComplete="off"
+                spellCheck="false"
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="react-edit-last-name">Last name</label>
+              <input
+                type="text"
+                id="react-edit-last-name"
+                value={form.lastName}
+                onChange={(event) => updateField("lastName", event.target.value)}
+                autoComplete="off"
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="react-edit-first-name">First name</label>
+              <input
+                type="text"
+                id="react-edit-first-name"
+                value={form.firstName}
+                onChange={(event) => updateField("firstName", event.target.value)}
+                autoComplete="off"
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="react-edit-middle-name">Middle name</label>
+              <input
+                type="text"
+                id="react-edit-middle-name"
+                value={form.middleName}
+                onChange={(event) => updateField("middleName", event.target.value)}
+                autoComplete="off"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="react-edit-program">Program</label>
+              <input
+                type="text"
+                id="react-edit-program"
+                value={form.program}
+                onChange={(event) => updateField("program", event.target.value)}
+                autoComplete="off"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="react-edit-year">Year</label>
+              <input
+                type="text"
+                id="react-edit-year"
+                value={form.year}
+                onChange={(event) => updateField("year", event.target.value)}
+                autoComplete="off"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="react-edit-classification">Classification</label>
+              <input
+                type="text"
+                id="react-edit-classification"
+                value={form.classification}
+                onChange={(event) =>
+                  updateField("classification", event.target.value)
+                }
+                autoComplete="off"
+              />
+            </div>
+          </div>
+
+          {formError ? (
+            <p className="edit-form__error" role="alert">
+              {formError}
+            </p>
+          ) : null}
+
+          <footer className="edit-form__actions">
+            <button
+              className="btn btn--outline btn--sm"
+              type="button"
+              onClick={closeEdit}
+            >
+              Cancel
+            </button>
+            <button className="btn btn--primary btn--sm" type="submit">
+              Save changes
+            </button>
+          </footer>
+        </form>
+      </dialog>
     </section>
   );
 }

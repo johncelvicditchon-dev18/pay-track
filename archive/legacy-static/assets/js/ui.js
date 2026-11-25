@@ -94,6 +94,29 @@
     removeKey(window.sessionStorage, SESSION_KEY);
   }
 
+  function updateSession(updates) {
+    var store = window.localStorage;
+    var session = readJSON(store, SESSION_KEY, null);
+
+    if (!session) {
+      store = window.sessionStorage;
+      session = readJSON(store, SESSION_KEY, null);
+    }
+
+    if (!session) return null;
+
+    var next = {};
+    Object.keys(session).forEach(function (key) {
+      next[key] = session[key];
+    });
+    Object.keys(updates || {}).forEach(function (key) {
+      next[key] = updates[key];
+    });
+
+    writeJSON(store, SESSION_KEY, next);
+    return next;
+  }
+
   function initials(name) {
     return String(name || "")
       .trim()
@@ -190,6 +213,7 @@
     normalizeStudentId: normalizeStudentId,
     getSession: getSession,
     setSession: setSession,
+    updateSession: updateSession,
     clearSession: clearSession,
     initials: initials,
     toast: toast

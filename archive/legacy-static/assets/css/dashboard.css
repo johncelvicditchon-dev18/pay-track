@@ -736,6 +736,12 @@ html:has(.dashboard-page) {
   background: #fdecea;
 }
 
+.row-note {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
 .edit-dialog {
   width: min(560px, calc(100vw - 32px));
   padding: 0;
@@ -1104,6 +1110,10 @@ html:has(.dashboard-page) {
 
   .dashboard-page .registry-table td:nth-child(6)::before {
     content: "Program";
+  }
+
+  .dashboard-page .registry-table td:nth-child(7)::before {
+    content: "Actions";
   }
 }
 

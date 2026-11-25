@@ -193,6 +193,7 @@
                       <th scope="col">Year Level</th>
                       <th scope="col">Institute</th>
                       <th scope="col">Program</th>
+                      <th scope="col">Actions</th>
                     </tr>
                   </thead>
                   <tbody id="accounts-body"></tbody>
@@ -259,6 +260,53 @@
 
         <footer class="edit-form__actions">
           <button class="btn btn--outline btn--sm" type="button" id="student-form-cancel">Cancel</button>
+          <button class="btn btn--primary btn--sm" type="submit">Save changes</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="edit-dialog" id="account-dialog" aria-labelledby="account-dialog-title">
+      <form class="edit-form" id="account-form" novalidate>
+        <header class="edit-form__head">
+          <h2 id="account-dialog-title">Edit account</h2>
+          <button class="edit-form__close" type="button" id="account-dialog-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="edit-grid">
+          <div class="field">
+            <label for="edit-account-name">Full name</label>
+            <input type="text" id="edit-account-name" name="name" class="is-uppercase" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-student-id">Student ID</label>
+            <input type="text" id="edit-account-student-id" name="studentId" autocomplete="off" spellcheck="false" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-position">Position</label>
+            <input type="text" id="edit-account-position" name="position" class="is-uppercase" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-year">Year level</label>
+            <input type="text" id="edit-account-year" name="yearLevel" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-institute">Institute</label>
+            <input type="text" id="edit-account-institute" name="institute" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-program">Program</label>
+            <input type="text" id="edit-account-program" name="program" autocomplete="off" required />
+          </div>
+        </div>
+
+        <p class="edit-form__error" id="account-form-error" role="alert" hidden></p>
+
+        <footer class="edit-form__actions">
+          <button class="btn btn--outline btn--sm" type="button" id="account-form-cancel">Cancel</button>
           <button class="btn btn--primary btn--sm" type="submit">Save changes</button>
         </footer>
       </form>

@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   serverTimestamp,
@@ -360,6 +361,10 @@ export async function deleteStudentsFromFirestore() {
 
     await batch.commit();
   }
+}
+
+export async function deleteStudentFromFirestore(studentId) {
+  await deleteDoc(doc(db, STUDENTS_COLLECTION, studentDocId(studentId)));
 }
 
 export function firebaseSyncHint(error) {
