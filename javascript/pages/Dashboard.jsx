@@ -401,10 +401,9 @@ export default function Dashboard() {
 
           <footer className="dash-foot">
             <span>
-              Tangub City Global College ·{" "}
-              {user.council || "Officer Portal"}
+              TANGUB CITY GLOBAL COLLEGE ·{" "}
+              {user.council || "OFFICER PORTAL"}
             </span>
-            <Link to="/">Back to public site</Link>
           </footer>
         </div>
       </div>

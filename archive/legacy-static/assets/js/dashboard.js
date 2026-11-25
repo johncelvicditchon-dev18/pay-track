@@ -230,7 +230,7 @@
   var instituteEl = document.getElementById("dash-foot-institute");
   if (instituteEl) {
     var councilCode = String(session.council || "").trim().toUpperCase();
-    instituteEl.textContent = councilCode || "Officer Portal";
+    instituteEl.textContent = councilCode || "OFFICER PORTAL";
   }
 
   /* ---------- highlight your own row in the accounts table ---------- */
