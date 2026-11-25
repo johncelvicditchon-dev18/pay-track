@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import Brand from "../components/Brand";
+import AnalyticsPanel from "../components/AnalyticsPanel";
+import PaymentsPanel from "../components/PaymentsPanel";
 import StudentsPanel from "../components/StudentsPanel";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -8,11 +10,16 @@ import { authErrorMessage, initials, listAccounts } from "../lib/auth";
 import "../../design/dashboard.css";
 
 const NAV_KEY = "tcgc_paytrack_nav";
-const VIEW_TITLES = { students: "Students", accounts: "Accounts" };
+const VIEW_TITLES = {
+  analytics: "Analytics",
+  accounts: "Accounts",
+  students: "Students",
+  payments: "Payments",
+};
 
 function readHashView() {
   const hash = String(window.location.hash || "").replace(/^#/, "");
-  return VIEW_TITLES[hash] ? hash : "students";
+  return VIEW_TITLES[hash] ? hash : "analytics";
 }
 
 function display(value) {
@@ -22,6 +29,13 @@ function display(value) {
 
 function NavIcon({ name }) {
   const paths = {
+    analytics: (
+      <>
+        <path d="M4 19V5" />
+        <path d="M4 19h16" />
+        <path d="m7 15 4-5 3 3 4-6" />
+      </>
+    ),
     accounts: (
       <>
         <circle cx="9" cy="8" r="3.2" />
@@ -33,6 +47,12 @@ function NavIcon({ name }) {
       <>
         <rect x="3" y="4" width="18" height="16" rx="2" />
         <path d="M3 9h18M9 9v11" />
+      </>
+    ),
+    payments: (
+      <>
+        <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2Z" />
+        <path d="M9 7h6M9 11h6" />
       </>
     ),
   };
@@ -235,16 +255,16 @@ export default function Dashboard() {
 
           <nav className="side-links" aria-label="Dashboard tabs">
             <a
-              className={`side-link${view === "students" ? " is-active" : ""}`}
-              href="#students"
-              aria-current={view === "students" ? "page" : undefined}
+              className={`side-link${view === "analytics" ? " is-active" : ""}`}
+              href="#analytics"
+              aria-current={view === "analytics" ? "page" : undefined}
               onClick={(event) => {
                 event.preventDefault();
-                switchView("students");
+                switchView("analytics");
               }}
             >
-              <NavIcon name="students" />
-              Students
+              <NavIcon name="analytics" />
+              Analytics
             </a>
             <a
               className={`side-link${view === "accounts" ? " is-active" : ""}`}
@@ -257,6 +277,30 @@ export default function Dashboard() {
             >
               <NavIcon name="accounts" />
               Accounts
+            </a>
+            <a
+              className={`side-link${view === "students" ? " is-active" : ""}`}
+              href="#students"
+              aria-current={view === "students" ? "page" : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                switchView("students");
+              }}
+            >
+              <NavIcon name="students" />
+              Students
+            </a>
+            <a
+              className={`side-link${view === "payments" ? " is-active" : ""}`}
+              href="#payments"
+              aria-current={view === "payments" ? "page" : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                switchView("payments");
+              }}
+            >
+              <NavIcon name="payments" />
+              Payments
             </a>
           </nav>
 
@@ -312,9 +356,19 @@ export default function Dashboard() {
           </header>
 
           <main className="dash-content">
+            {view === "analytics" ? (
+              <AnalyticsPanel council={user.council} />
+            ) : null}
+
             {view === "students" ? (
               <StudentsPanel council={user.council} />
-            ) : (
+            ) : null}
+
+            {view === "payments" ? (
+              <PaymentsPanel council={user.council} />
+            ) : null}
+
+            {view === "accounts" ? (
               <section className="dash-view" aria-label="Accounts">
                 <div className="view-head">
                   <div>
@@ -396,7 +450,7 @@ export default function Dashboard() {
                   ) : null}
                 </div>
               </section>
-            )}
+            ) : null}
           </main>
 
           <footer className="dash-foot">

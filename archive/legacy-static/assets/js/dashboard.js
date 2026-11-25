@@ -137,8 +137,10 @@
 
   /* ---------- tabs ---------- */
   var VIEW_TITLES = {
+    analytics: "Analytics",
+    accounts: "Accounts",
     students: "Students",
-    accounts: "Accounts"
+    payments: "Payments"
   };
 
   var viewLinks = document.querySelectorAll("[data-view]");
@@ -147,7 +149,7 @@
 
   function currentView() {
     var name = String(window.location.hash || "").replace(/^#/, "");
-    return VIEW_TITLES[name] ? name : "students";
+    return VIEW_TITLES[name] ? name : "analytics";
   }
 
   function showView(name) {
@@ -167,6 +169,13 @@
 
     if (topbarTitle) topbarTitle.textContent = VIEW_TITLES[name];
     document.title = VIEW_TITLES[name] + " · TCGC PayTrack";
+
+    if (name === "analytics" && typeof window.TCGCRefreshAnalytics === "function") {
+      window.TCGCRefreshAnalytics();
+    }
+    if (name === "payments" && typeof window.TCGCRefreshPayments === "function") {
+      window.TCGCRefreshPayments();
+    }
 
     if (isMobile()) closeMobileNav();
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });

@@ -43,12 +43,13 @@
         </div>
 
         <nav class="side-links" aria-label="Dashboard tabs">
-          <a class="side-link is-active" href="#students" data-view="students">
+          <a class="side-link is-active" href="#analytics" data-view="analytics">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="16" rx="2" />
-              <path d="M3 9h18M9 9v11" />
+              <path d="M4 19V5" />
+              <path d="M4 19h16" />
+              <path d="m7 15 4-5 3 3 4-6" />
             </svg>
-            Students
+            Analytics
           </a>
           <a class="side-link" href="#accounts" data-view="accounts">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -57,6 +58,20 @@
               <path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 13.4a5 5 0 0 1 3 4.6" />
             </svg>
             Accounts
+          </a>
+          <a class="side-link" href="#students" data-view="students">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M3 9h18M9 9v11" />
+            </svg>
+            Students
+          </a>
+          <a class="side-link" href="#payments" data-view="payments">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2Z" />
+              <path d="M9 7h6M9 11h6" />
+            </svg>
+            Payments
           </a>
         </nav>
 
@@ -94,7 +109,7 @@
 
           <div class="top-bar__meta">
             <span class="top-bar__eyebrow">Officer portal</span>
-            <strong id="topbar-title">Students</strong>
+            <strong id="topbar-title">Analytics</strong>
           </div>
 
           <div class="top-bar__user">
@@ -106,6 +121,49 @@
         </header>
 
         <main class="dash-content">
+          <!-- ============ ANALYTICS TAB ============ -->
+          <section class="dash-view" id="analytics" data-view-panel="analytics" hidden>
+            <div class="view-head">
+              <div>
+                <h1>Analytics</h1>
+                <p class="view-subtitle">
+                  Enrollment by year level ·
+                  <span data-session="council">—</span>
+                </p>
+              </div>
+              <span class="dash-count" id="analytics-count">0 students</span>
+            </div>
+
+            <div class="stat-grid">
+              <article class="stat-card">
+                <span class="stat-card__label">Total students</span>
+                <strong id="analytics-total">0</strong>
+                <small>Across every year level</small>
+              </article>
+              <article class="stat-card stat-card--accent">
+                <span class="stat-card__label">Highest enrollment</span>
+                <strong id="analytics-peak">—</strong>
+                <small id="analytics-peak-note">No records yet</small>
+              </article>
+              <article class="stat-card">
+                <span class="stat-card__label">Average per year</span>
+                <strong id="analytics-average">0</strong>
+                <small>Students per year level</small>
+              </article>
+            </div>
+
+            <article class="chart-card">
+              <header class="chart-card__head">
+                <div>
+                  <h2>Students per year level</h2>
+                  <p id="analytics-note">Live roster</p>
+                </div>
+                <span class="chart-legend"><i aria-hidden="true"></i> Enrolled students</span>
+              </header>
+              <div id="analytics-chart"></div>
+            </article>
+          </section>
+
           <!-- ============ STUDENTS TAB ============ -->
           <section class="dash-view" id="students" data-view-panel="students" hidden>
             <div class="view-head">
@@ -180,6 +238,63 @@
             <div class="records-empty" id="students-empty">
               <p>No student records yet.</p>
               <small>Use <strong>Import Excel</strong> or download the template to get started.</small>
+            </div>
+          </section>
+
+          <!-- ============ PAYMENTS TAB ============ -->
+          <section class="dash-view" id="payments" data-view-panel="payments" hidden>
+            <div class="view-head">
+              <div>
+                <h1>Payments</h1>
+                <p class="view-subtitle">
+                  Charge balances and receipts ·
+                  <span data-session="council">—</span>
+                </p>
+              </div>
+              <span class="dash-count" id="payments-count">—</span>
+            </div>
+
+            <div class="stat-grid">
+              <article class="stat-card">
+                <span class="stat-card__label">Total billed</span>
+                <strong id="payments-billed">₱0.00</strong>
+                <small>All charges in this council</small>
+              </article>
+              <article class="stat-card">
+                <span class="stat-card__label">Total paid</span>
+                <strong id="payments-paid">₱0.00</strong>
+                <small>Verified payments</small>
+              </article>
+              <article class="stat-card stat-card--accent">
+                <span class="stat-card__label">Outstanding</span>
+                <strong id="payments-balance">₱0.00</strong>
+                <small id="payments-open">0 with an open balance</small>
+              </article>
+            </div>
+
+            <div class="accounts-table-wrap">
+              <div class="accounts-table-scroll" id="payments-table-wrap" hidden>
+                <table class="accounts-table payments-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Student</th>
+                      <th scope="col">Student ID</th>
+                      <th scope="col" class="num">Billed</th>
+                      <th scope="col" class="num">Paid</th>
+                      <th scope="col" class="num">Balance</th>
+                      <th scope="col" class="num">Receipts</th>
+                      <th scope="col">Next due</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payments-body"></tbody>
+                </table>
+              </div>
+
+              <div class="accounts-empty" id="payments-empty">
+                <p>No payment records for this council yet.</p>
+                <small>Payment records sync from Firestore.</small>
+              </div>
             </div>
           </section>
 
@@ -356,6 +471,8 @@
     <script src="../assets/js/accounts.js"></script>
     <script src="../assets/js/firebase-client.js"></script>
     <script src="../assets/js/students.js"></script>
+    <script src="../assets/js/analytics.js"></script>
+    <script src="../assets/js/payments.js"></script>
     <script src="../assets/js/dashboard.js"></script>
   </body>
 </html>

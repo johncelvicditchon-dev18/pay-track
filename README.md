@@ -49,16 +49,22 @@ npm run preview
 After a successful login the app opens `/dashboard`, which shows:
 
 - A collapsible sidebar — hidden/shown with the top-left button, remembered on
-  desktop and off-canvas (with scrim) on mobile.
-- The **Students** tab (default) — import a class list from `.xlsx`, `.xls`, or
-  `.csv` (Student ID, Last Name, First Name, Middle Name, Program, Year,
-  Classification). Rows are written to the Firestore `students` collection
-  (document ID = Student ID) and cached in `localStorage`
-  (`tcgc_paytrack_students`); re-importing a Student ID updates that row.
-  Includes a CSV template download, search, and clear-all. The Excel parser
-  (`xlsx`) is loaded lazily only when importing.
+  desktop and off-canvas (with scrim) on mobile. Tabs, in order: **Analytics**,
+  **Accounts**, **Students**, **Payments**.
+- The **Analytics** tab (default) — a line chart of enrollment by year level
+  (1st–4th year) for the officer's council, with total students, the
+  highest-enrollment year, and the average per year.
 - The **Accounts** tab with the Firestore-backed roster; the signed-in
-  student's row is highlighted.
+  officer's row is highlighted.
+- The **Students** tab — import a class list from `.xlsx`, `.xls`, or `.csv`
+  (Student ID, Last Name, First Name, Middle Name, Program, Year,
+  Classification). Rows are scoped to the officer's council, written to the
+  Firestore `students` collection (document ID = `COUNCIL::STUDENTID`) and
+  cached in `localStorage` per council; re-importing a Student ID updates that
+  row. Includes a CSV template download and search. The Excel parser (`xlsx`)
+  is loaded lazily only when importing.
+- The **Payments** tab — council-scoped payment records with total billed,
+  paid, and outstanding balances, receipts count, next due date, and status.
 
 Visiting `/dashboard` without a session redirects to `/login`.
 

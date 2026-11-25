@@ -1,4 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase";
 import { normalizeStudentId } from "./students";
 import { normalizeCouncil } from "../data/councils";
@@ -52,6 +52,30 @@ export async function fetchPaymentRecord(studentId, council) {
 
   if (!snapshot.exists()) return null;
   return normalizeRecord(normalizedCouncil, normalized, snapshot.data());
+}
+
+/**
+ * List every payment record that belongs to one council. Used by the
+ * dashboard's Payments tab.
+ */
+export async function listPaymentRecords(council) {
+  const code = normalizeCouncil(council);
+  if (!code) return [];
+
+  const snapshot = await getDocs(
+    query(
+      collection(db, PAYMENT_RECORDS_COLLECTION),
+      where("council", "==", code)
+    )
+  );
+
+  return snapshot.docs.map((entry) => {
+    const docId = entry.id;
+    const studentId = docId.includes("::")
+      ? docId.slice(docId.indexOf("::") + 2)
+      : docId;
+    return normalizeRecord(code, studentId, entry.data());
+  });
 }
 
 /*

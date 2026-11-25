@@ -527,7 +527,7 @@ body.nav-open-lock {
 /* ---------- stat cards ---------- */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -571,6 +571,177 @@ body.nav-open-lock {
   color: var(--green-900);
   font-size: 0.98rem;
   letter-spacing: -0.01em;
+}
+
+.stat-card small {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.stat-card--accent {
+  border-color: var(--green-100);
+  background: linear-gradient(140deg, #ffffff 0%, var(--green-50) 100%);
+}
+
+/* ---------- analytics ---------- */
+.view-subtitle {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.chart-card {
+  margin-top: 20px;
+  padding: 22px 22px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 24px);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.chart-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.chart-card__head h2 {
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.chart-card__head p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.chart-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.chart-legend i {
+  width: 16px;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--green-600);
+}
+
+.enroll-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+  overflow: visible;
+}
+
+.enroll-chart__grid {
+  stroke: var(--line);
+  stroke-width: 1;
+  stroke-dasharray: 4 6;
+}
+
+.enroll-chart__tick {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.enroll-chart__line {
+  fill: none;
+  stroke: var(--green-600);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.enroll-chart__dot {
+  fill: #fff;
+  stroke: var(--green-600);
+  stroke-width: 2.4;
+}
+
+.enroll-chart__dot.is-peak {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.enroll-chart__value {
+  fill: var(--green-800);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.enroll-chart__value.is-peak {
+  fill: var(--accent-deep);
+  font-size: 12px;
+}
+
+.enroll-chart__label {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.chart-empty {
+  padding: 54px 16px 64px;
+  text-align: center;
+}
+
+.chart-empty p {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.chart-empty small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+/* ---------- payments ---------- */
+.payments-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.payments-table .num.is-due {
+  color: #a5372b;
+  font-weight: 700;
+}
+
+.pay-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pay-status--paid {
+  background: var(--green-100);
+  color: var(--green-800);
+}
+
+.pay-status--due {
+  background: var(--orange-100);
+  color: var(--orange-800);
 }
 
 /* ---------- panels ---------- */

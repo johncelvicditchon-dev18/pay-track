@@ -519,6 +519,10 @@
             : "<p>No students match your search.</p><small>Try a different name, ID, program, year, or classification.</small>";
       }
     }
+
+    if (typeof window.TCGCRefreshAnalytics === "function") {
+      window.TCGCRefreshAnalytics();
+    }
   }
 
   /* ---------- editing & deleting ---------- */

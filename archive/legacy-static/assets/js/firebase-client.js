@@ -10,6 +10,7 @@
   var PROJECT_ID = "tcgc-payment-tracking-system";
   var API_KEY = "AIzaSyB0CH4x8ORDadrG2Q7J8v4DR7Mj3UGCZ2M";
   var COLLECTION = "students";
+  var PAYMENTS_COLLECTION = "paymentRecords";
   var BATCH_SIZE = 450;
   var BASE_URL =
     "https://firestore.googleapis.com/v1/projects/" +
@@ -161,6 +162,30 @@
     return field && typeof field.stringValue === "string" ? field.stringValue : "";
   }
 
+  function decodeValue(value) {
+    if (!value) return null;
+    if (typeof value.stringValue === "string") return value.stringValue;
+    if (typeof value.booleanValue === "boolean") return value.booleanValue;
+    if (value.integerValue != null) return Number(value.integerValue);
+    if (value.doubleValue != null) return Number(value.doubleValue);
+    if (value.timestampValue != null) return value.timestampValue;
+    if (value.arrayValue) {
+      return (value.arrayValue.values || []).map(decodeValue);
+    }
+    if (value.mapValue) {
+      return decodeFields(value.mapValue.fields || {});
+    }
+    return null;
+  }
+
+  function decodeFields(fields) {
+    var out = {};
+    Object.keys(fields || {}).forEach(function (key) {
+      out[key] = decodeValue(fields[key]);
+    });
+    return out;
+  }
+
   function fromDocument(document) {
     var fields = document.fields || {};
     var docId = String(document.name || "").split("/").pop();
@@ -245,6 +270,45 @@
         return commit(chunk);
       });
     }, Promise.resolve());
+  };
+
+  client.loadPayments = function (council) {
+    var filter = String(council || "").toUpperCase();
+    var records = [];
+
+    function loadPage(pageToken) {
+      var url =
+        BASE_URL +
+        "/" +
+        PAYMENTS_COLLECTION +
+        KEY_PARAM +
+        "&pageSize=300" +
+        (pageToken ? "&pageToken=" + encodeURIComponent(pageToken) : "");
+
+      return request(url).then(function (data) {
+        (data.documents || []).forEach(function (document) {
+          var record = decodeFields(document.fields || {});
+          var docId = String(document.name || "").split("/").pop();
+          var parts = decodeURIComponent(docId).split("::");
+          var councilFromId = parts.length > 1 ? parts[0] : "";
+          var studentFromId =
+            parts.length > 1 ? parts.slice(1).join("::") : parts[0] || "";
+          record.studentId = record.studentId || studentFromId;
+          record.council = record.council || councilFromId;
+          if (
+            !filter ||
+            String(record.council || "").toUpperCase() === filter
+          ) {
+            records.push(record);
+          }
+        });
+
+        if (data.nextPageToken) return loadPage(data.nextPageToken);
+        return records;
+      });
+    }
+
+    return loadPage(null);
   };
 
   client.deleteStudent = function (studentId, council) {
