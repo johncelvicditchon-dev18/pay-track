@@ -297,7 +297,7 @@ export default function Dashboard() {
             </button>
 
             <div className="top-bar__meta">
-              <span className="top-bar__eyebrow">Student portal</span>
+              <span className="top-bar__eyebrow">Officer portal</span>
               <strong>{activeView}</strong>
             </div>
 
@@ -407,7 +407,7 @@ export default function Dashboard() {
               Tangub City Global College ·{" "}
               {INSTITUTE_ORGANIZATIONS[user.institute] ||
                 user.institute ||
-                "Student Portal"}
+                "Officer Portal"}
             </span>
             <Link to="/">Back to public site</Link>
           </footer>

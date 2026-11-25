@@ -3,7 +3,7 @@ import Brand from "./Brand";
 
 const ASIDE_COPY = {
   login: {
-    tag: "Student portal",
+    tag: "Officer portal",
     title: (
       <>
         Know exactly where your <em>payments stand.</em>

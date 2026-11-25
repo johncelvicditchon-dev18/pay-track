@@ -239,7 +239,7 @@
   if (instituteEl) {
     var instituteCode = String(session.institute || "").trim().toUpperCase();
     instituteEl.textContent =
-      INSTITUTE_LABELS[instituteCode] || instituteCode || "Student Portal";
+      INSTITUTE_LABELS[instituteCode] || instituteCode || "Officer Portal";
   }
 
   /* ---------- highlight your own row in the accounts table ---------- */
