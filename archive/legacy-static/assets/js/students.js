@@ -98,6 +98,121 @@
     else statusEl.removeAttribute("data-state");
   }
 
+  /* ---------- Firebase ---------- */
+  function firebaseHint(error) {
+    var code = error && error.code ? String(error.code) : "";
+    var authError = window.TCGCFirebase && window.TCGCFirebase.authError;
+
+    if (code === "auth" || (authError && code === "permission-denied")) {
+      return "Enable Anonymous sign-in in Firebase Authentication, then reload.";
+    }
+
+    if (code === "permission-denied") {
+      return "Firestore denied access. Deploy the updated students rules.";
+    }
+
+    if (code === "unavailable") {
+      return "Firebase is unreachable. Check your connection.";
+    }
+
+    return error && error.message ? error.message : "Firebase sync failed.";
+  }
+
+  function mergeStudents(local, remote) {
+    var byId = {};
+
+    local.forEach(function (student) {
+      byId[student.studentId] = student;
+    });
+
+    remote.forEach(function (student) {
+      byId[student.studentId] = student;
+    });
+
+    return Object.keys(byId).map(function (key) {
+      return byId[key];
+    });
+  }
+
+  function syncImported(students, summaryText) {
+    if (!window.TCGCFirebase || !window.TCGCFirebase.available) {
+      setStatus(
+        "Import complete: " + summaryText + ". Saved in this browser only (Firebase unavailable).",
+        "success"
+      );
+      return;
+    }
+
+    window.TCGCFirebase.saveStudents(students)
+      .then(function () {
+        setStatus("Import complete: " + summaryText + ". Saved to Firebase.", "success");
+      })
+      .catch(function (error) {
+        console.warn("[students] Firebase save failed:", error);
+        setStatus(
+          "Import complete: " +
+            summaryText +
+            ". Saved in this browser, but Firebase sync failed. " +
+            firebaseHint(error),
+          "error"
+        );
+      });
+  }
+
+  function syncFromFirebase() {
+    if (!window.TCGCFirebase || !window.TCGCFirebase.available) return;
+
+    window.TCGCFirebase.loadStudents()
+      .then(function (remote) {
+        var local = readStore();
+        var remoteIds = {};
+
+        remote.forEach(function (student) {
+          remoteIds[student.studentId] = true;
+        });
+
+        var localOnly = local.filter(function (student) {
+          return !remoteIds[student.studentId];
+        });
+
+        if (remote.length) {
+          var merged = mergeStudents(local, remote);
+          writeStore(merged);
+          render();
+        }
+
+        if (localOnly.length) {
+          // Backfill records that were imported before Firebase sync existed.
+          window.TCGCFirebase.saveStudents(localOnly)
+            .then(function () {
+              if (!statusEl.textContent.trim()) {
+                setStatus(
+                  "Saved " + localOnly.length + " local record(s) to Firebase.",
+                  "success"
+                );
+              }
+            })
+            .catch(function (error) {
+              console.warn("[students] Firebase backfill failed:", error);
+              if (!statusEl.textContent.trim()) {
+                setStatus(firebaseHint(error), "error");
+              }
+            });
+        }
+
+        if (remote.length && !statusEl.textContent.trim()) {
+          setStatus("Synced " + remote.length + " record(s) from Firebase.", "success");
+        }
+      })
+      .catch(function (error) {
+        console.warn("[students] Firebase load failed:", error);
+
+        if (!statusEl.textContent.trim()) {
+          setStatus(firebaseHint(error), "error");
+        }
+      });
+  }
+
   /* ---------- parsing ---------- */
   function headerScore(row) {
     var score = 0;
@@ -261,12 +376,12 @@
       return { ok: false };
     }
 
-    var summary =
+    var summaryText =
       added +
       " added" +
       (updated ? ", " + updated + " updated" : "") +
-      (skipped ? ", " + skipped + " skipped" : "") +
-      ".";
+      (skipped ? ", " + skipped + " skipped" : "");
+    var summary = summaryText + ".";
 
     setStatus("Import complete: " + summary, "success");
 
@@ -275,6 +390,7 @@
     }
 
     render();
+    syncImported(students, summaryText);
 
     return { ok: true, added: added, updated: updated, skipped: skipped };
   }
@@ -442,6 +558,20 @@
     if (api && api.toast) {
       api.toast("Records cleared", "Imported student records were removed from this browser.", "info");
     }
+
+    if (window.TCGCFirebase && window.TCGCFirebase.available) {
+      window.TCGCFirebase.deleteAllStudents()
+        .then(function () {
+          setStatus("All student records were cleared from this browser and Firebase.", "success");
+        })
+        .catch(function (error) {
+          console.warn("[students] Firebase delete failed:", error);
+          setStatus(
+            "Cleared in this browser, but Firebase delete failed. " + firebaseHint(error),
+            "error"
+          );
+        });
+    }
   }
 
   /* ---------- events ---------- */
@@ -476,11 +606,13 @@
   }
 
   render();
+  syncFromFirebase();
 
   // Exposed for console use and automated checks.
   window.TCGCStudents = {
     importRows: importRows,
     getStudents: readStore,
-    render: render
+    render: render,
+    sync: syncFromFirebase
   };
 })();

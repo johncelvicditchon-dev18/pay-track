@@ -1,14 +1,18 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useToast } from "../context/ToastContext";
 import {
   STUDENT_COLUMNS,
   buildTemplateCsv,
+  deleteStudentsFromFirestore,
   filterStudents,
+  firebaseSyncHint,
   importStudentRows,
   importSummary,
   loadStudents,
+  loadStudentsFromFirestore,
   rowsFromWorkbook,
   saveStudents,
+  saveStudentsToFirestore,
   sortStudents
 } from "../lib/students";
 
@@ -23,6 +27,63 @@ export default function StudentsPanel() {
   const [message, setMessage] = useState("");
   const [tone, setTone] = useState("");
   const [importing, setImporting] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    loadStudentsFromFirestore()
+      .then((remote) => {
+        if (!active) return;
+
+        const local = loadStudents();
+        const remoteIds = new Set(remote.map((student) => student.studentId));
+        const localOnly = local.filter(
+          (student) => !remoteIds.has(student.studentId)
+        );
+        const byId = new Map();
+
+        local.forEach((student) => byId.set(student.studentId, student));
+        remote.forEach((student) => byId.set(student.studentId, student));
+
+        const merged = Array.from(byId.values());
+        saveStudents(merged);
+        setStudents(merged);
+
+        if (remote.length) {
+          setMessage("Synced with Firebase.");
+          setTone("success");
+        }
+
+        if (localOnly.length) {
+          // Backfill records that were imported before Firebase sync existed.
+          saveStudentsToFirestore(localOnly)
+            .then(() => {
+              if (active && !remote.length) {
+                setMessage(
+                  `Saved ${localOnly.length} local record(s) to Firebase.`
+                );
+                setTone("success");
+              }
+            })
+            .catch((error) => {
+              if (!active) return;
+              console.warn("[students] Firebase backfill failed:", error);
+              setMessage(firebaseSyncHint(error));
+              setTone("error");
+            });
+        }
+      })
+      .catch((error) => {
+        if (!active) return;
+        console.warn("[students] Firebase load failed:", error);
+        setMessage(firebaseSyncHint(error));
+        setTone("error");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const visible = useMemo(
     () => filterStudents(sortStudents(students), query),
@@ -86,6 +147,20 @@ export default function StudentsPanel() {
       setStudents(result.students);
       report(`Import complete: ${summary}`, "success");
       toast("Import complete", summary, "success");
+
+      saveStudentsToFirestore(result.students)
+        .then(() => {
+          report(`Import complete: ${summary} Saved to Firebase.`, "success");
+        })
+        .catch((error) => {
+          console.warn("[students] Firebase save failed:", error);
+          report(
+            `Import complete: ${summary} Saved locally; Firebase sync failed. ${firebaseSyncHint(
+              error
+            )}`,
+            "error"
+          );
+        });
     } catch (error) {
       console.error("[students] Could not read file:", error);
       report(
@@ -132,6 +207,21 @@ export default function StudentsPanel() {
       "Imported student records were removed from this browser.",
       "info"
     );
+
+    deleteStudentsFromFirestore()
+      .then(() => {
+        report(
+          "All student records were cleared from this browser and Firebase.",
+          "success"
+        );
+      })
+      .catch((error) => {
+        console.warn("[students] Firebase delete failed:", error);
+        report(
+          `Cleared locally; Firebase delete failed. ${firebaseSyncHint(error)}`,
+          "error"
+        );
+      });
   };
 
   return (

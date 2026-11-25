@@ -1,4 +1,15 @@
+import {
+  collection,
+  doc,
+  getDocs,
+  serverTimestamp,
+  writeBatch
+} from "firebase/firestore";
+import { db } from "./firebase";
+
 export const STUDENTS_KEY = "tcgc_paytrack_students";
+const STUDENTS_COLLECTION = "students";
+const FIRESTORE_BATCH_SIZE = 450;
 
 export const STUDENT_COLUMNS = [
   { key: "studentId", label: "Student ID" },
@@ -273,4 +284,98 @@ export function importSummary({ added, updated, skipped }) {
     (skipped ? ", " + skipped + " skipped" : "") +
     "."
   );
+}
+
+/* ---------- Firestore sync ---------- */
+function studentDocId(studentId) {
+  return encodeURIComponent(normalizeStudentId(studentId));
+}
+
+function docIdToStudentId(docId) {
+  try {
+    return decodeURIComponent(docId);
+  } catch {
+    return docId;
+  }
+}
+
+export async function loadStudentsFromFirestore() {
+  const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
+
+  return snapshot.docs.map((entry) => {
+    const data = entry.data() || {};
+    return {
+      studentId: data.studentId || docIdToStudentId(entry.id),
+      lastName: data.lastName || "",
+      firstName: data.firstName || "",
+      middleName: data.middleName || "",
+      program: data.program || "",
+      year: data.year || "",
+      classification: data.classification || ""
+    };
+  });
+}
+
+export async function saveStudentsToFirestore(students) {
+  const chunks = [];
+
+  for (let i = 0; i < students.length; i += FIRESTORE_BATCH_SIZE) {
+    chunks.push(students.slice(i, i + FIRESTORE_BATCH_SIZE));
+  }
+
+  for (const chunk of chunks) {
+    const batch = writeBatch(db);
+
+    chunk.forEach((student) => {
+      batch.set(
+        doc(db, STUDENTS_COLLECTION, studentDocId(student.studentId)),
+        {
+          studentId: student.studentId,
+          lastName: student.lastName || "",
+          firstName: student.firstName || "",
+          middleName: student.middleName || "",
+          program: student.program || "",
+          year: student.year || "",
+          classification: student.classification || "",
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
+    });
+
+    await batch.commit();
+  }
+}
+
+export async function deleteStudentsFromFirestore() {
+  const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
+  const docs = snapshot.docs;
+
+  for (let i = 0; i < docs.length; i += FIRESTORE_BATCH_SIZE) {
+    const batch = writeBatch(db);
+
+    docs.slice(i, i + FIRESTORE_BATCH_SIZE).forEach((entry) => {
+      batch.delete(entry.ref);
+    });
+
+    await batch.commit();
+  }
+}
+
+export function firebaseSyncHint(error) {
+  const code = String(error?.code || "").replace(/^firestore\//, "");
+
+  if (code === "permission-denied") {
+    return "Firestore denied access. Deploy the updated students rules.";
+  }
+
+  if (code === "unavailable") {
+    return "Firebase is unreachable. Check your connection.";
+  }
+
+  if (code === "failed-precondition") {
+    return "Firestore needs additional setup before students can sync.";
+  }
+
+  return "Firebase sync failed.";
 }

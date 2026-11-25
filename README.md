@@ -52,8 +52,9 @@ After a successful login the app opens `/dashboard`, which shows:
   desktop and off-canvas (with scrim) on mobile.
 - The **Students** tab (default) — import a class list from `.xlsx`, `.xls`, or
   `.csv` (Student ID, Last Name, First Name, Middle Name, Program, Year,
-  Classification). Rows are saved in this browser (`localStorage` key
-  `tcgc_paytrack_students`) and re-importing a Student ID updates that row.
+  Classification). Rows are written to the Firestore `students` collection
+  (document ID = Student ID) and cached in `localStorage`
+  (`tcgc_paytrack_students`); re-importing a Student ID updates that row.
   Includes a CSV template download, search, and clear-all. The Excel parser
   (`xlsx`) is loaded lazily only when importing.
 - The **Accounts** tab with the Firestore-backed roster; the signed-in
@@ -123,7 +124,8 @@ The project keys live in `javascript/lib/firebase.js` (override them with
 Before the app can log people in, in the
 [Firebase console](https://console.firebase.google.com/project/tcgc-payment-tracking-system):
 
-1. **Authentication → Sign-in method**: enable **Email/Password**.
+1. **Authentication → Sign-in method**: enable **Email/Password**. If you use the
+   archived static dashboard's Firebase sync, enable **Anonymous** as well.
 2. **Authentication → Settings → Authorized domains**: add `localhost` and your
    production domain.
 3. **Firestore Database**: create the database, then deploy the bundled rules:
@@ -136,9 +138,9 @@ Before the app can log people in, in the
    ```
 
 The rules in `firestore.rules` let a signed-in student read the roster (used by
-`/accounts`), but only create or edit their own profile document. Restrict reads
-further with an admin custom claim if the roster should not be visible to every
-student.
+`/accounts`), write the imported `students` class list, and manage their own
+profile. Restrict reads further with an admin custom claim if the roster should
+not be visible to every student.
 
 The Firebase web API key is public by design, but you should restrict it in the
 Google Cloud console to your own domains and to the Firebase APIs this app uses.
