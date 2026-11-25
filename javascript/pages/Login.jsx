@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { EMAIL_RE } from "../lib/auth";
+import { authErrorMessage } from "../lib/auth";
 
 function EyeIcon() {
   return (
@@ -48,7 +48,7 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const registeredHandled = useRef(false);
 
-  const [form, setForm] = useState({ email: "", password: "", remember: false });
+  const [form, setForm] = useState({ studentId: "", password: "", remember: false });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -57,14 +57,14 @@ export default function Login() {
     if (searchParams.get("registered") !== "1" || registeredHandled.current) return;
 
     registeredHandled.current = true;
-    const email = searchParams.get("email") || "";
-    if (email) {
-      setForm((current) => ({ ...current, email }));
+    const studentId = searchParams.get("studentId") || "";
+    if (studentId) {
+      setForm((current) => ({ ...current, studentId }));
     }
 
     toast(
       "Account created",
-      "You can now log in with your school email and new password.",
+      "You can now log in with your student ID and new password.",
       "success"
     );
     navigate("/login", { replace: true });
@@ -77,17 +77,15 @@ export default function Login() {
     }
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (busy) return;
 
     const nextErrors = {};
-    const email = form.email.trim();
+    const studentId = form.studentId.trim();
 
-    if (!email) {
-      nextErrors.email = "Enter your school email address.";
-    } else if (!EMAIL_RE.test(email)) {
-      nextErrors.email = "That doesn't look like a valid email address.";
+    if (!studentId) {
+      nextErrors.studentId = "Enter your student ID.";
     }
 
     if (!form.password) {
@@ -96,42 +94,54 @@ export default function Login() {
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
-      const target = nextErrors.email ? "login-email" : "login-password";
+      const target = nextErrors.studentId
+        ? "login-student-id"
+        : "login-password";
       window.requestAnimationFrame(() => document.getElementById(target)?.focus());
       return;
     }
 
     setBusy(true);
 
-    window.setTimeout(() => {
-      const session = login(email, form.password, form.remember);
+    try {
+      const session = await login(studentId, form.password, form.remember);
+      setBusy(false);
 
       if (session) {
-        navigate("/?welcome=1");
+        navigate("/dashboard");
         return;
       }
 
+      setErrors({ password: "We couldn't sign you in. Please try again." });
+    } catch (error) {
+      console.error("[login] Firebase error:", error);
       setBusy(false);
-      setErrors({
-        password: "The email and password don't match our records. Please try again.",
-      });
-      toast(
-        "Couldn't sign you in",
-        "Double-check your email and password, or use the demo account shown below the form.",
-        "error"
+
+      const code = String(error?.code || "");
+      const message = authErrorMessage(
+        error,
+        "The student ID and password don't match our records. Please try again."
       );
+      const isIdProblem =
+        code === "auth/missing-email" || code === "auth/invalid-email";
+
+      setErrors(isIdProblem ? { studentId: message } : { password: message });
+      toast("Couldn't sign you in", message, "error");
+
       window.requestAnimationFrame(() => {
-        const input = document.getElementById("login-password");
+        const input = document.getElementById(
+          isIdProblem ? "login-student-id" : "login-password"
+        );
         input?.focus();
-        input?.select();
+        input?.select?.();
       });
-    }, 650);
+    }
   };
 
   const forgotPassword = () => {
     toast(
       "Password reset",
-      "Resets are handled by the Finance Office. Email finance@tcgc.edu.ph or visit the office with your student ID.",
+      "Resets are handled by the Finance Office. Bring your student ID to the office or email finance@tcgc.edu.ph.",
       "info"
     );
   };
@@ -140,7 +150,7 @@ export default function Login() {
     <AuthLayout
       variant="login"
       title="Welcome back"
-      subtitle="Log in with the school email you registered with."
+      subtitle="Log in with the student ID you registered with."
       footer={
         <p className="auth-switch">
           New to PayTrack? <Link to="/signup">Create an account</Link>
@@ -148,26 +158,25 @@ export default function Login() {
       }
     >
       <form className="auth-form" id="login-form" onSubmit={handleSubmit} noValidate>
-        <div className={`field${errors.email ? " has-error" : ""}`}>
-          <label htmlFor="login-email">School email</label>
+        <div className={`field${errors.studentId ? " has-error" : ""}`}>
+          <label htmlFor="login-student-id">Student ID</label>
           <div className="input-wrap">
             <input
-              type="email"
-              id="login-email"
-              name="email"
-              value={form.email}
-              onChange={(event) => updateField("email", event.target.value)}
-              placeholder="you@tcgc.edu.ph"
-              autoComplete="email"
-              inputMode="email"
+              type="text"
+              id="login-student-id"
+              name="studentId"
+              value={form.studentId}
+              onChange={(event) => updateField("studentId", event.target.value)}
+              placeholder="XXXXXXX"
+              autoComplete="username"
               spellCheck="false"
-              aria-describedby="login-email-error"
-              aria-invalid={Boolean(errors.email)}
+              aria-describedby="login-student-id-error"
+              aria-invalid={Boolean(errors.studentId)}
               required
             />
           </div>
-          <p className="field-error" id="login-email-error" role="alert" hidden={!errors.email}>
-            {errors.email}
+          <p className="field-error" id="login-student-id-error" role="alert" hidden={!errors.studentId}>
+            {errors.studentId}
           </p>
         </div>
 
@@ -227,27 +236,6 @@ export default function Login() {
             "Log in"
           )}
         </button>
-
-        <p className="demo-note">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            style={{ flex: "none", marginTop: 1 }}
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8h.01M11 12h1v4h1" />
-          </svg>
-          <span>
-            Demo account: <code>student@tcgc.edu</code> / <code>tcgc1234</code>
-          </span>
-        </p>
       </form>
     </AuthLayout>
   );

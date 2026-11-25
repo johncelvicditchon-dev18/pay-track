@@ -9,6 +9,16 @@
   var SESSION_KEY = "tcgc_paytrack_session";
   var memory = Object.create(null);
 
+  var DEMO_ACCOUNT = {
+    name: "Maria Santos",
+    password: "tcgc1234",
+    studentId: "2024-00123",
+    position: "PRESIDENT",
+    yearLevel: "4TH YEAR",
+    institute: "ICS",
+    program: "BS Information Technology"
+  };
+
   /* ---------- storage (with in-memory fallback) ---------- */
   function readJSON(store, key, fallback) {
     try {
@@ -45,12 +55,18 @@
     writeJSON(window.localStorage, USERS_KEY, users);
   }
 
-  function findUser(email) {
-    var needle = String(email || "").trim().toLowerCase();
+  function normalizeStudentId(value) {
+    return String(value || "").trim().toUpperCase();
+  }
+
+  function findUser(studentId) {
+    var needle = normalizeStudentId(studentId);
     var match = null;
 
+    if (!needle) return null;
+
     getUsers().forEach(function (user) {
-      if (!match && user.email && user.email.toLowerCase() === needle) {
+      if (!match && user.studentId && normalizeStudentId(user.studentId) === needle) {
         match = user;
       }
     });
@@ -64,7 +80,7 @@
     if (!session) {
       session = readJSON(window.sessionStorage, SESSION_KEY, null);
     }
-    return session && session.email ? session : null;
+    return session && session.studentId ? session : null;
   }
 
   function setSession(session, remember) {
@@ -167,9 +183,11 @@
   }
 
   window.TCGC = {
+    DEMO_ACCOUNT: DEMO_ACCOUNT,
     getUsers: getUsers,
     saveUsers: saveUsers,
     findUser: findUser,
+    normalizeStudentId: normalizeStudentId,
     getSession: getSession,
     setSession: setSession,
     clearSession: clearSession,

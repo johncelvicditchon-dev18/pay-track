@@ -392,6 +392,18 @@ ol {
   width: 100%;
 }
 
+.nav a.nav-student {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.nav .nav-dashboard {
+  display: none;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -412,6 +424,23 @@ ol {
 
 .header-login:hover {
   color: #fff;
+}
+
+.header-dashboard {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: var(--radius-pill);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.header-dashboard:hover {
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .header-user {
@@ -800,6 +829,14 @@ ol {
     display: inline-flex;
   }
 
+  .nav .nav-dashboard {
+    display: block;
+  }
+
+  .header-dashboard {
+    display: none;
+  }
+
   .footer-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 34px;
@@ -907,5 +944,171 @@ ol {
 @media (max-width: 380px) {
   .header-user {
     display: none;
+  }
+}
+
+/* =========================================================
+   Accounts dashboard
+   ========================================================= */
+
+
+.accounts-page {
+  min-height: 100svh;
+  background: var(--cream);
+}
+
+.dash-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--grad-primary-deep);
+  color: #fff;
+}
+
+.dash-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 72px;
+}
+
+.dash-main {
+  padding: 48px 0 80px;
+}
+
+.dash-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.dash-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green-600);
+}
+
+.dash-head h1 {
+  margin-top: 4px;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  letter-spacing: -0.03em;
+}
+
+.dash-count {
+  padding: 6px 12px;
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius-pill);
+  background: var(--green-50);
+  color: var(--green-800);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.accounts-table-wrap {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.accounts-table-scroll {
+  overflow-x: auto;
+}
+
+.accounts-table {
+  width: 100%;
+  min-width: 960px;
+  border-collapse: collapse;
+}
+
+.accounts-table th {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--green-50);
+  color: var(--green-800);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.accounts-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.accounts-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.accounts-table tbody tr:hover {
+  background: var(--cream);
+}
+
+.accounts-table .cell-name {
+  color: var(--ink);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.accounts-table .cell-position {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.accounts-table .cell-email {
+  color: var(--green-700);
+}
+
+.accounts-empty {
+  padding: 54px 24px;
+  text-align: center;
+}
+
+.accounts-empty p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.accounts-empty a {
+  display: inline-flex;
+  margin-top: 12px;
+  color: var(--green-700);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .dash-header__inner {
+    min-height: 64px;
+  }
+
+  .dash-main {
+    padding: 32px 0 56px;
+  }
+
+  .dash-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .accounts-table th,
+  .accounts-table td {
+    padding: 12px;
   }
 }

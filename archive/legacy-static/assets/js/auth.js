@@ -11,16 +11,9 @@
   var api = window.TCGC;
   if (!api) return;
 
-  var DEMO_ACCOUNT = {
-    name: "Maria Santos",
-    email: "student@tcgc.edu",
-    password: "tcgc1234",
-    studentId: "2024-00123",
-    institute: "ICS",
-    program: "BS Information Technology"
-  };
+  var DEMO_ACCOUNT = api.DEMO_ACCOUNT;
 
-  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  var STUDENT_ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
 
   /* ---------- field error helpers ---------- */
   function fieldOf(input) {
@@ -142,7 +135,7 @@
   var loginForm = document.getElementById("login-form");
 
   if (loginForm) {
-    var loginEmail = document.getElementById("login-email");
+    var loginStudentId = document.getElementById("login-student-id");
     var loginPassword = document.getElementById("login-password");
     var loginRemember = document.getElementById("remember-me");
     var loginSubmit = document.getElementById("login-submit");
@@ -155,18 +148,15 @@
       if (loginBusy) return;
 
       var invalid = [];
-      var email = loginEmail.value.trim();
+      var studentId = loginStudentId.value.trim();
       var password = loginPassword.value;
 
-      clearError(loginEmail);
+      clearError(loginStudentId);
       clearError(loginPassword);
 
-      if (!email) {
-        showError(loginEmail, "Enter your school email address.");
-        invalid.push(loginEmail);
-      } else if (!EMAIL_RE.test(email)) {
-        showError(loginEmail, "That doesn't look like a valid email address.");
-        invalid.push(loginEmail);
+      if (!studentId) {
+        showError(loginStudentId, "Enter your student ID.");
+        invalid.push(loginStudentId);
       }
 
       if (!password) {
@@ -183,18 +173,20 @@
       setLoading(loginSubmit, true, "Checking your account…");
 
       window.setTimeout(function () {
-        var normalized = email.toLowerCase();
+        var normalized = api.normalizeStudentId(studentId);
         var stored = api.findUser(normalized);
         var isDemo =
-          normalized === DEMO_ACCOUNT.email && password === DEMO_ACCOUNT.password;
+          normalized === api.normalizeStudentId(DEMO_ACCOUNT.studentId) &&
+          password === DEMO_ACCOUNT.password;
         var account = isDemo ? DEMO_ACCOUNT : stored;
 
         if (account && password === account.password) {
           api.setSession(
             {
               name: account.name,
-              email: account.email,
-              studentId: account.studentId || "",
+              studentId: account.studentId || normalized,
+              position: account.position || "",
+              yearLevel: account.yearLevel || "",
               institute: account.institute || "",
               program: account.program || "",
               signedInAt: new Date().toISOString()
@@ -204,11 +196,25 @@
 
           api.toast(
             "Welcome back, " + String(account.name).trim().split(/\s+/)[0] + "!",
-            "Your account is ready. Taking you back to the homepage…",
+            "Your account is ready. Taking you to your dashboard…",
             "success"
           );
 
-          redirectSoon("../index.html?welcome=1", 1000);
+          var nextView = "";
+          try {
+            nextView =
+              new URLSearchParams(window.location.search).get("next") || "";
+          } catch (err) {
+            nextView = "";
+          }
+
+          var destinations = {
+            accounts: "dashboard.html#accounts",
+            students: "dashboard.html#students"
+          };
+          var target = destinations[nextView] || "dashboard.html";
+
+          redirectSoon(target, 1000);
           return;
         }
 
@@ -217,14 +223,14 @@
 
         showError(
           loginPassword,
-          "The email and password don't match our records. Please try again."
+          "The student ID and password don't match our records. Please try again."
         );
         loginPassword.focus();
         loginPassword.select();
 
         api.toast(
           "Couldn't sign you in",
-          "Double-check your email and password, or use the demo account shown below the form.",
+          "Double-check your student ID and password, or contact the Finance Office for help.",
           "error"
         );
       }, 650);
@@ -245,14 +251,14 @@
     /* returning from a successful sign-up */
     var params = new URLSearchParams(window.location.search);
     if (params.get("registered") === "1") {
-      var emailParam = params.get("email");
-      if (emailParam && loginEmail) {
-        loginEmail.value = emailParam;
+      var idParam = params.get("studentId");
+      if (idParam && loginStudentId) {
+        loginStudentId.value = idParam;
       }
 
       api.toast(
         "Account created",
-        "You can now log in with your school email and new password.",
+        "You can now log in with your student ID and new password.",
         "success"
       );
 
@@ -270,9 +276,10 @@
   if (signupForm) {
     var nameInput = document.getElementById("signup-name");
     var studentIdInput = document.getElementById("signup-student-id");
+    var positionInput = document.getElementById("signup-position");
+    var yearLevelInput = document.getElementById("signup-year-level");
     var instituteInput = document.getElementById("signup-institute");
     var programInput = document.getElementById("signup-program");
-    var emailInput = document.getElementById("signup-email");
     var passwordInput = document.getElementById("signup-password");
     var confirmInput = document.getElementById("signup-confirm");
     var termsInput = document.getElementById("signup-terms");
@@ -284,6 +291,19 @@
     var signupBusy = false;
 
     attachClearHandlers(signupForm);
+
+    [nameInput, positionInput].forEach(function (input) {
+      if (!input) return;
+
+      input.addEventListener("input", function () {
+        var start = input.selectionStart;
+        var end = input.selectionEnd;
+        input.value = input.value.toUpperCase();
+        if (start !== null) {
+          input.setSelectionRange(start, end);
+        }
+      });
+    });
 
     passwordInput.addEventListener("input", function () {
       var score = passwordInput.value ? scorePassword(passwordInput.value) : 0;
@@ -309,18 +329,20 @@
 
       clearError(nameInput);
       clearError(studentIdInput);
+      clearError(positionInput);
+      clearError(yearLevelInput);
       clearError(instituteInput);
       clearError(programInput);
-      clearError(emailInput);
       clearError(passwordInput);
       clearError(confirmInput);
       clearTermsError();
 
       var name = nameInput.value.trim();
       var studentId = studentIdInput.value.trim();
+      var position = positionInput.value.trim();
+      var yearLevel = yearLevelInput.value;
       var institute = instituteInput.value;
       var program = programInput.value;
-      var email = emailInput.value.trim().toLowerCase();
       var password = passwordInput.value;
       var confirm = confirmInput.value;
 
@@ -335,9 +357,37 @@
       if (!studentId) {
         showError(studentIdInput, "Enter your student ID number.");
         invalid.push(studentIdInput);
-      } else if (!/^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/.test(studentId)) {
+      } else if (!STUDENT_ID_RE.test(studentId)) {
         showError(studentIdInput, "Use 4–15 letters, numbers, or hyphens (e.g. 2024-00123).");
         invalid.push(studentIdInput);
+      } else if (
+        api.normalizeStudentId(studentId) ===
+        api.normalizeStudentId(DEMO_ACCOUNT.studentId)
+      ) {
+        showError(
+          studentIdInput,
+          "An account already uses this student ID. Try logging in instead."
+        );
+        invalid.push(studentIdInput);
+      } else if (api.findUser(studentId)) {
+        showError(
+          studentIdInput,
+          "An account already uses this student ID. Try logging in instead."
+        );
+        invalid.push(studentIdInput);
+      }
+
+      if (!position) {
+        showError(positionInput, "Enter your position or role.");
+        invalid.push(positionInput);
+      } else if (position.length < 2) {
+        showError(positionInput, "Enter a valid position (for example PRESIDENT).");
+        invalid.push(positionInput);
+      }
+
+      if (!yearLevel) {
+        showError(yearLevelInput, "Select your year level.");
+        invalid.push(yearLevelInput);
       }
 
       if (!institute) {
@@ -348,20 +398,6 @@
       if (!program) {
         showError(programInput, "Select the program you are enrolled in.");
         invalid.push(programInput);
-      }
-
-      if (!email) {
-        showError(emailInput, "Enter your school email address.");
-        invalid.push(emailInput);
-      } else if (!EMAIL_RE.test(email)) {
-        showError(emailInput, "That doesn't look like a valid email address.");
-        invalid.push(emailInput);
-      } else if (email === DEMO_ACCOUNT.email || api.findUser(email)) {
-        showError(
-          emailInput,
-          "An account already uses this email. Try logging in instead."
-        );
-        invalid.push(emailInput);
       }
 
       if (!password) {
@@ -406,14 +442,15 @@
 
       window.setTimeout(function () {
         var users = api.getUsers();
-        var email = emailInput.value.trim().toLowerCase();
+        var studentId = api.normalizeStudentId(studentIdInput.value);
 
         users.push({
-          name: nameInput.value.trim(),
-          studentId: studentIdInput.value.trim(),
+          name: nameInput.value.trim().toUpperCase(),
+          studentId: studentId,
+          position: positionInput.value.trim().toUpperCase(),
+          yearLevel: yearLevelInput.value,
           institute: instituteInput.value,
           program: programInput.value,
-          email: email,
           password: passwordInput.value,
           createdAt: new Date().toISOString()
         });
@@ -426,7 +463,10 @@
           "success"
         );
 
-        redirectSoon("login.html?registered=1&email=" + encodeURIComponent(email), 1100);
+        redirectSoon(
+          "login.html?registered=1&studentId=" + encodeURIComponent(studentId),
+          1100
+        );
       }, 700);
     });
   }

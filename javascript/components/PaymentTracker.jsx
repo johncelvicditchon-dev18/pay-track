@@ -260,6 +260,7 @@ export default function PaymentTracker() {
   const [studentId, setStudentId] = useState(user?.studentId || "");
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const [checking, setChecking] = useState(false);
   const inputRef = useRef(null);
   const dialogRef = useRef(null);
 
@@ -282,7 +283,7 @@ export default function PaymentTracker() {
     if (!dialog.open) dialog.showModal();
   };
 
-  const showRecord = (id) => {
+  const showRecord = async (id) => {
     const normalized = id.trim().toUpperCase();
 
     if (DEMO_RECORDS[normalized]) {
@@ -295,7 +296,7 @@ export default function PaymentTracker() {
       return;
     }
 
-    const registered = findUserByStudentId(normalized);
+    const registered = await findUserByStudentId(normalized);
     if (registered) {
       setResult({ type: "registered", studentId: normalized, account: registered });
       openDialog();
@@ -306,7 +307,7 @@ export default function PaymentTracker() {
     openDialog();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const id = studentId.trim();
 
@@ -323,13 +324,18 @@ export default function PaymentTracker() {
     }
 
     setError("");
-    showRecord(id);
-  };
+    setChecking(true);
 
-  const handleDemo = (id) => {
-    setStudentId(id);
-    setError("");
-    showRecord(id);
+    try {
+      await showRecord(id);
+    } catch (lookupError) {
+      console.error("[tracker] Student ID lookup failed:", lookupError);
+      setError(
+        "We couldn't check that Student ID right now. Please try again in a moment."
+      );
+    } finally {
+      setChecking(false);
+    }
   };
 
   const closeDialog = () => {
@@ -368,27 +374,20 @@ export default function PaymentTracker() {
             autoComplete="off"
             spellCheck="false"
             aria-invalid={error ? "true" : "false"}
-            aria-describedby="track-hint track-error"
+            aria-describedby="track-error"
             required
           />
-          <button className="btn btn--accent hero-track__btn" type="submit">
-            Track
+          <button
+            className="btn btn--accent hero-track__btn"
+            type="submit"
+            disabled={checking}
+          >
+            {checking ? "Checking…" : "Track"}
             <svg {...iconProps()}>
               <path d="m21 21-4.3-4.3M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Z" />
             </svg>
           </button>
         </div>
-
-        <p className="hero-track__hint" id="track-hint">
-          Try demo ID{" "}
-          <button
-            className="hero-track__demo"
-            type="button"
-            onClick={() => handleDemo("2024-00123")}
-          >
-            2024-00123
-          </button>
-        </p>
 
         {error ? (
           <p className="hero-track__error" id="track-error" role="alert">

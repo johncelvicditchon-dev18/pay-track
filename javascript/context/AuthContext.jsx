@@ -1,36 +1,64 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import {
-  authenticate,
-  clearSession,
-  persistSession,
-  readSession,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  login as loginWithFirebase,
+  logout as logoutFromFirebase,
+  observeSession,
   registerAccount,
 } from "../lib/auth";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => readSession());
+  const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
 
-  const login = useCallback((email, password, remember) => {
-    const account = authenticate(email, password);
-    if (!account) return null;
+  useEffect(() => {
+    let active = true;
 
-    const session = persistSession(account, remember);
+    const unsubscribe = observeSession((profile) => {
+      if (!active) return;
+      setUser(profile);
+      setAuthReady(true);
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
+
+  const login = useCallback(async (studentId, password, remember) => {
+    const session = await loginWithFirebase(studentId, password, remember);
     setUser(session);
     return session;
   }, []);
 
-  const signup = useCallback((account) => registerAccount(account), []);
+  const signup = useCallback(async (account) => {
+    try {
+      return await registerAccount(account);
+    } catch (error) {
+      return { ok: false, error, code: error?.code || "unknown" };
+    }
+  }, []);
 
-  const logout = useCallback(() => {
-    clearSession();
-    setUser(null);
+  const logout = useCallback(async () => {
+    try {
+      await logoutFromFirebase();
+    } finally {
+      setUser(null);
+    }
   }, []);
 
   const value = useMemo(
-    () => ({ user, login, signup, logout }),
-    [user, login, signup, logout]
+    () => ({ user, authReady, login, signup, logout }),
+    [user, authReady, login, signup, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard · TCGC PayTrack</title>
+    <meta
+      name="description"
+      content="Your TCGC PayTrack dashboard — account details, registered accounts, and quick access to your payment records."
+    />
+    <link rel="icon" type="image/png" href="../assets/logo-toggle.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <link rel="stylesheet" href="../assets/css/dashboard.css" />
+  </head>
+  <body class="dashboard-page">
+    <div class="dash-shell" id="dash-shell">
+      <!-- ================= SIDEBAR NAVIGATION ================= -->
+      <aside class="side-nav" id="side-nav" aria-label="Dashboard navigation">
+        <div class="side-nav__head">
+          <a class="side-brand" href="../index.html" aria-label="TCGC PayTrack home">
+            <img class="brand-logo" src="../assets/logo-toggle.png" alt="" />
+            <span class="brand-text">
+              <strong>TCGC PayTrack</strong>
+              <span>Payment Tracking System</span>
+            </span>
+          </a>
+          <button
+            class="side-close"
+            id="side-close"
+            type="button"
+            aria-label="Hide navigation"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="side-links" aria-label="Dashboard tabs">
+          <a class="side-link is-active" href="#dashboard" data-view="dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="9" rx="2" />
+              <rect x="14" y="3" width="7" height="5" rx="2" />
+              <rect x="14" y="11" width="7" height="10" rx="2" />
+              <rect x="3" y="15" width="7" height="6" rx="2" />
+            </svg>
+            Dashboard
+          </a>
+          <a class="side-link" href="#students" data-view="students">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M3 9h18M9 9v11" />
+            </svg>
+            Students
+          </a>
+          <a class="side-link" href="#accounts" data-view="accounts">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="9" cy="8" r="3.2" />
+              <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+              <path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 13.4a5 5 0 0 1 3 4.6" />
+            </svg>
+            Accounts
+          </a>
+        </nav>
+
+        <div class="side-nav__foot">
+          <button class="side-logout" id="dash-logout" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="m16 17 5-5-5-5M21 12H9" />
+            </svg>
+            Log out
+          </button>
+        </div>
+      </aside>
+
+      <div class="side-scrim" id="side-scrim" hidden></div>
+
+      <!-- ================= MAIN ================= -->
+      <div class="dash-wrap">
+        <header class="top-bar">
+          <button
+            class="nav-btn"
+            id="nav-toggle"
+            type="button"
+            aria-controls="side-nav"
+            aria-expanded="true"
+            aria-label="Hide navigation"
+          >
+            <svg class="nav-btn__open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+            <svg class="nav-btn__close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+
+          <div class="top-bar__meta">
+            <span class="top-bar__eyebrow">Student portal</span>
+            <strong id="topbar-title">Dashboard</strong>
+          </div>
+
+          <div class="top-bar__user">
+            <span class="top-avatar" data-session-initials aria-hidden="true">S</span>
+            <div class="top-user__copy">
+              <strong data-session="name">Student</strong>
+            </div>
+          </div>
+        </header>
+
+        <main class="dash-content">
+          <!-- ============ DASHBOARD TAB ============ -->
+          <section class="dash-view" id="dashboard" data-view-panel="dashboard">
+            <div class="welcome-card">
+              <div class="welcome-card__copy">
+                <h1>Hi, <span data-session-firstname>Student</span>.</h1>
+                <p>Here's a quick view of your student account.</p>
+                <div class="welcome-actions">
+                  <a class="btn btn--accent" href="../index.html#top">
+                    Track payments
+                  </a>
+                </div>
+              </div>
+              <div class="welcome-card__badge">
+                <span class="welcome-badge__label">Student ID</span>
+                <strong data-session="studentId">—</strong>
+              </div>
+            </div>
+
+            <div class="stat-grid">
+              <article class="stat-card">
+                <span class="stat-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="3.4" />
+                    <path d="M5 20a7 7 0 0 1 14 0" />
+                  </svg>
+                </span>
+                <span class="stat-card__label">Position</span>
+                <strong data-session="position">—</strong>
+              </article>
+
+              <article class="stat-card">
+                <span class="stat-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21h18M5 21V8l7-5 7 5v13" />
+                    <path d="M9 21v-6h6v6" />
+                  </svg>
+                </span>
+                <span class="stat-card__label">Institute</span>
+                <strong data-session="institute">—</strong>
+              </article>
+
+              <article class="stat-card">
+                <span class="stat-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+                  </svg>
+                </span>
+                <span class="stat-card__label">Program</span>
+                <strong data-session="program">—</strong>
+              </article>
+
+              <article class="stat-card">
+                <span class="stat-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 2 9 5-9 5-9-5 9-5Z" />
+                    <path d="m3 12 9 5 9-5" />
+                    <path d="m3 17 9 5 9-5" />
+                  </svg>
+                </span>
+                <span class="stat-card__label">Year level</span>
+                <strong data-session="yearLevel">—</strong>
+              </article>
+            </div>
+
+            <section class="help-panel">
+              <div>
+                <h2>Need to update your record?</h2>
+                <p>Contact the Finance Office with your student ID and we'll correct it for you.</p>
+              </div>
+              <a class="btn btn--primary" href="mailto:finance@tcgc.edu.ph">
+                Email Finance Office
+              </a>
+            </section>
+          </section>
+
+          <!-- ============ STUDENTS TAB ============ -->
+          <section class="dash-view" id="students" data-view-panel="students" hidden>
+            <div class="view-head">
+              <div>
+                <h1>Students</h1>
+                <p class="view-head__sub">
+                  Import your class list from Excel or CSV. Re-importing a Student ID
+                  updates that row instead of duplicating it.
+                </p>
+              </div>
+              <span class="dash-count" id="students-count">0 students</span>
+            </div>
+
+            <div class="records-toolbar">
+              <div class="records-actions">
+                <button class="btn btn--primary btn--sm" type="button" id="students-import">
+                  Import Excel
+                </button>
+                <input
+                  type="file"
+                  id="students-file"
+                  accept=".xlsx,.xls,.csv"
+                  hidden
+                />
+                <button class="btn btn--outline btn--sm" type="button" id="students-template">
+                  Download template
+                </button>
+                <button class="text-button text-button--danger" type="button" id="students-clear" hidden>
+                  Clear all
+                </button>
+              </div>
+
+              <label class="records-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m21 21-4.3-4.3" />
+                  <circle cx="10.5" cy="10.5" r="7.5" />
+                </svg>
+                <input
+                  type="search"
+                  id="students-search"
+                  placeholder="Search students"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <p class="records-status" id="students-status" role="status"></p>
+
+            <div class="accounts-table-wrap" id="students-table-wrap" hidden>
+              <div class="accounts-table-scroll">
+                <table class="accounts-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Student ID</th>
+                      <th scope="col">Last Name</th>
+                      <th scope="col">First Name</th>
+                      <th scope="col">Middle Name</th>
+                      <th scope="col">Program</th>
+                      <th scope="col">Year</th>
+                      <th scope="col">Classification</th>
+                    </tr>
+                  </thead>
+                  <tbody id="students-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <p class="records-scroll-hint">Scroll to see all columns.</p>
+
+            <div class="records-empty" id="students-empty">
+              <p>No student records yet.</p>
+              <small>Use <strong>Import Excel</strong> or download the template to get started.</small>
+            </div>
+          </section>
+
+          <!-- ============ ACCOUNTS TAB ============ -->
+          <section class="dash-view" id="accounts" data-view-panel="accounts" hidden>
+            <div class="view-head">
+              <div>
+                <h1>Accounts</h1>
+                <p class="view-head__sub">
+                  Every student account registered in PayTrack. Your own record is highlighted.
+                </p>
+              </div>
+              <span class="dash-count" id="accounts-count">0 accounts</span>
+            </div>
+
+            <div class="accounts-table-wrap">
+              <div class="accounts-table-scroll">
+                <table class="accounts-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Full Name</th>
+                      <th scope="col">Student ID</th>
+                      <th scope="col">Position</th>
+                      <th scope="col">Year Level</th>
+                      <th scope="col">Institute</th>
+                      <th scope="col">Program</th>
+                    </tr>
+                  </thead>
+                  <tbody id="accounts-body"></tbody>
+                </table>
+              </div>
+
+              <div class="accounts-empty" id="accounts-empty" hidden>
+                <p>No accounts created yet.</p>
+                <a href="signup.html">Create an account</a>
+              </div>
+            </div>
+
+            <p class="view-footnote">
+              Details come from the student records saved on this device.
+            </p>
+          </section>
+        </main>
+
+        <footer class="dash-foot">
+          <span>Tangub City Global College · Finance Office</span>
+        </footer>
+      </div>
+    </div>
+
+    <script src="../assets/vendor/xlsx.full.min.js"></script>
+    <script src="../assets/js/ui.js"></script>
+    <script src="../assets/js/accounts.js"></script>
+    <script src="../assets/js/students.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
+  </body>
+</html>

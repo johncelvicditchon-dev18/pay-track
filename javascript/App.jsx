@@ -3,6 +3,8 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Accounts from "./pages/Accounts";
+import Dashboard from "./pages/Dashboard";
 
 function ScrollManager() {
   const location = useLocation();
@@ -33,6 +35,8 @@ export default function App() {
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/accounts" element={<Accounts />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

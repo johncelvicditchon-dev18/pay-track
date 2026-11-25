@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Student profile documents are keyed by the Firebase Auth UID.
+    match /users/{userId} {
+      // Any signed-in student can read the registry (used by /accounts).
+      // Tighten this to an admin claim if the roster should stay private.
+      allow read: if request.auth != null;
+
+      // A student may only create or edit their own profile record.
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+
+      allow delete: if false;
+    }
+  }
+}

@@ -51,8 +51,12 @@ export default function SiteHeader() {
 
   const firstName = String(user?.name || "Student").trim().split(/\s+/)[0];
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("[header] Logout failed:", error);
+    }
     toast("Signed out", "You have been logged out of PayTrack.", "info");
   };
 
@@ -90,7 +94,10 @@ export default function SiteHeader() {
         <div className="header-actions">
           {user ? (
             <>
-              <span className="header-user" title={user.email}>
+              <Link className="header-dashboard" to="/dashboard">
+                Dashboard
+              </Link>
+              <span className="header-user" title={user.studentId}>
                 <span className="avatar" aria-hidden="true">
                   {initials(user.name) || "S"}
                 </span>

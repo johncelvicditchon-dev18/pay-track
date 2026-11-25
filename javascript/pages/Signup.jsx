@@ -3,11 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import {
-  DEMO_ACCOUNT,
-  EMAIL_RE,
-  findUser,
-} from "../lib/auth";
+import { STUDENT_ID_RE, authErrorMessage } from "../lib/auth";
 import {
   INSTITUTES,
   INSTITUTE_PROGRAMS,
@@ -25,10 +21,10 @@ const STRENGTH_TEXT = [
 const FIELD_IDS = {
   name: "signup-name",
   studentId: "signup-student-id",
+  position: "signup-position",
+  yearLevel: "signup-year-level",
   institute: "signup-institute",
   program: "signup-program",
-  yearLevel: "signup-year-level",
-  email: "signup-email",
   password: "signup-password",
   confirm: "signup-confirm",
   terms: "signup-terms",
@@ -87,10 +83,10 @@ export default function Signup() {
   const [form, setForm] = useState({
     name: "",
     studentId: "",
+    position: "",
+    yearLevel: "",
     institute: "",
     program: "",
-    yearLevel: "",
-    email: "",
     password: "",
     confirm: "",
     terms: false,
@@ -137,7 +133,6 @@ export default function Signup() {
     const next = {};
     const name = form.name.trim();
     const studentId = form.studentId.trim();
-    const email = form.email.trim().toLowerCase();
 
     if (name.length < 3) {
       next.name = "Enter your full name as it appears in school records.";
@@ -147,8 +142,21 @@ export default function Signup() {
 
     if (!studentId) {
       next.studentId = "Enter your student ID number.";
-    } else if (!/^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/.test(studentId)) {
+    } else if (!STUDENT_ID_RE.test(studentId)) {
       next.studentId = "Use 4–15 letters, numbers, or hyphens (e.g. 2024-00123).";
+    }
+
+    const position = form.position.trim();
+    if (!position) {
+      next.position = "Enter your position or role.";
+    } else if (position.length < 2) {
+      next.position = "Enter a valid position (for example PRESIDENT).";
+    }
+
+    if (!form.yearLevel) {
+      next.yearLevel = "Select your year level.";
+    } else if (!YEAR_LEVELS.includes(form.yearLevel)) {
+      next.yearLevel = "Choose a valid year level.";
     }
 
     if (!form.institute) {
@@ -159,20 +167,6 @@ export default function Signup() {
       next.program = "Select the program you are enrolled in.";
     } else if (!INSTITUTE_PROGRAMS[form.institute]?.includes(form.program)) {
       next.program = "Select a program offered by your institute.";
-    }
-
-    if (!form.yearLevel) {
-      next.yearLevel = "Select your year level.";
-    } else if (!YEAR_LEVELS.includes(form.yearLevel)) {
-      next.yearLevel = "Choose a valid year level.";
-    }
-
-    if (!email) {
-      next.email = "Enter your school email address.";
-    } else if (!EMAIL_RE.test(email)) {
-      next.email = "That doesn't look like a valid email address.";
-    } else if (email === DEMO_ACCOUNT.email || findUser(email)) {
-      next.email = "An account already uses this email. Try logging in instead.";
     }
 
     if (!form.password) {
@@ -208,32 +202,75 @@ export default function Signup() {
     return true;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (busy) return;
     if (!validate()) return;
 
     setBusy(true);
 
-    window.setTimeout(() => {
-      const result = signup(form);
+    try {
+      const result = await signup(form);
+      setBusy(false);
 
       if (!result.ok) {
-        setBusy(false);
-        setErrors({ email: "An account already uses this email. Try logging in instead." });
-        toast(
-          "Couldn't create your account",
-          "That email is already registered. Try logging in instead.",
-          "error"
+        const code = String(result.code || result.error?.code || "");
+        const message = authErrorMessage(
+          result.error,
+          "We couldn't create your account. Please try again."
         );
-        document.getElementById("signup-email")?.focus();
+
+        if (code === "auth/email-already-in-use") {
+          setErrors({
+            studentId: "An account already uses this student ID. Try logging in instead.",
+          });
+          toast(
+            "Couldn't create your account",
+            "That student ID is already registered. Try logging in instead.",
+            "error"
+          );
+          document.getElementById("signup-student-id")?.focus();
+          return;
+        }
+
+        if (code === "auth/invalid-email" || code === "auth/missing-email") {
+          setErrors({ studentId: message });
+          document.getElementById("signup-student-id")?.focus();
+          return;
+        }
+
+        if (code === "auth/weak-password") {
+          setErrors({ password: message });
+          document.getElementById("signup-password")?.focus();
+          return;
+        }
+
+        toast("Couldn't create your account", message, "error");
         return;
       }
 
+      if (result.profileSaved === false) {
+        toast(
+          "Account created",
+          "Your login works, but your profile details couldn't be saved to the database. Contact the Finance Office if your record looks incomplete.",
+          "info"
+        );
+      }
+
       navigate(
-        `/login?registered=1&email=${encodeURIComponent(form.email.trim().toLowerCase())}`
+        `/login?registered=1&studentId=${encodeURIComponent(
+          form.studentId.trim().toUpperCase()
+        )}`
       );
-    }, 700);
+    } catch (error) {
+      console.error("[signup] Firebase error:", error);
+      setBusy(false);
+      toast(
+        "Couldn't create your account",
+        authErrorMessage(error),
+        "error"
+      );
+    }
   };
 
   return (
@@ -260,9 +297,10 @@ export default function Signup() {
             type="text"
             id="signup-name"
             name="name"
+            className="is-uppercase"
             value={form.name}
             onChange={(event) => updateField("name", event.target.value)}
-            placeholder="Juan Dela Cruz"
+            placeholder="JUAN DELA CRUZ"
             autoComplete="name"
             aria-invalid={Boolean(errors.name)}
             aria-describedby="signup-name-error"
@@ -281,8 +319,8 @@ export default function Signup() {
             name="studentId"
             value={form.studentId}
             onChange={(event) => updateField("studentId", event.target.value)}
-            placeholder="e.g. 2024-00123"
-            autoComplete="off"
+            placeholder="XXXXXXX"
+            autoComplete="username"
             spellCheck="false"
             aria-invalid={Boolean(errors.studentId)}
             aria-describedby="signup-student-id-error"
@@ -293,56 +331,89 @@ export default function Signup() {
           </p>
         </div>
 
-        <div className="field-row">
-          <div className={`field${errors.institute ? " has-error" : ""}`}>
-            <label htmlFor="signup-institute">Institute</label>
-            <select
-              id="signup-institute"
-              name="institute"
-              value={form.institute}
-              onChange={(event) => updateField("institute", event.target.value)}
-              aria-invalid={Boolean(errors.institute)}
-              aria-describedby="signup-institute-error"
-              required
-            >
-              <option value="" disabled>
-                Select your institute
-              </option>
-              {INSTITUTES.map((institute) => (
-                <option key={institute} value={institute}>
-                  {institute}
-                </option>
-              ))}
-            </select>
-            <p className="field-error" id="signup-institute-error" role="alert" hidden={!errors.institute}>
-              {errors.institute}
-            </p>
-          </div>
+        <div className={`field${errors.position ? " has-error" : ""}`}>
+          <label htmlFor="signup-position">Position</label>
+          <input
+            type="text"
+            id="signup-position"
+            name="position"
+            className="is-uppercase"
+            value={form.position}
+            onChange={(event) => updateField("position", event.target.value)}
+            placeholder="e.g. PRESIDENT"
+            list="position-options"
+            autoComplete="organization-title"
+            aria-invalid={Boolean(errors.position)}
+            aria-describedby="signup-position-error"
+            required
+          />
+          <datalist id="position-options">
+            <option value="GOVERNOR" />
+            <option value="VICE-GOVERNOR" />
+            <option value="PRESIDENT" />
+            <option value="VICE PRESIDENT" />
+            <option value="SECRETARY" />
+            <option value="TREASURER" />
+            <option value="AUDITOR" />
+            <option value="P.R.O." />
+            <option value="1ST REPRESENTATIVE" />
+            <option value="2ND REPRESENTATIVE" />
+            <option value="3RD REPRESENTATIVE" />
+            <option value="4TH REPRESENTATIVE" />
+          </datalist>
+          <p className="field-error" id="signup-position-error" role="alert" hidden={!errors.position}>
+            {errors.position}
+          </p>
+        </div>
 
-          <div className={`field${errors.yearLevel ? " has-error" : ""}`}>
-            <label htmlFor="signup-year-level">Year level</label>
-            <select
-              id="signup-year-level"
-              name="yearLevel"
-              value={form.yearLevel}
-              onChange={(event) => updateField("yearLevel", event.target.value)}
-              aria-invalid={Boolean(errors.yearLevel)}
-              aria-describedby="signup-year-level-error"
-              required
-            >
-              <option value="" disabled>
-                Select year level
+        <div className={`field${errors.yearLevel ? " has-error" : ""}`}>
+          <label htmlFor="signup-year-level">Year level</label>
+          <select
+            id="signup-year-level"
+            name="yearLevel"
+            value={form.yearLevel}
+            onChange={(event) => updateField("yearLevel", event.target.value)}
+            aria-invalid={Boolean(errors.yearLevel)}
+            aria-describedby="signup-year-level-error"
+            required
+          >
+            <option value="" disabled>
+              Select year level
+            </option>
+            {YEAR_LEVELS.map((year) => (
+              <option key={year} value={year}>
+                {year}
               </option>
-              {YEAR_LEVELS.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <p className="field-error" id="signup-year-level-error" role="alert" hidden={!errors.yearLevel}>
-              {errors.yearLevel}
-            </p>
-          </div>
+            ))}
+          </select>
+          <p className="field-error" id="signup-year-level-error" role="alert" hidden={!errors.yearLevel}>
+            {errors.yearLevel}
+          </p>
+        </div>
+
+        <div className={`field${errors.institute ? " has-error" : ""}`}>
+          <label htmlFor="signup-institute">Institute</label>
+          <select
+            id="signup-institute"
+            name="institute"
+            value={form.institute}
+            onChange={(event) => updateField("institute", event.target.value)}
+            aria-invalid={Boolean(errors.institute)}
+            aria-describedby="signup-institute-error"
+            required
+          >
+            <option value="" disabled>
+              Select your institute
+            </option>
+            {INSTITUTES.map((institute) => (
+              <option key={institute} value={institute}>
+                {institute}
+              </option>
+            ))}
+          </select>
+          <p className="field-error" id="signup-institute-error" role="alert" hidden={!errors.institute}>
+            {errors.institute}
+          </p>
         </div>
 
         <div className={`field${errors.program ? " has-error" : ""}`}>
@@ -368,27 +439,6 @@ export default function Signup() {
           </select>
           <p className="field-error" id="signup-program-error" role="alert" hidden={!errors.program}>
             {errors.program}
-          </p>
-        </div>
-
-        <div className={`field${errors.email ? " has-error" : ""}`}>
-          <label htmlFor="signup-email">School email</label>
-          <input
-            type="email"
-            id="signup-email"
-            name="email"
-            value={form.email}
-            onChange={(event) => updateField("email", event.target.value)}
-            placeholder="you@tcgc.edu.ph"
-            autoComplete="email"
-            inputMode="email"
-            spellCheck="false"
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby="signup-email-error"
-            required
-          />
-          <p className="field-error" id="signup-email-error" role="alert" hidden={!errors.email}>
-            {errors.email}
           </p>
         </div>
 

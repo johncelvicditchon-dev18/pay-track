@@ -94,26 +94,25 @@
               </span>
             </a>
             <h1>Welcome back</h1>
-            <p>Log in with the school email you registered with.</p>
+            <p>Log in with the student ID you registered with.</p>
           </div>
 
           <form class="auth-form" id="login-form" novalidate>
-            <div class="field" id="email-field">
-              <label for="login-email">School email</label>
+            <div class="field" id="student-id-field">
+              <label for="login-student-id">Student ID</label>
               <div class="input-wrap">
                 <input
-                  type="email"
-                  id="login-email"
-                  name="email"
-                  placeholder="you@tcgc.edu.ph"
-                  autocomplete="email"
-                  inputmode="email"
+                  type="text"
+                  id="login-student-id"
+                  name="studentId"
+                  placeholder="XXXXXXX"
+                  autocomplete="username"
                   spellcheck="false"
-                  aria-describedby="login-email-error"
+                  aria-describedby="login-student-id-error"
                   required
                 />
               </div>
-              <p class="field-error" id="login-email-error" role="alert" hidden></p>
+              <p class="field-error" id="login-student-id-error" role="alert" hidden></p>
             </div>
 
             <div class="field" id="password-field">

@@ -35,7 +35,30 @@
           </span>
         </a>
 
-        <div class="header-actions" id="header-actions"></div>
+        <nav class="nav" id="primary-nav" aria-label="Primary">
+          <a class="nav-student" href="pages/dashboard.html#students" aria-label="Student records">Student</a>
+          <a class="nav-login" href="pages/login.html">Log in</a>
+          <a class="nav-auth" href="pages/signup.html">Create account</a>
+        </nav>
+
+        <div class="header-actions" id="header-actions">
+          <a class="header-login" href="pages/login.html">Log in</a>
+          <a class="btn btn--light" href="pages/signup.html">Create account</a>
+          <button
+            class="nav-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="primary-nav"
+            aria-label="Open menu"
+          >
+            <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+            <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -50,11 +73,6 @@
                 Track institute and organization fees, balances, and official
                 receipts in one place.
               </p>
-
-              <div class="home-actions">
-                <a class="btn btn--outline-light" href="pages/login.html">Log in</a>
-                <a class="btn btn--accent" href="#track">Track payment</a>
-              </div>
 
               <form class="hero-track" id="track" novalidate>
                 <label class="hero-track__label" for="track-student-id">
@@ -73,7 +91,7 @@
                     placeholder="Enter your Student ID"
                     autocomplete="off"
                     spellcheck="false"
-                    aria-describedby="track-hint track-error"
+                    aria-describedby="track-error"
                     required
                   />
                   <button class="btn btn--accent hero-track__btn" type="submit">
@@ -83,12 +101,6 @@
                     </svg>
                   </button>
                 </div>
-                <p class="hero-track__hint" id="track-hint">
-                  Try demo ID
-                  <button class="hero-track__demo" type="button" data-demo-id="2024-00123">
-                    2024-00123
-                  </button>
-                </p>
                 <p class="hero-track__error" id="track-error" role="alert" hidden></p>
               </form>
             </div>

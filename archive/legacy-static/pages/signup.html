@@ -104,7 +104,8 @@
                 type="text"
                 id="signup-name"
                 name="name"
-                placeholder="Juan Dela Cruz"
+                class="is-uppercase"
+                placeholder="JUAN DELA CRUZ"
                 autocomplete="name"
                 aria-describedby="signup-name-error"
                 required
@@ -118,13 +119,60 @@
                 type="text"
                 id="signup-student-id"
                 name="studentId"
-                placeholder="e.g. 2024-00123"
-                autocomplete="off"
+                placeholder="XXXXXXX"
+                autocomplete="username"
                 spellcheck="false"
                 aria-describedby="signup-student-id-error"
                 required
               />
               <p class="field-error" id="signup-student-id-error" role="alert" hidden></p>
+            </div>
+
+            <div class="field" id="position-field">
+              <label for="signup-position">Position</label>
+              <input
+                type="text"
+                id="signup-position"
+                name="position"
+                class="is-uppercase"
+                placeholder="e.g. Governor"
+                list="position-options"
+                autocomplete="organization-title"
+                aria-describedby="signup-position-error"
+                required
+              />
+              <datalist id="position-options">
+                <option value="GOVERNOR"></option>
+                <option value="VICE-GOVERNOR"></option>
+                <option value="PRESIDENT"></option>
+                <option value="VICE PRESIDENT"></option>
+                <option value="SECRETARY"></option>
+                <option value="TREASURER"></option>
+                <option value="AUDITOR"></option>
+                <option value="P.R.O."></option>
+                <option value="1ST REPRESENTATIVE"></option>
+                <option value="2ND REPRESENTATIVE"></option>
+                <option value="3RD REPRESENTATIVE"></option>
+                <option value="4TH REPRESENTATIVE"></option>
+              </datalist>
+              <p class="field-error" id="signup-position-error" role="alert" hidden></p>
+            </div>
+
+            <div class="field" id="year-level-field">
+              <label for="signup-year-level">Year level</label>
+              <select
+                id="signup-year-level"
+                name="yearLevel"
+                aria-describedby="signup-year-level-error"
+                required
+              >
+                <option value="" disabled selected>Select year level</option>
+                <option value="1ST YEAR">1ST YEAR</option>
+                <option value="2ND YEAR">2ND YEAR</option>
+                <option value="3RD YEAR">3RD YEAR</option>
+                <option value="4TH YEAR">4TH YEAR</option>
+              </select>
+              <p class="field-error" id="signup-year-level-error" role="alert" hidden></p>
             </div>
 
             <div class="field" id="institute-field">
@@ -164,22 +212,6 @@
                 <option value="Other program">Other program</option>
               </select>
               <p class="field-error" id="signup-program-error" role="alert" hidden></p>
-            </div>
-
-            <div class="field" id="signup-email-field">
-              <label for="signup-email">School email</label>
-              <input
-                type="email"
-                id="signup-email"
-                name="email"
-                placeholder="you@tcgc.edu.ph"
-                autocomplete="email"
-                inputmode="email"
-                spellcheck="false"
-                aria-describedby="signup-email-error"
-                required
-              />
-              <p class="field-error" id="signup-email-error" role="alert" hidden></p>
             </div>
 
             <div class="field" id="new-password-field">

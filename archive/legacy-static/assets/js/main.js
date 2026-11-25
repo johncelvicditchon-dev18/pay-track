@@ -72,7 +72,6 @@
     var signupBtn = headerActions.querySelector(".btn");
     var navAuth = document.querySelector(".nav-auth");
     var navLogin = document.querySelector(".nav-login");
-    var heroActions = document.querySelector(".hero-actions");
     var firstName = String(session.name || "Student").trim().split(/\s+/)[0];
 
     if (loginLink) loginLink.hidden = true;
@@ -80,9 +79,26 @@
     if (navAuth) navAuth.hidden = true;
     if (navLogin) navLogin.hidden = true;
 
+    var dashboardLink = document.createElement("a");
+    dashboardLink.className = "header-dashboard";
+    dashboardLink.href = "pages/dashboard.html";
+    dashboardLink.textContent = "Dashboard";
+    headerActions.insertBefore(dashboardLink, navToggle || null);
+
+    if (nav) {
+      var navDashboard = document.createElement("a");
+      navDashboard.className = "nav-dashboard";
+      navDashboard.href = "pages/dashboard.html";
+      navDashboard.textContent = "Dashboard";
+      navDashboard.addEventListener("click", function () {
+        setNav(false);
+      });
+      nav.insertBefore(navDashboard, nav.firstChild);
+    }
+
     var chip = document.createElement("span");
     chip.className = "header-user";
-    chip.title = session.email || "";
+    chip.title = session.studentId || "";
 
     var avatar = document.createElement("span");
     avatar.className = "avatar";
@@ -110,30 +126,6 @@
         window.location.reload();
       }, 600);
     });
-
-    if (heroActions) {
-      var row = document.createElement("div");
-      row.className = "hero-signed-in";
-
-      var check = document.createElement("span");
-      check.className = "hero-signed-in__check";
-      check.setAttribute("aria-hidden", "true");
-      check.innerHTML =
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-
-      var copy = document.createElement("div");
-      var strong = document.createElement("strong");
-      strong.textContent = "Signed in as " + (session.name || "student");
-
-      var small = document.createElement("small");
-      small.textContent = "Your balance, due dates, and receipts stay in one place.";
-
-      copy.appendChild(strong);
-      copy.appendChild(small);
-      row.appendChild(check);
-      row.appendChild(copy);
-      heroActions.parentNode.replaceChild(row, heroActions);
-    }
   }
 
   renderSession();
