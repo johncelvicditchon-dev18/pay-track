@@ -45,9 +45,11 @@ function studentIdFromAuthUser(user) {
 }
 
 /* ---------- password hashing ---------- */
-// Firebase Auth already stores its own one-way hash. These fields are an
-// additional, verifiable hash kept in the Firestore document so the password
-// can later be checked by a custom backend. The plain password is never stored.
+// Firebase Auth already stores its own one-way hash. This additional hash is
+// kept in the Firestore document so a trusted backend can verify the password
+// later. Only `hashPassword` is written to the user document: the salt is
+// derived from the Student ID, so no salt/algorithm/iteration fields are
+// stored. The plain password is never stored.
 export const PASSWORD_HASH_ALGORITHM = "PBKDF2-SHA256";
 export const PASSWORD_HASH_ITERATIONS = 150000;
 
@@ -59,16 +61,13 @@ function bytesToBase64(bytes) {
   return window.btoa(binary);
 }
 
-function base64ToBytes(value) {
-  const binary = window.atob(value);
-  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+function passwordSalt(studentId) {
+  return new TextEncoder().encode(
+    `${PASSWORD_HASH_ALGORITHM}:${normalizeStudentId(studentId)}`
+  );
 }
 
-export async function computePasswordHash(password, saltBase64) {
-  const salt = saltBase64
-    ? base64ToBytes(saltBase64)
-    : window.crypto.getRandomValues(new Uint8Array(16));
-
+export async function computePasswordHash(password, studentId) {
   const material = await window.crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(password),
@@ -80,7 +79,7 @@ export async function computePasswordHash(password, saltBase64) {
   const bits = await window.crypto.subtle.deriveBits(
     {
       name: "PBKDF2",
-      salt,
+      salt: passwordSalt(studentId),
       iterations: PASSWORD_HASH_ITERATIONS,
       hash: "SHA-256",
     },
@@ -90,18 +89,15 @@ export async function computePasswordHash(password, saltBase64) {
 
   return {
     hashPassword: bytesToBase64(new Uint8Array(bits)),
-    passwordSalt: bytesToBase64(salt),
-    passwordAlgorithm: PASSWORD_HASH_ALGORITHM,
-    passwordIterations: PASSWORD_HASH_ITERATIONS,
   };
 }
 
 export async function verifyPassword(password, profile) {
-  if (!profile?.hashPassword || !profile?.passwordSalt) return false;
+  if (!profile?.hashPassword || !profile?.studentId) return false;
 
   const { hashPassword: candidate } = await computePasswordHash(
     password,
-    profile.passwordSalt
+    profile.studentId
   );
 
   return candidate === profile.hashPassword;
@@ -267,7 +263,7 @@ export async function registerAccount(account) {
 
   let passwordFields = {};
   try {
-    passwordFields = await computePasswordHash(account.password);
+    passwordFields = await computePasswordHash(account.password, studentId);
   } catch (error) {
     console.warn("[auth] Could not compute the stored password hash:", error);
   }
@@ -299,9 +295,6 @@ export async function registerAccount(account) {
 
   const cached = { ...profile };
   delete cached.hashPassword;
-  delete cached.passwordSalt;
-  delete cached.passwordAlgorithm;
-  delete cached.passwordIterations;
   cacheProfile({ uid: credential.user.uid, ...cached });
 
   // The app's flow is "create account, then log in", so don't leave the new

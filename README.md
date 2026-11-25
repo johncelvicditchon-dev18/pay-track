@@ -105,11 +105,12 @@ Authentication and student profiles run on Firebase:
   (`2024-00123@students.tcgc.local`) built in `javascript/lib/auth.js`. That
   address is never shown, never stored as a profile field, and cannot receive
   mail — so password resets are handled by the Finance Office.
-- On sign-up the app also writes a verifiable password hash to the `users`
-  document: `hashPassword` (PBKDF2-SHA256 of the password), `passwordSalt`,
-  `passwordAlgorithm`, and `passwordIterations`. The plain password is never
-  written to Firestore. `verifyPassword()` in `javascript/lib/auth.js` can check
-  a typed password against those fields from a trusted server later.
+- On sign-up the app also writes one verifiable field to the `users` document:
+  `hashPassword` (PBKDF2-SHA256 of the password, with the Student ID as the
+  salt). No salt, algorithm, or iteration fields are stored — the salt is
+  re-derived from the Student ID when checking. The plain password is never
+  written to Firestore. `verifyPassword()` in `javascript/lib/auth.js` can
+  check a typed password against `hashPassword` from a trusted server later.
 
 > Important: Firebase Auth hashed the password the moment the account was
 > created. The extra `hashPassword` field is for your own records/verification —
