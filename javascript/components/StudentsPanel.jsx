@@ -3,7 +3,6 @@ import { useToast } from "../context/ToastContext";
 import {
   STUDENT_COLUMNS,
   buildTemplateCsv,
-  deleteStudentsFromFirestore,
   filterStudents,
   firebaseSyncHint,
   importStudentRows,
@@ -189,41 +188,6 @@ export default function StudentsPanel() {
     report("Template downloaded. Fill it in, then import it.", "success");
   };
 
-  const clearAll = () => {
-    if (!window.confirm("Remove all imported student records from this browser?")) {
-      return;
-    }
-
-    if (!saveStudents([])) {
-      report("Couldn't clear the records. Please try again.", "error");
-      return;
-    }
-
-    setStudents([]);
-    setQuery("");
-    report("All student records were cleared.", "success");
-    toast(
-      "Records cleared",
-      "Imported student records were removed from this browser.",
-      "info"
-    );
-
-    deleteStudentsFromFirestore()
-      .then(() => {
-        report(
-          "All student records were cleared from this browser and Firebase.",
-          "success"
-        );
-      })
-      .catch((error) => {
-        console.warn("[students] Firebase delete failed:", error);
-        report(
-          `Cleared locally; Firebase delete failed. ${firebaseSyncHint(error)}`,
-          "error"
-        );
-      });
-  };
-
   return (
     <section className="dash-view" aria-label="Students">
       <div className="view-head">
@@ -259,15 +223,6 @@ export default function StudentsPanel() {
           >
             Download template
           </button>
-          {students.length ? (
-            <button
-              className="text-button text-button--danger"
-              type="button"
-              onClick={clearAll}
-            >
-              Clear all
-            </button>
-          ) : null}
         </div>
 
         <label className="records-search">

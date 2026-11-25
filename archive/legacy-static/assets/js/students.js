@@ -12,7 +12,6 @@
   var fileInput = document.getElementById("students-file");
   var importButton = document.getElementById("students-import");
   var templateButton = document.getElementById("students-template");
-  var clearButton = document.getElementById("students-clear");
   var searchInput = document.getElementById("students-search");
   var tableWrap = document.getElementById("students-table-wrap");
   var tableBody = document.getElementById("students-body");
@@ -444,10 +443,6 @@
       countEl.textContent = all.length + (all.length === 1 ? " student" : " students");
     }
 
-    if (clearButton) {
-      clearButton.hidden = all.length === 0;
-    }
-
     if (tableWrap) {
       tableWrap.hidden = visible.length === 0;
     }
@@ -541,39 +536,6 @@
     setStatus("Template downloaded. Fill it in, then import it.", "success");
   }
 
-  /* ---------- clearing ---------- */
-  function clearStudents() {
-    if (!window.confirm("Remove all imported student records from this browser?")) {
-      return;
-    }
-
-    if (!writeStore([])) {
-      setStatus("Couldn't clear the records. Please try again.", "error");
-      return;
-    }
-
-    render();
-    setStatus("All student records were cleared.", "success");
-
-    if (api && api.toast) {
-      api.toast("Records cleared", "Imported student records were removed from this browser.", "info");
-    }
-
-    if (window.TCGCFirebase && window.TCGCFirebase.available) {
-      window.TCGCFirebase.deleteAllStudents()
-        .then(function () {
-          setStatus("All student records were cleared from this browser and Firebase.", "success");
-        })
-        .catch(function (error) {
-          console.warn("[students] Firebase delete failed:", error);
-          setStatus(
-            "Cleared in this browser, but Firebase delete failed. " + firebaseHint(error),
-            "error"
-          );
-        });
-    }
-  }
-
   /* ---------- events ---------- */
   if (importButton && fileInput) {
     importButton.addEventListener("click", function () {
@@ -595,10 +557,6 @@
 
   if (templateButton) {
     templateButton.addEventListener("click", downloadTemplate);
-  }
-
-  if (clearButton) {
-    clearButton.addEventListener("click", clearStudents);
   }
 
   if (searchInput) {
