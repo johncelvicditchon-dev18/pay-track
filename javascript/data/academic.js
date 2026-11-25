@@ -16,16 +16,12 @@ export const INSTITUTE_PROGRAMS = {
 
 export const INSTITUTES = Object.keys(INSTITUTE_PROGRAMS);
 
-/*
- * Recognized student organization for each institute. Payment records use
- * this mapping so a student can see both the institute and the organization
- * collecting a fee.
- */
+
 export const INSTITUTE_ORGANIZATIONS = {
-  ICS: "ICS Student Council",
-  IAS: "IAS Arts & Sciences Society",
-  ITE: "ITE Educators' Guild",
-  IHS: "IHS Midwifery Society",
-  IBFS: "IBFS Business Leaders Society",
-  ICJE: "ICJE Criminology Society",
+  ICS: "INSTITUTE OF COMPUTER STUDIES",
+  IAS: "INSTITUTE OF ARTS AND SCIENCES",
+  ITE: "INSTITUTE OF TEACHER EDUCATION",
+  IHS: "INSTITUTE OF HEALTH SCIENCES",
+  IBFS: "INSTITUTE OF BUSINESS AND FINANCE SERVICES",
+  ICJE: "INSTITUTE OF CRIMINAL JUSTICE AND EDUCATION",
 };
