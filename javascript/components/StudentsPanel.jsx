@@ -19,6 +19,64 @@ import {
 
 const MAX_FILE_SIZE = 12 * 1024 * 1024;
 
+const iconProps = {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": "true",
+};
+
+function UploadIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="M12 3v13" />
+      <path d="m7 8 5-5 5 5" />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="M12 3v13" />
+      <path d="m7 13 5 5 5-5" />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function DeleteIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M3 6h18" />
+      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg {...iconProps} strokeWidth={2.2}>
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
 export default function StudentsPanel() {
   const toast = useToast();
   const fileRef = useRef(null);
@@ -372,6 +430,7 @@ export default function StudentsPanel() {
             onClick={handleImportClick}
             disabled={importing}
           >
+            <UploadIcon />
             {importing ? "Importing…" : "Import Excel"}
           </button>
           <input
@@ -386,6 +445,7 @@ export default function StudentsPanel() {
             type="button"
             onClick={downloadTemplate}
           >
+            <DownloadIcon />
             Download template
           </button>
         </div>
@@ -449,6 +509,7 @@ export default function StudentsPanel() {
                             onClick={() => openEdit(student)}
                             aria-label={`Edit ${student.firstName} ${student.lastName}`}
                           >
+                            <EditIcon />
                             Edit
                           </button>
                           <button
@@ -457,6 +518,7 @@ export default function StudentsPanel() {
                             onClick={() => handleDelete(student)}
                             aria-label={`Delete ${student.firstName} ${student.lastName}`}
                           >
+                            <DeleteIcon />
                             Delete
                           </button>
                         </span>
@@ -614,6 +676,7 @@ export default function StudentsPanel() {
               Cancel
             </button>
             <button className="btn btn--primary btn--sm" type="submit">
+              <CheckIcon />
               Save changes
             </button>
           </footer>

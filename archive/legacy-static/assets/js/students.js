@@ -9,6 +9,27 @@
   var api = window.TCGC;
   var STORAGE_KEY = "tcgc_paytrack_students";
 
+  function actionIcon(name) {
+    var paths = {
+      edit:
+        '<path d="M12 20h9" />' +
+        '<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />',
+      delete:
+        '<path d="M3 6h18" />' +
+        '<path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />' +
+        '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />' +
+        '<path d="M10 11v6M14 11v6" />'
+    };
+
+    return (
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ' +
+      'aria-hidden="true">' +
+      paths[name] +
+      "</svg>"
+    );
+  }
+
   var fileInput = document.getElementById("students-file");
   var importButton = document.getElementById("students-import");
   var templateButton = document.getElementById("students-template");
@@ -451,7 +472,7 @@
         "aria-label",
         "Edit " + student.firstName + " " + student.lastName
       );
-      editButton.textContent = "Edit";
+      editButton.innerHTML = actionIcon("edit") + "<span>Edit</span>";
 
       var deleteButton = document.createElement("button");
       deleteButton.type = "button";
@@ -462,7 +483,7 @@
         "aria-label",
         "Delete " + student.firstName + " " + student.lastName
       );
-      deleteButton.textContent = "Delete";
+      deleteButton.innerHTML = actionIcon("delete") + "<span>Delete</span>";
 
       actions.appendChild(editButton);
       actions.appendChild(deleteButton);

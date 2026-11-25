@@ -12,6 +12,27 @@
   var empty = document.getElementById("accounts-empty");
   var count = document.getElementById("accounts-count");
 
+  function actionIcon(name) {
+    var paths = {
+      edit:
+        '<path d="M12 20h9" />' +
+        '<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />',
+      delete:
+        '<path d="M3 6h18" />' +
+        '<path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />' +
+        '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />' +
+        '<path d="M10 11v6M14 11v6" />'
+    };
+
+    return (
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ' +
+      'aria-hidden="true">' +
+      paths[name] +
+      "</svg>"
+    );
+  }
+
   var dialog = document.getElementById("account-dialog");
   var form = document.getElementById("account-form");
   var errorEl = document.getElementById("account-form-error");
@@ -112,10 +133,14 @@
           : '<span class="row-actions">' +
             '<button class="row-action" type="button" data-action="edit" data-id="' +
             escapeHtml(user.studentId) +
-            '">Edit</button>' +
+            '">' +
+            actionIcon("edit") +
+            "<span>Edit</span></button>" +
             '<button class="row-action row-action--danger" type="button" data-action="delete" data-id="' +
             escapeHtml(user.studentId) +
-            '">Delete</button>' +
+            '">' +
+            actionIcon("delete") +
+            "<span>Delete</span></button>" +
             "</span>";
 
         return (
