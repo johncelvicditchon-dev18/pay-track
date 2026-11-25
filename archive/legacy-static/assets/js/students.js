@@ -436,6 +436,39 @@
         row.appendChild(cell);
       });
 
+      var actionsCell = document.createElement("td");
+      actionsCell.className = "cell-actions";
+
+      var actions = document.createElement("span");
+      actions.className = "row-actions";
+
+      var editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "row-action";
+      editButton.setAttribute("data-action", "edit");
+      editButton.setAttribute("data-id", student.studentId);
+      editButton.setAttribute(
+        "aria-label",
+        "Edit " + student.firstName + " " + student.lastName
+      );
+      editButton.textContent = "Edit";
+
+      var deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "row-action row-action--danger";
+      deleteButton.setAttribute("data-action", "delete");
+      deleteButton.setAttribute("data-id", student.studentId);
+      deleteButton.setAttribute(
+        "aria-label",
+        "Delete " + student.firstName + " " + student.lastName
+      );
+      deleteButton.textContent = "Delete";
+
+      actions.appendChild(editButton);
+      actions.appendChild(deleteButton);
+      actionsCell.appendChild(actions);
+      row.appendChild(actionsCell);
+
       tableBody.appendChild(row);
     });
 
@@ -458,6 +491,234 @@
       }
     }
   }
+
+  /* ---------- editing & deleting ---------- */
+  var editDialog = document.getElementById("student-dialog");
+  var editForm = document.getElementById("student-form");
+  var editError = document.getElementById("student-form-error");
+  var editClose = document.getElementById("student-dialog-close");
+  var editCancel = document.getElementById("student-form-cancel");
+  var editFields = {
+    studentId: document.getElementById("edit-student-id"),
+    lastName: document.getElementById("edit-last-name"),
+    firstName: document.getElementById("edit-first-name"),
+    middleName: document.getElementById("edit-middle-name"),
+    program: document.getElementById("edit-program"),
+    year: document.getElementById("edit-year"),
+    classification: document.getElementById("edit-classification")
+  };
+  var editingId = null;
+
+  function findStudent(studentId) {
+    var needle = normalizeId(studentId);
+    var match = null;
+
+    readStore().forEach(function (student) {
+      if (!match && student.studentId === needle) match = student;
+    });
+
+    return match;
+  }
+
+  function setEditError(message) {
+    if (!editError) return;
+    editError.textContent = message || "";
+    editError.hidden = !message;
+  }
+
+  function closeEditDialog() {
+    if (!editDialog) return;
+    if (typeof editDialog.close === "function") editDialog.close();
+    else editDialog.removeAttribute("open");
+    editingId = null;
+  }
+
+  function uppercaseField(input) {
+    if (!input) return;
+
+    input.addEventListener("input", function () {
+      var start = input.selectionStart;
+      var end = input.selectionEnd;
+      input.value = input.value.toUpperCase();
+      if (start !== null) input.setSelectionRange(start, end);
+    });
+  }
+
+  function openEditDialog(studentId) {
+    var student = findStudent(studentId);
+    if (!student || !editDialog || !editForm) return;
+
+    editingId = student.studentId;
+    editFields.studentId.value = student.studentId;
+    editFields.lastName.value = student.lastName || "";
+    editFields.firstName.value = student.firstName || "";
+    editFields.middleName.value = student.middleName || "";
+    editFields.program.value = student.program || "";
+    editFields.year.value = student.year || "";
+    editFields.classification.value = student.classification || "";
+
+    setEditError("");
+    if (typeof editDialog.showModal === "function") editDialog.showModal();
+    else editDialog.setAttribute("open", "open");
+
+    window.setTimeout(function () {
+      editFields.lastName.focus();
+      if (editFields.lastName.select) editFields.lastName.select();
+    }, 60);
+  }
+
+  function syncEditedStudent(oldId, student) {
+    if (!window.TCGCFirebase || !window.TCGCFirebase.available) return;
+
+    var tasks = [];
+    if (oldId !== student.studentId && window.TCGCFirebase.deleteStudent) {
+      tasks.push(window.TCGCFirebase.deleteStudent(oldId));
+    }
+    tasks.push(window.TCGCFirebase.saveStudents([student]));
+
+    Promise.all(tasks)
+      .then(function () {
+        setStatus("Student updated and saved to Firebase.", "success");
+      })
+      .catch(function (error) {
+        console.warn("[students] Firebase update failed:", error);
+        setStatus(
+          "Student updated in this browser; Firebase sync failed. " +
+            firebaseHint(error),
+          "error"
+        );
+      });
+  }
+
+  function deleteStudentRecord(studentId) {
+    var student = findStudent(studentId);
+    if (!student) return;
+
+    var label =
+      (student.firstName + " " + student.lastName).trim() +
+      " (" +
+      student.studentId +
+      ")";
+
+    if (!window.confirm("Delete " + label + "?")) return;
+
+    var remaining = readStore().filter(function (entry) {
+      return entry.studentId !== student.studentId;
+    });
+
+    if (!writeStore(remaining)) {
+      setStatus("Couldn't delete that record. Please try again.", "error");
+      return;
+    }
+
+    render();
+    setStatus("Student deleted.", "success");
+
+    if (
+      window.TCGCFirebase &&
+      window.TCGCFirebase.available &&
+      window.TCGCFirebase.deleteStudent
+    ) {
+      window.TCGCFirebase.deleteStudent(student.studentId)
+        .then(function () {
+          setStatus("Student deleted from this browser and Firebase.", "success");
+        })
+        .catch(function (error) {
+          console.warn("[students] Firebase delete failed:", error);
+          setStatus(
+            "Student deleted in this browser; Firebase delete failed. " +
+              firebaseHint(error),
+            "error"
+          );
+        });
+    }
+  }
+
+  if (editForm) {
+    editForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (!editingId) return;
+
+      var studentId = normalizeId(editFields.studentId.value);
+      var lastName = editFields.lastName.value.trim().toUpperCase();
+      var firstName = editFields.firstName.value.trim().toUpperCase();
+      var middleName = editFields.middleName.value.trim().toUpperCase();
+
+      if (!studentId) {
+        setEditError("Student ID is required.");
+        editFields.studentId.focus();
+        return;
+      }
+
+      if (!lastName || !firstName) {
+        setEditError("Last name and first name are required.");
+        (lastName ? editFields.firstName : editFields.lastName).focus();
+        return;
+      }
+
+      var store = readStore();
+      var duplicate = store.some(function (entry) {
+        return entry.studentId === studentId && entry.studentId !== editingId;
+      });
+
+      if (duplicate) {
+        setEditError("Another student already uses that Student ID.");
+        editFields.studentId.focus();
+        return;
+      }
+
+      var index = -1;
+      store.forEach(function (entry, i) {
+        if (entry.studentId === editingId) index = i;
+      });
+
+      if (index === -1) {
+        setEditError("That record no longer exists.");
+        return;
+      }
+
+      var oldId = editingId;
+      var updated = {
+        studentId: studentId,
+        lastName: lastName,
+        firstName: firstName,
+        middleName: middleName,
+        program: editFields.program.value.trim(),
+        year: editFields.year.value.trim(),
+        classification: editFields.classification.value.trim()
+      };
+
+      store[index] = updated;
+
+      if (!writeStore(store)) {
+        setEditError("Couldn't save the changes. Browser storage may be full.");
+        return;
+      }
+
+      render();
+      closeEditDialog();
+      setStatus("Student updated.", "success");
+      syncEditedStudent(oldId, updated);
+    });
+  }
+
+  if (editClose) editClose.addEventListener("click", closeEditDialog);
+  if (editCancel) editCancel.addEventListener("click", closeEditDialog);
+
+  if (editDialog) {
+    editDialog.addEventListener("click", function (event) {
+      if (event.target === editDialog) closeEditDialog();
+    });
+
+    editDialog.addEventListener("close", function () {
+      editingId = null;
+    });
+  }
+
+  if (editFields.studentId) uppercaseField(editFields.studentId);
+  if (editFields.lastName) uppercaseField(editFields.lastName);
+  if (editFields.firstName) uppercaseField(editFields.firstName);
+  if (editFields.middleName) uppercaseField(editFields.middleName);
 
   /* ---------- file import ---------- */
   function importFile(file) {
@@ -561,6 +822,22 @@
 
   if (searchInput) {
     searchInput.addEventListener("input", render);
+  }
+
+  if (tableBody) {
+    tableBody.addEventListener("click", function (event) {
+      var button =
+        event.target && event.target.closest
+          ? event.target.closest("[data-action]")
+          : null;
+      if (!button) return;
+
+      var studentId = button.getAttribute("data-id");
+      var action = button.getAttribute("data-action");
+
+      if (action === "edit") openEditDialog(studentId);
+      else if (action === "delete") deleteStudentRecord(studentId);
+    });
   }
 
   render();

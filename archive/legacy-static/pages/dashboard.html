@@ -159,6 +159,7 @@
                       <th scope="col">Program</th>
                       <th scope="col">Year</th>
                       <th scope="col">Classification</th>
+                      <th scope="col">Actions</th>
                     </tr>
                   </thead>
                   <tbody id="students-body"></tbody>
@@ -207,10 +208,61 @@
         </main>
 
         <footer class="dash-foot">
-          <span>Tangub City Global College · Finance Office</span>
+          <span>Tangub City Global College · <span id="dash-foot-institute">Student Portal</span></span>
         </footer>
       </div>
     </div>
+
+    <dialog class="edit-dialog" id="student-dialog" aria-labelledby="student-dialog-title">
+      <form class="edit-form" id="student-form" novalidate>
+        <header class="edit-form__head">
+          <h2 id="student-dialog-title">Edit student</h2>
+          <button class="edit-form__close" type="button" id="student-dialog-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="edit-grid">
+          <div class="field">
+            <label for="edit-student-id">Student ID</label>
+            <input type="text" id="edit-student-id" name="studentId" autocomplete="off" spellcheck="false" required />
+          </div>
+          <div class="field">
+            <label for="edit-last-name">Last name</label>
+            <input type="text" id="edit-last-name" name="lastName" class="is-uppercase" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-first-name">First name</label>
+            <input type="text" id="edit-first-name" name="firstName" class="is-uppercase" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-middle-name">Middle name</label>
+            <input type="text" id="edit-middle-name" name="middleName" class="is-uppercase" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="edit-program">Program</label>
+            <input type="text" id="edit-program" name="program" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="edit-year">Year</label>
+            <input type="text" id="edit-year" name="year" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="edit-classification">Classification</label>
+            <input type="text" id="edit-classification" name="classification" autocomplete="off" />
+          </div>
+        </div>
+
+        <p class="edit-form__error" id="student-form-error" role="alert" hidden></p>
+
+        <footer class="edit-form__actions">
+          <button class="btn btn--outline btn--sm" type="button" id="student-form-cancel">Cancel</button>
+          <button class="btn btn--primary btn--sm" type="submit">Save changes</button>
+        </footer>
+      </form>
+    </dialog>
 
     <script src="../assets/vendor/xlsx.full.min.js"></script>
     <script src="../assets/js/ui.js"></script>

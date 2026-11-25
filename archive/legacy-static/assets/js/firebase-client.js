@@ -238,6 +238,15 @@
     }, Promise.resolve());
   };
 
+  client.deleteStudent = function (studentId) {
+    return request(BASE_URL + ":commit" + KEY_PARAM, {
+      method: "POST",
+      body: JSON.stringify({
+        writes: [{ delete: studentDocName(studentId) }]
+      })
+    });
+  };
+
   client.deleteAllStudents = function () {
     return client.loadStudents().then(function (students) {
       if (!students.length) return;
