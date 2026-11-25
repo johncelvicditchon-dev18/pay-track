@@ -3,10 +3,14 @@
    Collapsible sidebar navigation + tabbed views
    ========================================================= */
 
+html:has(.dashboard-page) {
+  font-size: 80%;
+}
+
 .dashboard-page {
-  min-height: 100vh;
+  height: 100vh;
   background: var(--cream-deep);
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .dashboard-page.nav-open-lock {
@@ -15,7 +19,8 @@
 
 .dash-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
 }
 
 /* ================= SIDEBAR ================= */
@@ -180,6 +185,9 @@
   flex: 1;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .top-bar {
@@ -187,6 +195,7 @@
   top: 0;
   z-index: 30;
   display: flex;
+  flex: none;
   align-items: center;
   gap: 14px;
   padding: 13px clamp(16px, 3vw, 34px);
@@ -283,12 +292,18 @@
 /* ================= CONTENT ================= */
 .dash-content {
   flex: 1;
-  padding: clamp(20px, 3vw, 36px) clamp(16px, 3vw, 34px) 48px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: clamp(20px, 3vw, 36px) clamp(16px, 3vw, 34px) 24px;
 }
 
 .dash-view {
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-height: 0;
   gap: 24px;
   max-width: none;
   margin: 0;
@@ -297,6 +312,33 @@
 
 .dash-view[hidden] {
   display: none;
+}
+
+.dash-view > .view-head,
+.dash-view > .records-toolbar,
+.dash-view > .records-status,
+.dash-view > .records-empty {
+  flex: none;
+}
+
+.dash-view > .accounts-table-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.dashboard-page .accounts-table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.dashboard-page .accounts-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 @keyframes dash-view-in {
@@ -646,6 +688,7 @@
   white-space: normal;
   overflow-wrap: anywhere;
   vertical-align: top;
+  padding: 0.55rem 0.7rem;
 }
 
 @media (max-width: 640px) {
@@ -659,6 +702,7 @@
 /* ---------- footer ---------- */
 .dash-foot {
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
@@ -787,7 +831,8 @@
   }
 
   .dashboard-page .accounts-table-scroll {
-    overflow: visible;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .dashboard-page .accounts-table {
@@ -900,5 +945,13 @@
 
   .dashboard-page .registry-table td:nth-child(6)::before {
     content: "Program";
+  }
+}
+
+@supports (height: 100dvh) {
+  .dashboard-page,
+  .dash-shell,
+  .side-nav {
+    height: 100dvh;
   }
 }
