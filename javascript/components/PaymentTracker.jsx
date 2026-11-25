@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { findUserByStudentId, initials } from "../lib/auth";
 import { fetchPaymentRecord, summarizeRecord } from "../lib/paymentRecords";
-import { INSTITUTE_ORGANIZATIONS } from "../data/academic";
 
 const ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
 
@@ -57,6 +56,9 @@ function TrackRecord({ record, studentId }) {
           </div>
         </div>
         <div className="track-chips">
+          {record.council ? (
+            <span className="track-chip track-chip--org">{record.council}</span>
+          ) : null}
           {record.institute ? (
             <span className="track-chip">Institute · {record.institute}</span>
           ) : null}
@@ -207,9 +209,6 @@ function TrackRecord({ record, studentId }) {
 }
 
 function RegisteredPreview({ account, studentId, onClose }) {
-  const organization =
-    INSTITUTE_ORGANIZATIONS[account.institute] || account.organization || "—";
-
   return (
     <div className="track-empty">
       <span className="track-empty__icon">
@@ -222,10 +221,7 @@ function RegisteredPreview({ account, studentId, onClose }) {
       <h2 id="track-dialog-title">No assessment posted yet</h2>
       <p>
         <strong>{account.name}</strong> ({studentId}) is registered under{" "}
-        <strong>
-          {account.institute || "—"} · {account.program || "—"}
-        </strong>{" "}
-        with <strong>{organization}</strong>
+        <strong>{account.council || "—"}</strong>
         {account.yearLevel ? ` · ${account.yearLevel}` : ""}. Your payment
         assessment has not been posted yet. Check back after enrollment or visit
         the Finance Office.
@@ -331,7 +327,14 @@ export default function PaymentTracker() {
       return;
     }
 
-    const record = await fetchPaymentRecord(normalized);
+    if (!user.council) {
+      setError(
+        "Your account has no Council/Organization assigned yet. Contact the Finance Office."
+      );
+      return;
+    }
+
+    const record = await fetchPaymentRecord(normalized, user.council);
     if (record) {
       setResult({ type: "record", studentId: normalized, record });
       openDialog();

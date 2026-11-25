@@ -187,8 +187,7 @@
               studentId: account.studentId || normalized,
               position: account.position || "",
               yearLevel: account.yearLevel || "",
-              institute: account.institute || "",
-              program: account.program || "",
+              council: account.council || "",
               signedInAt: new Date().toISOString()
             },
             Boolean(loginRemember && loginRemember.checked)
@@ -278,8 +277,7 @@
     var studentIdInput = document.getElementById("signup-student-id");
     var positionInput = document.getElementById("signup-position");
     var yearLevelInput = document.getElementById("signup-year-level");
-    var instituteInput = document.getElementById("signup-institute");
-    var programInput = document.getElementById("signup-program");
+    var councilInput = document.getElementById("signup-council");
     var passwordInput = document.getElementById("signup-password");
     var confirmInput = document.getElementById("signup-confirm");
     var termsInput = document.getElementById("signup-terms");
@@ -331,8 +329,7 @@
       clearError(studentIdInput);
       clearError(positionInput);
       clearError(yearLevelInput);
-      clearError(instituteInput);
-      clearError(programInput);
+      clearError(councilInput);
       clearError(passwordInput);
       clearError(confirmInput);
       clearTermsError();
@@ -341,8 +338,7 @@
       var studentId = studentIdInput.value.trim();
       var position = positionInput.value.trim();
       var yearLevel = yearLevelInput.value;
-      var institute = instituteInput.value;
-      var program = programInput.value;
+      var council = councilInput.value;
       var password = passwordInput.value;
       var confirm = confirmInput.value;
 
@@ -390,14 +386,12 @@
         invalid.push(yearLevelInput);
       }
 
-      if (!institute) {
-        showError(instituteInput, "Select the institute you belong to.");
-        invalid.push(instituteInput);
-      }
-
-      if (!program) {
-        showError(programInput, "Select the program you are enrolled in.");
-        invalid.push(programInput);
+      if (!council) {
+        showError(councilInput, "Select your council or organization.");
+        invalid.push(councilInput);
+      } else if (api.COUNCILS.indexOf(api.normalizeCouncil(council)) === -1) {
+        showError(councilInput, "Choose a valid council or organization.");
+        invalid.push(councilInput);
       }
 
       if (!password) {
@@ -449,8 +443,7 @@
           studentId: studentId,
           position: positionInput.value.trim().toUpperCase(),
           yearLevel: yearLevelInput.value,
-          institute: instituteInput.value,
-          program: programInput.value,
+          council: api.normalizeCouncil(councilInput.value),
           password: passwordInput.value,
           createdAt: new Date().toISOString()
         });

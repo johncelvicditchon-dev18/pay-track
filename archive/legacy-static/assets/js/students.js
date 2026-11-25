@@ -8,6 +8,9 @@
 
   var api = window.TCGC;
   var STORAGE_KEY = "tcgc_paytrack_students";
+  var session = api && api.getSession ? api.getSession() : null;
+  var COUNCIL = session && session.council ? api.normalizeCouncil(session.council) : "";
+  var STORE_KEY = STORAGE_KEY + (COUNCIL ? ":" + COUNCIL : "");
 
   function actionIcon(name) {
     var paths = {
@@ -94,7 +97,7 @@
 
   function readStore() {
     try {
-      var raw = window.localStorage.getItem(STORAGE_KEY);
+      var raw = window.localStorage.getItem(STORE_KEY);
       var list = raw ? JSON.parse(raw) : [];
       return Array.isArray(list) ? list : [];
     } catch (error) {
@@ -104,7 +107,7 @@
 
   function writeStore(list) {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(list));
       return true;
     } catch (error) {
       return false;
@@ -182,7 +185,7 @@
   function syncFromFirebase() {
     if (!window.TCGCFirebase || !window.TCGCFirebase.available) return;
 
-    window.TCGCFirebase.loadStudents()
+    window.TCGCFirebase.loadStudents(COUNCIL)
       .then(function (remote) {
         var local = readStore();
         var remoteIds = {};
@@ -363,6 +366,7 @@
 
       var student = {
         studentId: studentId,
+        council: COUNCIL,
         lastName: readCell(row, map.lastName).toUpperCase(),
         firstName: readCell(row, map.firstName).toUpperCase(),
         middleName: readCell(row, map.middleName).toUpperCase(),
@@ -507,7 +511,11 @@
       if (visible.length === 0) {
         emptyState.innerHTML =
           all.length === 0
-            ? "<p>No student records yet.</p><small>Use <strong>Import Excel</strong> or download the template to get started.</small>"
+            ? (COUNCIL
+                ? "<p>No student records yet.</p><small>Use <strong>Import Excel</strong> or download the template to get started. Records are shared with every officer in " +
+                  COUNCIL +
+                  ".</small>"
+                : "<p>No Council/Organization assigned.</p><small>Contact the Finance Office to assign your council or organization before importing students.</small>")
             : "<p>No students match your search.</p><small>Try a different name, ID, program, year, or classification.</small>";
       }
     }
@@ -593,7 +601,7 @@
 
     var tasks = [];
     if (oldId !== student.studentId && window.TCGCFirebase.deleteStudent) {
-      tasks.push(window.TCGCFirebase.deleteStudent(oldId));
+      tasks.push(window.TCGCFirebase.deleteStudent(oldId, COUNCIL));
     }
     tasks.push(window.TCGCFirebase.saveStudents([student]));
 
@@ -640,7 +648,7 @@
       window.TCGCFirebase.available &&
       window.TCGCFirebase.deleteStudent
     ) {
-      window.TCGCFirebase.deleteStudent(student.studentId)
+      window.TCGCFirebase.deleteStudent(student.studentId, COUNCIL)
         .then(function () {
           setStatus("Student deleted from this browser and Firebase.", "success");
         })
@@ -701,6 +709,7 @@
       var oldId = editingId;
       var updated = {
         studentId: studentId,
+        council: COUNCIL,
         lastName: lastName,
         firstName: firstName,
         middleName: middleName,
@@ -821,6 +830,13 @@
   /* ---------- events ---------- */
   if (importButton && fileInput) {
     importButton.addEventListener("click", function () {
+      if (!COUNCIL) {
+        setStatus(
+          "Your account has no Council/Organization assigned. Contact the Finance Office.",
+          "error"
+        );
+        return;
+      }
       if (!window.XLSX) {
         setStatus("Excel support didn't load. Reload the page and try again.", "error");
         return;
@@ -863,6 +879,13 @@
 
   render();
   syncFromFirebase();
+
+  if (!COUNCIL) {
+    setStatus(
+      "Your account has no Council/Organization assigned. Contact the Finance Office.",
+      "error"
+    );
+  }
 
   // Exposed for console use and automated checks.
   window.TCGCStudents = {

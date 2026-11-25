@@ -4,11 +4,8 @@ import AuthLayout from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { STUDENT_ID_RE, authErrorMessage } from "../lib/auth";
-import {
-  INSTITUTES,
-  INSTITUTE_PROGRAMS,
-  YEAR_LEVELS,
-} from "../data/academic";
+import { YEAR_LEVELS } from "../data/academic";
+import { COUNCILS } from "../data/councils";
 
 const STRENGTH_TEXT = [
   "Use 8+ characters with letters and numbers.",
@@ -23,8 +20,7 @@ const FIELD_IDS = {
   studentId: "signup-student-id",
   position: "signup-position",
   yearLevel: "signup-year-level",
-  institute: "signup-institute",
-  program: "signup-program",
+  council: "signup-council",
   password: "signup-password",
   confirm: "signup-confirm",
   terms: "signup-terms",
@@ -85,8 +81,7 @@ export default function Signup() {
     studentId: "",
     position: "",
     yearLevel: "",
-    institute: "",
-    program: "",
+    council: "",
     password: "",
     confirm: "",
     terms: false,
@@ -96,9 +91,6 @@ export default function Signup() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const programOptions = form.institute
-    ? INSTITUTE_PROGRAMS[form.institute] || []
-    : [];
   const strength = form.password ? scorePassword(form.password) : 0;
 
   const strengthLabel = useMemo(
@@ -107,15 +99,10 @@ export default function Signup() {
   );
 
   const updateField = (key, value) => {
-    setForm((current) => {
-      const next = { ...current, [key]: value };
-      if (key === "institute") next.program = "";
-      return next;
-    });
+    setForm((current) => ({ ...current, [key]: value }));
 
     setErrors((current) => {
       const next = { ...current, [key]: "" };
-      if (key === "institute") next.program = "";
       if (key === "password") next.confirm = "";
       return next;
     });
@@ -159,14 +146,10 @@ export default function Signup() {
       next.yearLevel = "Choose a valid year level.";
     }
 
-    if (!form.institute) {
-      next.institute = "Select the institute you belong to.";
-    }
-
-    if (!form.program) {
-      next.program = "Select the program you are enrolled in.";
-    } else if (!INSTITUTE_PROGRAMS[form.institute]?.includes(form.program)) {
-      next.program = "Select a program offered by your institute.";
+    if (!form.council) {
+      next.council = "Select your council or organization.";
+    } else if (!COUNCILS.includes(form.council)) {
+      next.council = "Choose a valid council or organization.";
     }
 
     if (!form.password) {
@@ -391,54 +374,28 @@ export default function Signup() {
           </p>
         </div>
 
-        <div className={`field${errors.institute ? " has-error" : ""}`}>
-          <label htmlFor="signup-institute">Institute</label>
+        <div className={`field${errors.council ? " has-error" : ""}`}>
+          <label htmlFor="signup-council">Council / Organization</label>
           <select
-            id="signup-institute"
-            name="institute"
-            value={form.institute}
-            onChange={(event) => updateField("institute", event.target.value)}
-            aria-invalid={Boolean(errors.institute)}
-            aria-describedby="signup-institute-error"
+            id="signup-council"
+            name="council"
+            value={form.council}
+            onChange={(event) => updateField("council", event.target.value)}
+            aria-invalid={Boolean(errors.council)}
+            aria-describedby="signup-council-error"
             required
           >
             <option value="" disabled>
-              Select your institute
+              Select your council or organization
             </option>
-            {INSTITUTES.map((institute) => (
-              <option key={institute} value={institute}>
-                {institute}
+            {COUNCILS.map((council) => (
+              <option key={council} value={council}>
+                {council}
               </option>
             ))}
           </select>
-          <p className="field-error" id="signup-institute-error" role="alert" hidden={!errors.institute}>
-            {errors.institute}
-          </p>
-        </div>
-
-        <div className={`field${errors.program ? " has-error" : ""}`}>
-          <label htmlFor="signup-program">Program</label>
-          <select
-            id="signup-program"
-            name="program"
-            value={form.program}
-            onChange={(event) => updateField("program", event.target.value)}
-            disabled={!form.institute}
-            aria-invalid={Boolean(errors.program)}
-            aria-describedby="signup-program-error"
-            required
-          >
-            <option value="" disabled>
-              {form.institute ? "Select your program" : "Select an institute first"}
-            </option>
-            {programOptions.map((program) => (
-              <option key={program} value={program}>
-                {program}
-              </option>
-            ))}
-          </select>
-          <p className="field-error" id="signup-program-error" role="alert" hidden={!errors.program}>
-            {errors.program}
+          <p className="field-error" id="signup-council-error" role="alert" hidden={!errors.council}>
+            {errors.council}
           </p>
         </div>
 

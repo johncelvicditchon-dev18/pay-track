@@ -4,7 +4,6 @@ import Brand from "../components/Brand";
 import StudentsPanel from "../components/StudentsPanel";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { INSTITUTE_ORGANIZATIONS } from "../data/academic";
 import { authErrorMessage, initials, listAccounts } from "../lib/auth";
 import "../../design/dashboard.css";
 
@@ -314,7 +313,7 @@ export default function Dashboard() {
 
           <main className="dash-content">
             {view === "students" ? (
-              <StudentsPanel />
+              <StudentsPanel council={user.council} />
             ) : (
               <section className="dash-view" aria-label="Accounts">
                 <div className="view-head">
@@ -361,8 +360,7 @@ export default function Dashboard() {
                             <th scope="col">Student ID</th>
                             <th scope="col">Position</th>
                             <th scope="col">Year Level</th>
-                            <th scope="col">Institute</th>
-                            <th scope="col">Program</th>
+                            <th scope="col">Council / Organization</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -382,8 +380,7 @@ export default function Dashboard() {
                                 {display(account.position)}
                               </td>
                               <td>{display(account.yearLevel)}</td>
-                              <td>{display(account.institute)}</td>
-                              <td>{display(account.program)}</td>
+                              <td>{display(account.council)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -405,9 +402,7 @@ export default function Dashboard() {
           <footer className="dash-foot">
             <span>
               Tangub City Global College ·{" "}
-              {INSTITUTE_ORGANIZATIONS[user.institute] ||
-                user.institute ||
-                "Officer Portal"}
+              {user.council || "Officer Portal"}
             </span>
             <Link to="/">Back to public site</Link>
           </footer>

@@ -70,27 +70,31 @@ Registration collects, in order:
 - Student ID — unique, and used as the username when logging in
 - Position — displayed in uppercase
 - Year level — `1ST YEAR`, `2ND YEAR`, `3RD YEAR`, `4TH YEAR`
-- Institute
-- Program — filtered by the selected institute
+- Council / Organization
 - Password and confirmation
 
 There is no email field. Login accepts the **Student ID** plus password; students
 never type or see an email address.
 
-### Institute → program mapping
+### Council / Organization
 
-| Institute | Programs |
+Officer accounts pick one council or organization. The options live in
+`javascript/data/councils.js` and are used by both sign-up validation and the
+dashboard:
+
+| Group | Options |
 | --- | --- |
-| ICS | BSCS |
-| IAS | AB COMM, AB ENGLISH, AB POLSCI |
-| ITE | BEED, BSED-ENGLISH, BSED-FILIPINO, BSED-MATH, BSED-SOCSTUD |
-| IHS | BS-MIDWIFERY |
-| IBFS | BSBA-FM, BSBA-HRM, BSBA-MM, BSOA |
-| ICJE | BS-CRIM, BSISM |
+| Institute student councils | `ISC-ICS`, `ISC-IAS`, `ISC-IHS`, `ISC-ITE`, `ISC-IBFS`, `ISC-ICJE` |
+| Student organizations | `SRO-JPEG.COM`, `SRO-ISMTSU`, `SRO-VOSS`, `SRO-CITU`, `SRO-AYOA`, `SRO-GLEE-C`, `SRO-PSC`, `SRO-YLS`, `SRO-JEHRO`, `SRO-TMS-FIL`, `SRO-JFINEX`, `SRO-COMMUNITY`, `SRO-GAME`, `SRO-CRCYC`, `SRO-TEEM`, `SRO-JAMEX` |
 
-The mapping lives in `javascript/data/academic.js` and is used by both the program
-dropdown and form validation. Changing the institute clears the selected
-program.
+Student and payment records are scoped to the officer's council. Officers with
+the same council share the same roster and payment records; officers from a
+different council see a different set.
+
+> Existing accounts created before this change have no `council` field. Set it
+> in Firestore (`users/{uid}.council`) before that officer can see records.
+> Student and payment documents that have no `council` field are also hidden by
+> the rules until they are reassigned.
 
 ## Firebase setup
 
@@ -138,11 +142,11 @@ Before the app can log people in, in the
    firebase deploy --only firestore:rules
    ```
 
-The rules in `firestore.rules` let a signed-in student read the roster (used by
-`/accounts`) and their payment record, write the imported `students` class list,
-and manage their own profile. Payment records are read-only from the app.
-Restrict reads further with an admin custom claim if the roster or payment
-records should not be visible to every student.
+The rules in `firestore.rules` scope the roster and payment records to the
+signed-in officer's council: reads and writes only succeed when the document's
+`council` field matches the `council` on the caller's `users` profile. Payment
+records are read-only from the app. Restrict profile reads further with an admin
+custom claim if the roster should not be visible to every officer.
 
 The Firebase web API key is public by design, but you should restrict it in the
 Google Cloud console to your own domains and to the Firebase APIs this app uses.
@@ -150,11 +154,13 @@ Google Cloud console to your own domains and to the Firebase APIs this app uses.
 ## Payment records
 
 The payment tracker reads the Firestore `paymentRecords` collection. Each
-document ID is the normalized Student ID (for example `2024-00123`) and the
-document holds that student's charges and official receipts:
+document ID is `<council>::<studentId>` (for example `ISC-ICS::2024-00123`), so
+each council keeps its own record for a student. The document holds the
+`council` plus that student's charges and official receipts:
 
 ```json
 {
+  "council": "ISC-ICS",
   "name": "Maria Santos",
   "institute": "ICS",
   "program": "BSCS",
@@ -218,7 +224,7 @@ design/                 Shared design system and page styles
 javascript/             React application code
   components/           Header, footer, auth layout, payment tracker
   context/              Auth session and toast providers
-  data/                 Institute/program mapping
+  data/                 Year levels and the council/organization list
   lib/                  Firebase config, auth/profile, student, and payment-record helpers
   pages/                Welcome, Login, Signup, Accounts
   App.jsx

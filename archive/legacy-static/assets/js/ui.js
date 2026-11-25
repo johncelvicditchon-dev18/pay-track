@@ -15,9 +15,33 @@
     studentId: "2024-00123",
     position: "PRESIDENT",
     yearLevel: "4TH YEAR",
-    institute: "ICS",
-    program: "BS Information Technology"
+    council: "ISC-ICS"
   };
+
+  var COUNCILS = [
+    "ISC-ICS",
+    "ISC-IAS",
+    "ISC-IHS",
+    "ISC-ITE",
+    "ISC-IBFS",
+    "ISC-ICJE",
+    "SRO-JPEG.COM",
+    "SRO-ISMTSU",
+    "SRO-VOSS",
+    "SRO-CITU",
+    "SRO-AYOA",
+    "SRO-GLEE-C",
+    "SRO-PSC",
+    "SRO-YLS",
+    "SRO-JEHRO",
+    "SRO-TMS-FIL",
+    "SRO-JFINEX",
+    "SRO-COMMUNITY",
+    "SRO-GAME",
+    "SRO-CRCYC",
+    "SRO-TEEM",
+    "SRO-JAMEX"
+  ];
 
   /* ---------- storage (with in-memory fallback) ---------- */
   function readJSON(store, key, fallback) {
@@ -56,6 +80,10 @@
   }
 
   function normalizeStudentId(value) {
+    return String(value || "").trim().toUpperCase();
+  }
+
+  function normalizeCouncil(value) {
     return String(value || "").trim().toUpperCase();
   }
 
@@ -207,10 +235,12 @@
 
   window.TCGC = {
     DEMO_ACCOUNT: DEMO_ACCOUNT,
+    COUNCILS: COUNCILS,
     getUsers: getUsers,
     saveUsers: saveUsers,
     findUser: findUser,
     normalizeStudentId: normalizeStudentId,
+    normalizeCouncil: normalizeCouncil,
     getSession: getSession,
     setSession: setSession,
     updateSession: updateSession,

@@ -1,26 +1,29 @@
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { normalizeStudentId } from "./students";
+import { normalizeCouncil } from "../data/councils";
 
 /*
  * Payment records live in the Firestore `paymentRecords` collection.
- * The document ID is the normalized Student ID (for example 2024-00123).
+ * The document ID is "<council>::<studentId>" (for example
+ * "ISC-ICS::2024-00123"), so every council keeps its own record for a student.
  * Finance staff create and update these documents from the Firebase console
  * or a trusted admin tool; the app only reads them.
  */
 export const PAYMENT_RECORDS_COLLECTION = "paymentRecords";
 
-function recordDocId(studentId) {
-  return encodeURIComponent(normalizeStudentId(studentId));
+function recordDocId(council, studentId) {
+  return `${normalizeCouncil(council)}::${normalizeStudentId(studentId)}`;
 }
 
 function text(value) {
   return String(value == null ? "" : value).trim();
 }
 
-function normalizeRecord(studentId, data = {}) {
+function normalizeRecord(council, studentId, data = {}) {
   return {
     studentId,
+    council: normalizeCouncil(data.council) || council,
     name: text(data.name) || studentId,
     institute: text(data.institute),
     program: text(data.program),
@@ -38,16 +41,17 @@ function normalizeRecord(studentId, data = {}) {
  * Read one student's payment record. Returns null when no document exists.
  * Firestore errors are rethrown so the caller can show the right message.
  */
-export async function fetchPaymentRecord(studentId) {
+export async function fetchPaymentRecord(studentId, council) {
   const normalized = normalizeStudentId(studentId);
-  if (!normalized) return null;
+  const normalizedCouncil = normalizeCouncil(council);
+  if (!normalized || !normalizedCouncil) return null;
 
   const snapshot = await getDoc(
-    doc(db, PAYMENT_RECORDS_COLLECTION, recordDocId(normalized))
+    doc(db, PAYMENT_RECORDS_COLLECTION, recordDocId(normalizedCouncil, normalized))
   );
 
   if (!snapshot.exists()) return null;
-  return normalizeRecord(normalized, snapshot.data());
+  return normalizeRecord(normalizedCouncil, normalized, snapshot.data());
 }
 
 /*

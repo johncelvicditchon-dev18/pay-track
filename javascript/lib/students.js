@@ -3,10 +3,13 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  query,
   serverTimestamp,
+  where,
   writeBatch
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { normalizeCouncil } from "../data/councils";
 
 export const STUDENTS_KEY = "tcgc_paytrack_students";
 const STUDENTS_COLLECTION = "students";
@@ -139,11 +142,19 @@ export function rowsFromWorkbook(XLSX, workbook) {
   return bestRows;
 }
 
-export function importStudentRows(rows, existing = []) {
+export function importStudentRows(rows, existing = [], council = "") {
   if (!Array.isArray(rows) || !rows.length) {
     return {
       ok: false,
       error: "That file looks empty. Add a header row and at least one student."
+    };
+  }
+
+  const councilCode = normalizeCouncil(council);
+  if (!councilCode) {
+    return {
+      ok: false,
+      error: "Your account has no Council/Organization assigned. Contact the Finance Office."
     };
   }
 
@@ -193,6 +204,7 @@ export function importStudentRows(rows, existing = []) {
 
     const student = {
       studentId,
+      council: councilCode,
       lastName: readCell(row, map.lastName).toUpperCase(),
       firstName: readCell(row, map.firstName).toUpperCase(),
       middleName: readCell(row, map.middleName).toUpperCase(),
@@ -223,9 +235,14 @@ export function importStudentRows(rows, existing = []) {
   return { ok: true, students, added, updated, skipped };
 }
 
-export function loadStudents() {
+function storageKey(council) {
+  const code = normalizeCouncil(council);
+  return code ? `${STUDENTS_KEY}:${code}` : STUDENTS_KEY;
+}
+
+export function loadStudents(council = "") {
   try {
-    const raw = window.localStorage.getItem(STUDENTS_KEY);
+    const raw = window.localStorage.getItem(storageKey(council));
     const list = raw ? JSON.parse(raw) : [];
     return Array.isArray(list) ? list : [];
   } catch {
@@ -233,9 +250,9 @@ export function loadStudents() {
   }
 }
 
-export function saveStudents(students) {
+export function saveStudents(students, council = "") {
   try {
-    window.localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
+    window.localStorage.setItem(storageKey(council), JSON.stringify(students));
     return true;
   } catch {
     return false;
@@ -288,25 +305,42 @@ export function importSummary({ added, updated, skipped }) {
 }
 
 /* ---------- Firestore sync ---------- */
-function studentDocId(studentId) {
-  return encodeURIComponent(normalizeStudentId(studentId));
+function studentDocId(student) {
+  return `${normalizeCouncil(student.council)}::${normalizeStudentId(
+    student.studentId
+  )}`;
 }
 
-function docIdToStudentId(docId) {
+function docIdToStudent(docId) {
   try {
-    return decodeURIComponent(docId);
+    const decoded = decodeURIComponent(docId);
+    const separator = decoded.indexOf("::");
+    if (separator === -1) {
+      return { council: "", studentId: normalizeStudentId(decoded) };
+    }
+    return {
+      council: normalizeCouncil(decoded.slice(0, separator)),
+      studentId: normalizeStudentId(decoded.slice(separator + 2))
+    };
   } catch {
-    return docId;
+    return { council: "", studentId: normalizeStudentId(docId) };
   }
 }
 
-export async function loadStudentsFromFirestore() {
-  const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
+export async function loadStudentsFromFirestore(council) {
+  const code = normalizeCouncil(council);
+  if (!code) return [];
+
+  const snapshot = await getDocs(
+    query(collection(db, STUDENTS_COLLECTION), where("council", "==", code))
+  );
 
   return snapshot.docs.map((entry) => {
     const data = entry.data() || {};
+    const fallback = docIdToStudent(entry.id);
     return {
-      studentId: data.studentId || docIdToStudentId(entry.id),
+      studentId: data.studentId || fallback.studentId,
+      council: normalizeCouncil(data.council) || code,
       lastName: data.lastName || "",
       firstName: data.firstName || "",
       middleName: data.middleName || "",
@@ -318,10 +352,14 @@ export async function loadStudentsFromFirestore() {
 }
 
 export async function saveStudentsToFirestore(students) {
+  const valid = (students || []).filter(
+    (student) =>
+      normalizeCouncil(student.council) && normalizeStudentId(student.studentId)
+  );
   const chunks = [];
 
-  for (let i = 0; i < students.length; i += FIRESTORE_BATCH_SIZE) {
-    chunks.push(students.slice(i, i + FIRESTORE_BATCH_SIZE));
+  for (let i = 0; i < valid.length; i += FIRESTORE_BATCH_SIZE) {
+    chunks.push(valid.slice(i, i + FIRESTORE_BATCH_SIZE));
   }
 
   for (const chunk of chunks) {
@@ -329,9 +367,10 @@ export async function saveStudentsToFirestore(students) {
 
     chunk.forEach((student) => {
       batch.set(
-        doc(db, STUDENTS_COLLECTION, studentDocId(student.studentId)),
+        doc(db, STUDENTS_COLLECTION, studentDocId(student)),
         {
-          studentId: student.studentId,
+          studentId: normalizeStudentId(student.studentId),
+          council: normalizeCouncil(student.council),
           lastName: student.lastName || "",
           firstName: student.firstName || "",
           middleName: student.middleName || "",
@@ -363,8 +402,16 @@ export async function deleteStudentsFromFirestore() {
   }
 }
 
-export async function deleteStudentFromFirestore(studentId) {
-  await deleteDoc(doc(db, STUDENTS_COLLECTION, studentDocId(studentId)));
+export async function deleteStudentFromFirestore(student) {
+  const target =
+    typeof student === "string"
+      ? { studentId: student, council: "" }
+      : student || {};
+  const code = normalizeCouncil(target.council);
+  const studentId = normalizeStudentId(target.studentId);
+
+  if (!code || !studentId) return;
+  await deleteDoc(doc(db, STUDENTS_COLLECTION, studentDocId(target)));
 }
 
 export function firebaseSyncHint(error) {

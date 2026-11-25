@@ -130,20 +130,22 @@
     });
   }
 
-  function studentDocName(studentId) {
+  function studentDocName(council, studentId) {
+    var docId = String(council || "").toUpperCase() + "::" + String(studentId || "");
     return (
       "projects/" +
       PROJECT_ID +
       "/databases/(default)/documents/" +
       COLLECTION +
       "/" +
-      encodeURIComponent(studentId)
+      encodeURIComponent(docId)
     );
   }
 
   function studentFields(student) {
     return {
       studentId: { stringValue: String(student.studentId || "") },
+      council: { stringValue: String(student.council || "").toUpperCase() },
       lastName: { stringValue: student.lastName || "" },
       firstName: { stringValue: student.firstName || "" },
       middleName: { stringValue: student.middleName || "" },
@@ -164,7 +166,10 @@
     var docId = String(document.name || "").split("/").pop();
 
     return {
-      studentId: fieldValue(fields, "studentId") || decodeURIComponent(docId),
+      studentId:
+        fieldValue(fields, "studentId") ||
+        decodeURIComponent(docId).split("::").pop(),
+      council: fieldValue(fields, "council") || decodeURIComponent(docId).split("::")[0],
       lastName: fieldValue(fields, "lastName"),
       firstName: fieldValue(fields, "firstName"),
       middleName: fieldValue(fields, "middleName"),
@@ -193,8 +198,9 @@
     return chunks;
   }
 
-  client.loadStudents = function () {
+  client.loadStudents = function (council) {
     var students = [];
+    var filter = String(council || "").toUpperCase();
 
     function loadPage(pageToken) {
       var url =
@@ -208,7 +214,10 @@
       return request(url)
         .then(function (data) {
           (data.documents || []).forEach(function (document) {
-            students.push(fromDocument(document));
+            var student = fromDocument(document);
+            if (!filter || String(student.council || "").toUpperCase() === filter) {
+              students.push(student);
+            }
           });
 
           if (data.nextPageToken) return loadPage(data.nextPageToken);
@@ -225,7 +234,7 @@
     var writes = students.map(function (student) {
       return {
         update: {
-          name: studentDocName(student.studentId),
+          name: studentDocName(student.council, student.studentId),
           fields: studentFields(student)
         }
       };
@@ -238,11 +247,11 @@
     }, Promise.resolve());
   };
 
-  client.deleteStudent = function (studentId) {
+  client.deleteStudent = function (studentId, council) {
     return request(BASE_URL + ":commit" + KEY_PARAM, {
       method: "POST",
       body: JSON.stringify({
-        writes: [{ delete: studentDocName(studentId) }]
+        writes: [{ delete: studentDocName(council, studentId) }]
       })
     });
   };
@@ -252,7 +261,7 @@
       if (!students.length) return;
 
       var writes = students.map(function (student) {
-        return { delete: studentDocName(student.studentId) };
+        return { delete: studentDocName(student.council, student.studentId) };
       });
 
       return inChunks(writes, BATCH_SIZE).reduce(function (chain, chunk) {

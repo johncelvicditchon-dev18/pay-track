@@ -20,14 +20,6 @@
   }
 
   var NAV_KEY = "tcgc_paytrack_nav";
-  var INSTITUTE_LABELS = {
-    ICS: "INSTITUTE OF COMPUTER STUDIES",
-    IAS: "INSTITUTE OF ARTS AND SCIENCES",
-    ITE: "INSTITUTE OF TEACHER EDUCATION",
-    IHS: "INSTITUTE OF HEALTH SCIENCES",
-    IBFS: "INSTITUTE OF BUSINESS AND FINANCE SERVICES",
-    ICJE: "INSTITUTE OF CRIMINAL JUSTICE AND EDUCATION"
-  };
   var shell = document.getElementById("dash-shell");
   var sideNav = document.getElementById("side-nav");
   var scrim = document.getElementById("side-scrim");
@@ -237,9 +229,8 @@
 
   var instituteEl = document.getElementById("dash-foot-institute");
   if (instituteEl) {
-    var instituteCode = String(session.institute || "").trim().toUpperCase();
-    instituteEl.textContent =
-      INSTITUTE_LABELS[instituteCode] || instituteCode || "Officer Portal";
+    var councilCode = String(session.council || "").trim().toUpperCase();
+    instituteEl.textContent = councilCode || "Officer Portal";
   }
 
   /* ---------- highlight your own row in the accounts table ---------- */

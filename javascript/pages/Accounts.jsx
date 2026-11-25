@@ -106,8 +106,7 @@ export default function Accounts() {
                     <th scope="col">Student ID</th>
                     <th scope="col">Position</th>
                     <th scope="col">Year Level</th>
-                    <th scope="col">Institute</th>
-                    <th scope="col">Program</th>
+                    <th scope="col">Council / Organization</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -117,8 +116,7 @@ export default function Accounts() {
                       <td>{display(account.studentId)}</td>
                       <td className="cell-position">{display(account.position)}</td>
                       <td>{display(account.yearLevel)}</td>
-                      <td>{display(account.institute)}</td>
-                      <td>{display(account.program)}</td>
+                      <td>{display(account.council)}</td>
                     </tr>
                   ))}
                 </tbody>

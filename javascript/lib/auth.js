@@ -19,6 +19,7 @@ import {
   where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { normalizeCouncil } from "../data/councils";
 
 export const USERS_COLLECTION = "users";
 
@@ -203,8 +204,7 @@ function normalizeProfile(uid, data = {}) {
     studentId: data.studentId || "",
     position: data.position || "",
     yearLevel: data.yearLevel || "",
-    institute: data.institute || "",
-    program: data.program || "",
+    council: normalizeCouncil(data.council),
     createdAt: data.createdAt || "",
   };
 }
@@ -273,8 +273,7 @@ export async function registerAccount(account) {
     studentId,
     position: String(account.position || "").trim().toUpperCase(),
     yearLevel: account.yearLevel || "",
-    institute: account.institute || "",
-    program: account.program || "",
+    council: normalizeCouncil(account.council),
     ...passwordFields,
     createdAt: new Date().toISOString(),
   };

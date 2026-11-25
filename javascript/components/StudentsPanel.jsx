@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useToast } from "../context/ToastContext";
+import { normalizeCouncil } from "../data/councils";
 import {
   STUDENT_COLUMNS,
   buildTemplateCsv,
@@ -77,12 +78,13 @@ function CheckIcon() {
   );
 }
 
-export default function StudentsPanel() {
+export default function StudentsPanel({ council }) {
   const toast = useToast();
   const fileRef = useRef(null);
   const dialogRef = useRef(null);
+  const activeCouncil = normalizeCouncil(council);
 
-  const [students, setStudents] = useState(loadStudents);
+  const [students, setStudents] = useState(() => loadStudents(activeCouncil));
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
   const [tone, setTone] = useState("");
@@ -117,11 +119,25 @@ export default function StudentsPanel() {
   useEffect(() => {
     let active = true;
 
-    loadStudentsFromFirestore()
+    setStudents(loadStudents(activeCouncil));
+    setMessage("");
+    setTone("");
+
+    if (!activeCouncil) {
+      setMessage(
+        "Your account has no Council/Organization assigned. Contact the Finance Office."
+      );
+      setTone("error");
+      return () => {
+        active = false;
+      };
+    }
+
+    loadStudentsFromFirestore(activeCouncil)
       .then((remote) => {
         if (!active) return;
 
-        const local = loadStudents();
+        const local = loadStudents(activeCouncil);
         const remoteIds = new Set(remote.map((student) => student.studentId));
         const localOnly = local.filter(
           (student) => !remoteIds.has(student.studentId)
@@ -132,7 +148,7 @@ export default function StudentsPanel() {
         remote.forEach((student) => byId.set(student.studentId, student));
 
         const merged = Array.from(byId.values());
-        saveStudents(merged);
+        saveStudents(merged, activeCouncil);
         setStudents(merged);
 
         if (remote.length) {
@@ -169,7 +185,7 @@ export default function StudentsPanel() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [activeCouncil]);
 
   const visible = useMemo(
     () => filterStudents(sortStudents(students), query),
@@ -252,6 +268,7 @@ export default function StudentsPanel() {
     const oldId = editingId;
     const updated = {
       studentId,
+      council: activeCouncil,
       lastName,
       firstName,
       middleName,
@@ -263,7 +280,7 @@ export default function StudentsPanel() {
     const next = students.slice();
     next[index] = updated;
 
-    if (!saveStudents(next)) {
+    if (!saveStudents(next, activeCouncil)) {
       setFormError("Couldn't save the changes. Browser storage may be full.");
       return;
     }
@@ -274,7 +291,12 @@ export default function StudentsPanel() {
 
     const tasks = [];
     if (oldId !== studentId) {
-      tasks.push(deleteStudentFromFirestore(oldId));
+      tasks.push(
+        deleteStudentFromFirestore({
+          studentId: oldId,
+          council: activeCouncil
+        })
+      );
     }
     tasks.push(saveStudentsToFirestore([updated]));
 
@@ -300,7 +322,7 @@ export default function StudentsPanel() {
       (entry) => entry.studentId !== student.studentId
     );
 
-    if (!saveStudents(next)) {
+    if (!saveStudents(next, activeCouncil)) {
       report("Couldn't delete that record. Please try again.", "error");
       return;
     }
@@ -308,7 +330,7 @@ export default function StudentsPanel() {
     setStudents(next);
     report("Student deleted.", "success");
 
-    deleteStudentFromFirestore(student.studentId)
+    deleteStudentFromFirestore(student)
       .then(() => {
         report("Student deleted from this browser and Firebase.", "success");
       })
@@ -350,14 +372,14 @@ export default function StudentsPanel() {
         return;
       }
 
-      const result = importStudentRows(rows, students);
+      const result = importStudentRows(rows, students, activeCouncil);
 
       if (!result.ok) {
         report(result.error, "error");
         return;
       }
 
-      if (!saveStudents(result.students)) {
+      if (!saveStudents(result.students, activeCouncil)) {
         report(
           "Imported rows couldn't be saved because browser storage is full. Clear some records and try again.",
           "error"
@@ -428,7 +450,7 @@ export default function StudentsPanel() {
             className="btn btn--primary btn--sm"
             type="button"
             onClick={handleImportClick}
-            disabled={importing}
+            disabled={importing || !activeCouncil}
           >
             <UploadIcon />
             {importing ? "Importing…" : "Import Excel"}
@@ -541,10 +563,21 @@ export default function StudentsPanel() {
             </>
           ) : (
             <>
-              <p>No student records yet.</p>
+              <p>
+                {activeCouncil
+                  ? "No student records yet."
+                  : "No Council/Organization assigned."}
+              </p>
               <small>
-                Use <strong>Import Excel</strong> or download the template to get
-                started.
+                {activeCouncil ? (
+                  <>
+                    Use <strong>Import Excel</strong> or download the template to
+                    get started. Records are shared with every officer account in{" "}
+                    {activeCouncil}.
+                  </>
+                ) : (
+                  "Contact the Finance Office to assign your council or organization before importing students."
+                )}
               </small>
             </>
           )}

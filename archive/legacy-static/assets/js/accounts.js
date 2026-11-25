@@ -44,8 +44,7 @@
     studentId: document.getElementById("edit-account-student-id"),
     position: document.getElementById("edit-account-position"),
     yearLevel: document.getElementById("edit-account-year"),
-    institute: document.getElementById("edit-account-institute"),
-    program: document.getElementById("edit-account-program")
+    council: document.getElementById("edit-account-council")
   };
 
   var editingId = null;
@@ -151,8 +150,7 @@
           "<td>" + cell(user.studentId) + "</td>" +
           '<td class="cell-position">' + cell(user.position) + "</td>" +
           "<td>" + cell(user.yearLevel) + "</td>" +
-          "<td>" + cell(user.institute) + "</td>" +
-          "<td>" + cell(user.program) + "</td>" +
+          "<td>" + cell(user.council) + "</td>" +
           '<td class="cell-actions">' + actions + "</td>" +
           "</tr>"
         );
@@ -194,8 +192,7 @@
     fields.studentId.value = user.studentId || "";
     fields.position.value = user.position || "";
     fields.yearLevel.value = user.yearLevel || "";
-    fields.institute.value = user.institute || "";
-    fields.program.value = user.program || "";
+    if (fields.council) fields.council.value = user.council || "";
 
     setError("");
     if (typeof dialog.showModal === "function") dialog.showModal();
@@ -215,10 +212,9 @@
     var studentId = api.normalizeStudentId(fields.studentId.value);
     var position = fields.position.value.trim().toUpperCase();
     var yearLevel = fields.yearLevel.value.trim();
-    var institute = fields.institute.value.trim();
-    var program = fields.program.value.trim();
+    var council = fields.council ? fields.council.value.trim() : "";
 
-    if (!name || !studentId || !position || !yearLevel || !institute || !program) {
+    if (!name || !studentId || !position || !yearLevel || !council) {
       setError("Fill in every field before saving.");
       return;
     }
@@ -256,8 +252,7 @@
       studentId: studentId,
       position: position,
       yearLevel: yearLevel,
-      institute: institute,
-      program: program
+      council: api.normalizeCouncil(council)
     });
 
     api.saveUsers(users);
@@ -271,8 +266,7 @@
         studentId: studentId,
         position: position,
         yearLevel: yearLevel,
-        institute: institute,
-        program: program
+        council: api.normalizeCouncil(council)
       });
       closeDialog();
       api.toast(
