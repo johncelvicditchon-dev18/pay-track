@@ -353,7 +353,7 @@ export default function Dashboard() {
 
                   {accountsStatus === "ready" ? (
                     <div className="accounts-table-scroll">
-                      <table className="accounts-table">
+                      <table className="accounts-table registry-table">
                         <thead>
                           <tr>
                             <th scope="col">Full Name</th>

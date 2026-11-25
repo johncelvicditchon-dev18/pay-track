@@ -346,8 +346,8 @@ body.nav-open-lock {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 1180px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   animation: dash-view-in 0.3s ease;
 }
 
@@ -779,13 +779,6 @@ body.nav-open-lock {
   font-size: 0.78rem;
 }
 
-.records-scroll-hint {
-  display: none;
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.72rem;
-}
-
 /* ---------- accounts view ---------- */
 .view-head {
   display: flex;
@@ -818,6 +811,26 @@ body.nav-open-lock {
   background: var(--green-50);
   color: var(--green-900);
   font-weight: 700;
+}
+
+/* Record tables fill the available screen width and wrap long values. */
+.dashboard-page .accounts-table {
+  min-width: 0;
+}
+
+.dashboard-page .accounts-table th,
+.dashboard-page .accounts-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+
+@media (max-width: 640px) {
+  .dashboard-page .accounts-table th,
+  .dashboard-page .accounts-table td {
+    padding: 10px 8px;
+    font-size: 0.72rem;
+  }
 }
 
 /* ---------- footer ---------- */
@@ -895,10 +908,6 @@ body.nav-open-lock {
   .dash-shell.is-nav-open .nav-btn__close {
     display: block;
   }
-
-  .records-scroll-hint {
-    display: block;
-  }
 }
 
 @media (min-width: 921px) {
@@ -952,5 +961,132 @@ body.nav-open-lock {
 
   .dash-view {
     animation: none;
+  }
+}
+
+/* ================= RECORD CARDS (small screens) ================= */
+@media (max-width: 720px) {
+  .dashboard-page .accounts-table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .dashboard-page .accounts-table-scroll {
+    overflow: visible;
+  }
+
+  .dashboard-page .accounts-table {
+    display: block;
+    min-width: 0;
+  }
+
+  .dashboard-page .accounts-table thead {
+    display: none;
+  }
+
+  .dashboard-page .accounts-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .dashboard-page .accounts-table tr {
+    display: block;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .dashboard-page .accounts-table tr.is-you {
+    border-color: var(--green-200);
+    background: var(--green-50);
+  }
+
+  .dashboard-page .accounts-table tr.is-you td {
+    background: transparent;
+  }
+
+  .dashboard-page .accounts-table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 6px 0;
+    border: 0;
+    white-space: normal;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    text-align: right;
+  }
+
+  .dashboard-page .accounts-table td::before {
+    flex: none;
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .dashboard-page .accounts-table td:last-child {
+    padding-bottom: 2px;
+  }
+
+  .dashboard-page .students-table td:nth-child(1)::before {
+    content: "Student ID";
+  }
+
+  .dashboard-page .students-table td:nth-child(2)::before {
+    content: "Last Name";
+  }
+
+  .dashboard-page .students-table td:nth-child(3)::before {
+    content: "First Name";
+  }
+
+  .dashboard-page .students-table td:nth-child(4)::before {
+    content: "Middle Name";
+  }
+
+  .dashboard-page .students-table td:nth-child(5)::before {
+    content: "Program";
+  }
+
+  .dashboard-page .students-table td:nth-child(6)::before {
+    content: "Year";
+  }
+
+  .dashboard-page .students-table td:nth-child(7)::before {
+    content: "Classification";
+  }
+
+  .dashboard-page .registry-table td:nth-child(1)::before {
+    content: "Full Name";
+  }
+
+  .dashboard-page .registry-table td:nth-child(2)::before {
+    content: "Student ID";
+  }
+
+  .dashboard-page .registry-table td:nth-child(3)::before {
+    content: "Position";
+  }
+
+  .dashboard-page .registry-table td:nth-child(4)::before {
+    content: "Year Level";
+  }
+
+  .dashboard-page .registry-table td:nth-child(5)::before {
+    content: "Institute";
+  }
+
+  .dashboard-page .registry-table td:nth-child(6)::before {
+    content: "Program";
   }
 }

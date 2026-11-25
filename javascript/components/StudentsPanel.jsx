@@ -304,7 +304,7 @@ export default function StudentsPanel() {
         <>
           <div className="accounts-table-wrap">
             <div className="accounts-table-scroll">
-              <table className="accounts-table">
+              <table className="accounts-table students-table">
                 <thead>
                   <tr>
                     {STUDENT_COLUMNS.map((column) => (
@@ -326,8 +326,6 @@ export default function StudentsPanel() {
               </table>
             </div>
           </div>
-
-          <p className="records-scroll-hint">Scroll to see all columns.</p>
         </>
       ) : (
         <div className="records-empty">
