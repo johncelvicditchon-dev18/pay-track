@@ -205,11 +205,12 @@ export default function Signup() {
 
         if (code === "auth/email-already-in-use") {
           setErrors({
-            studentId: "An account already uses this student ID. Try logging in instead.",
+            studentId:
+              "This Student ID already has a login. Sign in instead, or ask the Finance Office to remove the old login.",
           });
           toast(
             "Couldn't create your account",
-            "That student ID is already registered. Try logging in instead.",
+            "This Student ID already has a login. Sign in with it, or ask the Finance Office for help.",
             "error"
           );
           document.getElementById("signup-student-id")?.focus();

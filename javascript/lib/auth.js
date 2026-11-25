@@ -122,7 +122,7 @@ const AUTH_ERRORS = {
   "auth/invalid-login-credentials":
     "The student ID and password don't match our records. Please try again.",
   "auth/email-already-in-use":
-    "That student ID is already registered. Try logging in instead.",
+    "That Student ID already has a login. Sign in with it, or ask the Finance Office to remove the old login if you can't access it.",
   "auth/weak-password":
     "Use at least 8 characters, including letters and numbers.",
   "auth/password-does-not-meet-requirements":
@@ -251,15 +251,60 @@ export async function login(studentId, password, remember) {
   return resolveProfile(credential.user);
 }
 
+/*
+ * A previous sign-up may have created the Firebase Auth login but failed to
+ * write the Firestore profile (rules not deployed, offline, etc.). If the
+ * student retries with the same password, finish that account instead of
+ * reporting a duplicate. Accounts that already have a profile are still
+ * treated as duplicates.
+ */
+async function recoverIncompleteAccount(email, password, originalError) {
+  let session;
+
+  try {
+    session = await signInWithEmailAndPassword(auth, email, password);
+  } catch {
+    throw originalError;
+  }
+
+  let profileExists = false;
+  try {
+    const snapshot = await getDoc(doc(db, USERS_COLLECTION, session.user.uid));
+    profileExists = snapshot.exists();
+  } catch (error) {
+    console.warn("[auth] Could not check the existing profile:", error);
+    await signOut(auth);
+    throw originalError;
+  }
+
+  if (profileExists) {
+    await signOut(auth);
+    throw originalError;
+  }
+
+  return session;
+}
+
 export async function registerAccount(account) {
   const studentId = normalizeStudentId(account.studentId);
   const name = String(account.name || "").trim().toUpperCase();
+  const email = studentIdToEmail(studentId);
 
-  const credential = await createUserWithEmailAndPassword(
-    auth,
-    studentIdToEmail(studentId),
-    account.password
-  );
+  let credential;
+  try {
+    credential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      account.password
+    );
+  } catch (error) {
+    if (error?.code !== "auth/email-already-in-use") throw error;
+    credential = await recoverIncompleteAccount(
+      email,
+      account.password,
+      error
+    );
+  }
 
   let passwordFields = {};
   try {
