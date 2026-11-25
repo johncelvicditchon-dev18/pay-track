@@ -292,10 +292,6 @@ export default function Dashboard() {
           </nav>
 
           <div className="side-nav__foot">
-            <div className="side-tip">
-              <strong>Keep your balance current</strong>
-              <p>Check your payment record before every deadline.</p>
-            </div>
             <button className="side-logout" type="button" onClick={handleLogout}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
