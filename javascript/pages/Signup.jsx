@@ -4,8 +4,9 @@ import AuthLayout from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { STUDENT_ID_RE, authErrorMessage } from "../lib/auth";
-import { YEAR_LEVELS } from "../data/academic";
 import { COUNCILS } from "../data/councils";
+
+const YEAR_LEVELS = ["1ST YEAR", "2ND YEAR", "3RD YEAR", "4TH YEAR"];
 
 const STRENGTH_TEXT = [
   "Use 8+ characters with letters and numbers.",
