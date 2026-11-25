@@ -14,8 +14,7 @@
   // Every dashboard belongs to a signed-in user.
   if (!session) {
     var hashView = String(window.location.hash || "").replace(/^#/, "");
-    var nextView =
-      hashView === "accounts" || hashView === "students" ? hashView : "dashboard";
+    var nextView = hashView === "accounts" ? "accounts" : "students";
     window.location.replace("login.html?next=" + nextView);
     return;
   }
@@ -138,7 +137,6 @@
 
   /* ---------- tabs ---------- */
   var VIEW_TITLES = {
-    dashboard: "Dashboard",
     students: "Students",
     accounts: "Accounts"
   };
@@ -149,7 +147,7 @@
 
   function currentView() {
     var name = String(window.location.hash || "").replace(/^#/, "");
-    return VIEW_TITLES[name] ? name : "dashboard";
+    return VIEW_TITLES[name] ? name : "students";
   }
 
   function showView(name) {

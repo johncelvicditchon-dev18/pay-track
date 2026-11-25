@@ -41,7 +41,7 @@ npm run preview
 | `/` | Welcome page with the student-ID payment tracker |
 | `/login` | Student login — lands on `/dashboard` after success |
 | `/signup` | Student registration |
-| `/dashboard` | Signed-in dashboard with collapsible sidebar and Dashboard / Accounts tabs |
+| `/dashboard` | Signed-in dashboard with collapsible sidebar and Students / Accounts tabs |
 | `/accounts` | Standalone accounts roster (kept for direct links) |
 
 ## Dashboard
@@ -50,15 +50,14 @@ After a successful login the app opens `/dashboard`, which shows:
 
 - A collapsible sidebar — hidden/shown with the top-left button, remembered on
   desktop and off-canvas (with scrim) on mobile.
-- A **Dashboard** tab with the signed-in student's details and shortcuts.
-- A **Students** tab — import a class list from `.xlsx`, `.xls`, or `.csv`
-  (Student ID, Last Name, First Name, Middle Name, Program, Year, Classification).
-  Rows are saved in this browser (`localStorage` key `tcgc_paytrack_students`) and
-  re-importing a Student ID updates that row. Includes a CSV template download,
-  search, and clear-all. The Excel parser (`xlsx`) is loaded lazily only when
-  importing.
-- An **Accounts** tab with the Firestore-backed roster; the signed-in student's
-  row is highlighted.
+- The **Students** tab (default) — import a class list from `.xlsx`, `.xls`, or
+  `.csv` (Student ID, Last Name, First Name, Middle Name, Program, Year,
+  Classification). Rows are saved in this browser (`localStorage` key
+  `tcgc_paytrack_students`) and re-importing a Student ID updates that row.
+  Includes a CSV template download, search, and clear-all. The Excel parser
+  (`xlsx`) is loaded lazily only when importing.
+- The **Accounts** tab with the Firestore-backed roster; the signed-in
+  student's row is highlighted.
 
 Visiting `/dashboard` without a session redirects to `/login`.
 

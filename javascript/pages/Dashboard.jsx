@@ -8,11 +8,11 @@ import { authErrorMessage, initials, listAccounts } from "../lib/auth";
 import "../../design/dashboard.css";
 
 const NAV_KEY = "tcgc_paytrack_nav";
-const VIEW_TITLES = { dashboard: "Dashboard", students: "Students", accounts: "Accounts" };
+const VIEW_TITLES = { students: "Students", accounts: "Accounts" };
 
 function readHashView() {
   const hash = String(window.location.hash || "").replace(/^#/, "");
-  return VIEW_TITLES[hash] ? hash : "dashboard";
+  return VIEW_TITLES[hash] ? hash : "students";
 }
 
 function display(value) {
@@ -20,27 +20,8 @@ function display(value) {
   return text || "—";
 }
 
-function formatDate(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-PH", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 function NavIcon({ name }) {
   const paths = {
-    dashboard: (
-      <>
-        <rect x="3" y="3" width="7" height="9" rx="2" />
-        <rect x="14" y="3" width="7" height="5" rx="2" />
-        <rect x="14" y="11" width="7" height="10" rx="2" />
-        <rect x="3" y="15" width="7" height="6" rx="2" />
-      </>
-    ),
     accounts: (
       <>
         <circle cx="9" cy="8" r="3.2" />
@@ -254,18 +235,6 @@ export default function Dashboard() {
 
           <nav className="side-links" aria-label="Dashboard tabs">
             <a
-              className={`side-link${view === "dashboard" ? " is-active" : ""}`}
-              href="#dashboard"
-              aria-current={view === "dashboard" ? "page" : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                switchView("dashboard");
-              }}
-            >
-              <NavIcon name="dashboard" />
-              Dashboard
-            </a>
-            <a
               className={`side-link${view === "students" ? " is-active" : ""}`}
               href="#students"
               aria-current={view === "students" ? "page" : undefined}
@@ -343,176 +312,13 @@ export default function Dashboard() {
           </header>
 
           <main className="dash-content">
-            {view === "dashboard" ? (
-              <section className="dash-view" aria-label="Dashboard">
-                <div className="welcome-card">
-                  <div className="welcome-card__copy">
-                    <span className="welcome-chip">Welcome back</span>
-                    <h1>Hi, {firstName}.</h1>
-                    <p>
-                      Your PayTrack account is active. Review your details, browse
-                      the registered accounts, or jump straight to your payment
-                      record.
-                    </p>
-                    <div className="welcome-actions">
-                      <Link className="btn btn--accent" to="/#top">
-                        Track my payments
-                      </Link>
-                      <button
-                        className="btn btn--ghost"
-                        type="button"
-                        onClick={() => switchView("accounts")}
-                      >
-                        View accounts
-                      </button>
-                    </div>
-                  </div>
-                  <div className="welcome-card__badge">
-                    <span className="welcome-badge__label">Student ID</span>
-                    <strong>{studentId}</strong>
-                    <span className="welcome-badge__status">
-                      <i /> Signed in
-                    </span>
-                  </div>
-                </div>
-
-                <div className="stat-grid">
-                  <article className="stat-card">
-                    <span className="stat-card__icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="5" width="18" height="14" rx="2" />
-                        <path d="M7 9h4M7 13h7M15 9h2" />
-                      </svg>
-                    </span>
-                    <span className="stat-card__label">Student ID</span>
-                    <strong>{studentId}</strong>
-                  </article>
-
-                  <article className="stat-card">
-                    <span className="stat-card__icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="8" r="3.4" />
-                        <path d="M5 20a7 7 0 0 1 14 0" />
-                      </svg>
-                    </span>
-                    <span className="stat-card__label">Position</span>
-                    <strong>{display(user.position)}</strong>
-                  </article>
-
-                  <article className="stat-card">
-                    <span className="stat-card__icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 21h18M5 21V8l7-5 7 5v13" />
-                        <path d="M9 21v-6h6v6" />
-                      </svg>
-                    </span>
-                    <span className="stat-card__label">Institute</span>
-                    <strong>{display(user.institute)}</strong>
-                  </article>
-
-                  <article className="stat-card">
-                    <span className="stat-card__icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 7l9-4 9 4-9 4-9-4Z" />
-                        <path d="M7 9v5c0 1.7 2.2 3 5 3s5-1.3 5-3V9" />
-                        <path d="M21 7v6" />
-                      </svg>
-                    </span>
-                    <span className="stat-card__label">Year level</span>
-                    <strong>{display(user.yearLevel)}</strong>
-                  </article>
-                </div>
-
-                <div className="panel-grid">
-                  <section className="panel">
-                    <header className="panel__head">
-                      <h2>Your details</h2>
-                      <span className="panel__hint">From your registration</span>
-                    </header>
-                    <dl className="detail-list">
-                      <div>
-                        <dt>Full name</dt>
-                        <dd>{name}</dd>
-                      </div>
-                      <div>
-                        <dt>Student ID</dt>
-                        <dd>{studentId}</dd>
-                      </div>
-                      <div>
-                        <dt>Position</dt>
-                        <dd>{display(user.position)}</dd>
-                      </div>
-                      <div>
-                        <dt>Year level</dt>
-                        <dd>{display(user.yearLevel)}</dd>
-                      </div>
-                      <div>
-                        <dt>Institute</dt>
-                        <dd>{display(user.institute)}</dd>
-                      </div>
-                      <div>
-                        <dt>Program</dt>
-                        <dd>{display(user.program)}</dd>
-                      </div>
-                      <div>
-                        <dt>Registered</dt>
-                        <dd>{formatDate(user.createdAt)}</dd>
-                      </div>
-                    </dl>
-                  </section>
-
-                  <section className="panel">
-                    <header className="panel__head">
-                      <h2>Quick links</h2>
-                      <span className="panel__hint">Common tasks</span>
-                    </header>
-                    <div className="quick-links">
-                      <button
-                        className="quick-link"
-                        type="button"
-                        onClick={() => switchView("accounts")}
-                      >
-                        <span className="quick-link__icon" aria-hidden="true">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="9" cy="8" r="3.2" />
-                            <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
-                            <path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 13.4a5 5 0 0 1 3 4.6" />
-                          </svg>
-                        </span>
-                        <span>
-                          <strong>Registered accounts</strong>
-                          <small>See every account created in PayTrack</small>
-                        </span>
-                      </button>
-
-                      <Link className="quick-link" to="/#about">
-                        <span className="quick-link__icon" aria-hidden="true">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="9" />
-                            <path d="M12 11v5.5M12 7.6h.01" />
-                          </svg>
-                        </span>
-                        <span>
-                          <strong>About PayTrack</strong>
-                          <small>What the portal tracks and who to contact</small>
-                        </span>
-                      </Link>
-                    </div>
-                  </section>
-                </div>
-              </section>
-            ) : view === "students" ? (
+            {view === "students" ? (
               <StudentsPanel />
             ) : (
               <section className="dash-view" aria-label="Accounts">
                 <div className="view-head">
                   <div>
-                    <p className="dash-eyebrow">Student accounts</p>
                     <h1>Accounts</h1>
-                    <p className="view-head__sub">
-                      Every student account registered in PayTrack, loaded from
-                      Firebase. Your own record is highlighted.
-                    </p>
                   </div>
                   <span className="dash-count">
                     {accountsStatus === "ready"
@@ -591,11 +397,6 @@ export default function Dashboard() {
                     </div>
                   ) : null}
                 </div>
-
-                <p className="view-footnote">
-                  Details come from the Firebase `users` collection. To correct your
-                  record, contact the Finance Office with your student ID.
-                </p>
               </section>
             )}
           </main>

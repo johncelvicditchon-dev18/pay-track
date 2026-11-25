@@ -139,10 +139,6 @@ export default function StudentsPanel() {
       <div className="view-head">
         <div>
           <h1>Students</h1>
-          <p className="view-head__sub">
-            Import your class list from Excel or CSV. Re-importing a Student ID
-            updates that row instead of duplicating it.
-          </p>
         </div>
         <span className="dash-count">
           {students.length} {students.length === 1 ? "student" : "students"}
