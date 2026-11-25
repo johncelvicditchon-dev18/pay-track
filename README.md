@@ -138,29 +138,69 @@ Before the app can log people in, in the
    ```
 
 The rules in `firestore.rules` let a signed-in student read the roster (used by
-`/accounts`), write the imported `students` class list, and manage their own
-profile. Restrict reads further with an admin custom claim if the roster should
-not be visible to every student.
+`/accounts`) and their payment record, write the imported `students` class list,
+and manage their own profile. Payment records are read-only from the app.
+Restrict reads further with an admin custom claim if the roster or payment
+records should not be visible to every student.
 
 The Firebase web API key is public by design, but you should restrict it in the
 Google Cloud console to your own domains and to the Firebase APIs this app uses.
 
-## Demo data
+## Payment records
 
-The payment tracker is backed by demo records in
-`javascript/data/paymentRecords.js`. Student IDs:
+The payment tracker reads the Firestore `paymentRecords` collection. Each
+document ID is the normalized Student ID (for example `2024-00123`) and the
+document holds that student's charges and official receipts:
 
-- `2024-00123` — with an outstanding balance
-- `2023-00456` — with an outstanding balance
-- `2025-00789` — fully paid
+```json
+{
+  "name": "Maria Santos",
+  "institute": "ICS",
+  "program": "BSCS",
+  "yearLevel": "4TH YEAR",
+  "organization": "ICS Student Council",
+  "statement": "A.Y. 2026–2027 · 1st Semester",
+  "updated": "October 9, 2026",
+  "nextDue": "October 15, 2026",
+  "charges": [
+    {
+      "id": "ics-tshirt",
+      "label": "T-shirt fee",
+      "category": "T-shirt",
+      "scope": "Institute",
+      "unit": "ICS",
+      "amount": 750,
+      "paid": 500,
+      "dueDate": "October 15, 2026"
+    }
+  ],
+  "payments": [
+    {
+      "id": "ics-tshirt-1",
+      "label": "T-shirt fee (partial)",
+      "date": "September 28, 2026",
+      "ref": "OR-2026-10702",
+      "amount": 500,
+      "method": "GCash · Finance Office",
+      "status": "Verified"
+    }
+  ]
+}
+```
+
+Balances are derived from `charges`, so `amount` and `paid` are the only money
+fields you need to maintain. `scope` is either `Institute` or `Organization`,
+and `category` drives the tag color (Activity, Membership, T-shirt,
+Miscellaneous).
+
+Records are created in the Firebase console (or by a trusted admin tool) — the
+rules deny client-side writes. The tracker requires a signed-in session and
+looks records up by exact Student ID. Create a real account from `/signup`;
+there are no shared demo logins.
 
 The tracker shows the overall balance, separate institute and organization
 subtotals, every charge with its own amount/paid/balance, and every payment with
-its official receipt (OR) number. Charges are grouped by category (Activity,
-Membership, T-shirt, Miscellaneous) and tagged by scope.
-
-Accounts created through `/signup` are real Firebase accounts, so there is no
-shared demo login. Create your own account from the sign-up page.
+its official receipt (OR) number.
 
 ## Project structure
 
@@ -177,8 +217,8 @@ design/                 Shared design system and page styles
 javascript/             React application code
   components/           Header, footer, auth layout, payment tracker
   context/              Auth session and toast providers
-  data/                 Institute/program mapping and demo payment records
-  lib/                  Firebase config and auth/profile helpers
+  data/                 Institute/program mapping
+  lib/                  Firebase config, auth/profile, student, and payment-record helpers
   pages/                Welcome, Login, Signup, Accounts
   App.jsx
   main.jsx
@@ -194,11 +234,11 @@ README, as required by Vite/npm.
 
 ## Important note
 
-Authentication is real (Firebase Auth), and profile records live in Firestore,
-but **payment records are still demo data**. Connect
-`javascript/data/paymentRecords.js` to a server-side collection of charges and
-receipts — and never trust student-side writes for payment amounts — before
-using this with real financial data.
+Authentication is real (Firebase Auth), profile records live in Firestore, and
+the tracker reads live payment records from the `paymentRecords` collection.
+Keep payment amounts out of student-side writes — the rules already deny them —
+and maintain those documents only from the Firebase console or a trusted admin
+tool before using this with real financial data.
 
 ## Legacy version
 

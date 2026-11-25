@@ -952,6 +952,13 @@ body.track-open {
   margin-top: 2px;
 }
 
+.track-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
 .track-empty__hint {
   margin-top: 16px;
   font-size: 0.72rem !important;

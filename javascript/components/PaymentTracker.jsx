@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { findUserByStudentId, initials } from "../lib/auth";
-import { DEMO_RECORDS, summarizeRecord } from "../data/paymentRecords";
+import { fetchPaymentRecord, summarizeRecord } from "../lib/paymentRecords";
 import { INSTITUTE_ORGANIZATIONS } from "../data/academic";
 
 const ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
@@ -51,16 +52,22 @@ function TrackRecord({ record, studentId }) {
           <div>
             <h2 id="track-dialog-title">{record.name}</h2>
             <p className="track-head__meta">
-              {studentId} · {record.program} · {record.yearLevel}
+              {studentId} · {record.program || "—"} · {record.yearLevel || "—"}
             </p>
           </div>
         </div>
         <div className="track-chips">
-          <span className="track-chip">Institute · {record.institute}</span>
-          <span className="track-chip track-chip--org">
-            Organization · {record.organization}
-          </span>
-          <span className="track-chip track-chip--muted">{record.statement}</span>
+          {record.institute ? (
+            <span className="track-chip">Institute · {record.institute}</span>
+          ) : null}
+          {record.organization ? (
+            <span className="track-chip track-chip--org">
+              Organization · {record.organization}
+            </span>
+          ) : null}
+          {record.statement ? (
+            <span className="track-chip track-chip--muted">{record.statement}</span>
+          ) : null}
         </div>
       </div>
 
@@ -249,14 +256,41 @@ function NotFound({ studentId, onRetry }) {
         Try another ID
       </button>
       <p className="track-empty__hint">
-        Demo IDs: 2024-00123 · 2023-00456 · 2025-00789
+        Log in with your Student ID to check your latest balance and receipts.
       </p>
     </div>
   );
 }
 
+function SignInRequired({ studentId, onClose }) {
+  return (
+    <div className="track-empty">
+      <span className="track-empty__icon">
+        <svg {...iconProps()}>
+          <rect x="4" y="10" width="16" height="10" rx="2" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        </svg>
+      </span>
+      <span className="eyebrow">Sign in required</span>
+      <h2 id="track-dialog-title">Log in to view your record</h2>
+      <p>
+        Payment records are private. Sign in with <strong>{studentId}</strong> and
+        your password to see your balances, charges, and official receipts.
+      </p>
+      <div className="track-empty__actions">
+        <Link className="btn btn--primary" to="/login" onClick={onClose}>
+          Go to log in
+        </Link>
+        <button className="btn btn--outline" type="button" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function PaymentTracker() {
-  const { user } = useAuth();
+  const { user, authReady } = useAuth();
   const [studentId, setStudentId] = useState(user?.studentId || "");
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
@@ -286,12 +320,20 @@ export default function PaymentTracker() {
   const showRecord = async (id) => {
     const normalized = id.trim().toUpperCase();
 
-    if (DEMO_RECORDS[normalized]) {
-      setResult({
-        type: "record",
-        studentId: normalized,
-        record: DEMO_RECORDS[normalized],
-      });
+    if (!authReady) {
+      setError("One moment — we're still checking your session. Try again.");
+      return;
+    }
+
+    if (!user) {
+      setResult({ type: "signin", studentId: normalized });
+      openDialog();
+      return;
+    }
+
+    const record = await fetchPaymentRecord(normalized);
+    if (record) {
+      setResult({ type: "record", studentId: normalized, record });
       openDialog();
       return;
     }
@@ -432,6 +474,10 @@ export default function PaymentTracker() {
 
           {result?.type === "missing" ? (
             <NotFound studentId={result.studentId} onRetry={retryDialog} />
+          ) : null}
+
+          {result?.type === "signin" ? (
+            <SignInRequired studentId={result.studentId} onClose={closeDialog} />
           ) : null}
         </div>
       </dialog>

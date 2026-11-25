@@ -20,5 +20,14 @@ service cloud.firestore {
       allow create, update: if request.auth != null;
       allow delete: if request.auth != null;
     }
+
+    // Payment records. Document ID = normalized Student ID. Seeded and kept up
+    // to date by the Finance Office through the Firebase console (or a trusted
+    // admin tool). Signed-in students can look records up by exact Student ID;
+    // tighten this to the caller's own record if you add an admin claim.
+    match /paymentRecords/{studentId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
   }
 }
