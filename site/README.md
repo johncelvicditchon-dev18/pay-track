@@ -41,3 +41,11 @@ The dashboard requires a signed-in account and uses that account's Firebase
 token for its Firestore reads and writes, so records stay scoped to the
 officer's council. If no Firebase session is available, imports are saved
 locally and the page explains what to enable.
+
+## Student payment lookup
+
+On the landing page, a student types their **Student ID** and the tracker reads
+the matching `paymentRecords` document by its `studentId` field, then shows the
+balance, charges, and official receipts. No account is needed for this lookup,
+so `firestore.rules` allows public reads of `paymentRecords` while keeping all
+writes disabled — only the Finance Office can add or change records.

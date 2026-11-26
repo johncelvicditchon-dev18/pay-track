@@ -31,10 +31,10 @@ service cloud.firestore {
 
     // Payment records. Document ID = "<council>::<studentId>". Seeded and kept
     // up to date by the Finance Office through the Firebase console (or a
-    // trusted admin tool). Officers can only read records from their council.
+    // trusted admin tool). Students look up their own record with a Student ID
+    // from the public tracker, so reads are public; writes stay disabled.
     match /paymentRecords/{recordId} {
-      allow read: if request.auth != null
-        && resource.data.council == signedInCouncil();
+      allow read: if true;
       allow write: if false;
     }
   }

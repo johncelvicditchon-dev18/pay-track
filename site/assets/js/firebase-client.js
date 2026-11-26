@@ -618,6 +618,40 @@
     return loadPage(null);
   };
 
+  client.findStudentPayment = function (studentId) {
+    var id = String(studentId || "").trim().toUpperCase();
+    if (!id) return Promise.resolve(null);
+
+    return request(BASE_URL + ":runQuery" + KEY_PARAM, {
+      method: "POST",
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: PAYMENTS_COLLECTION }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: "studentId" },
+              op: "EQUAL",
+              value: { stringValue: id }
+            }
+          },
+          limit: 1
+        }
+      })
+    }).then(function (rows) {
+      var found = (rows || [])
+        .map(function (row) {
+          return row && row.document;
+        })
+        .filter(Boolean)[0];
+
+      if (!found) return null;
+
+      var record = decodeFields(found.fields || {});
+      record.studentId = record.studentId || id;
+      return record;
+    });
+  };
+
   client.findPaymentRecord = function (studentId, council) {
     var code = String(council || "").toUpperCase();
     var id = String(studentId || "").trim().toUpperCase();

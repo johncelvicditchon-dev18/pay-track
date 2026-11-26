@@ -7,7 +7,6 @@
 (function () {
   "use strict";
 
-  var api = window.TCGC;
   var ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
 
   function money(value) {
@@ -290,21 +289,6 @@
     );
   }
 
-  function renderLoginRequired() {
-    return (
-      '<div class="track-empty">' +
-        '<span class="track-empty__icon">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-            '<rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>' +
-        "</span>" +
-        '<span class="eyebrow">Sign in required</span>' +
-        '<h2 id="track-dialog-title">Log in to view your record</h2>' +
-        "<p>Payment records are private. Log in with your Student ID and password to see your balances, charges, and official receipts.</p>" +
-        '<a class="btn btn--primary" href="pages/login.html">Go to log in</a>' +
-      "</div>"
-    );
-  }
-
   function renderLookupError() {
     return (
       '<div class="track-empty">' +
@@ -337,16 +321,9 @@
 
     function show(id) {
       var normalized = id.trim().toUpperCase();
-      var session = api && api.getSession ? api.getSession() : null;
 
-      if (
-        !session ||
-        !session.council ||
-        !session.idToken ||
-        !window.TCGCFirebase ||
-        !window.TCGCFirebase.findPaymentRecord
-      ) {
-        result.innerHTML = renderLoginRequired();
+      if (!window.TCGCFirebase || !window.TCGCFirebase.findStudentPayment) {
+        result.innerHTML = renderLookupError();
         openDialog();
         return;
       }
@@ -355,7 +332,7 @@
         '<div class="track-empty" aria-live="polite"><p><span class="spinner"></span> Checking your payment record…</p></div>';
       openDialog();
 
-      window.TCGCFirebase.findPaymentRecord(normalized, session.council)
+      window.TCGCFirebase.findStudentPayment(normalized)
         .then(function (record) {
           if (!record) {
             result.innerHTML = renderMissing(normalized);

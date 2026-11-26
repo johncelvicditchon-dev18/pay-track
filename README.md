@@ -167,6 +167,7 @@ each council keeps its own record for a student. The document holds the
 ```json
 {
   "council": "ISC-ICS",
+  "studentId": "STUDENTID",
   "name": "Student Name",
   "institute": "ICS",
   "program": "BSCS",
@@ -207,9 +208,10 @@ and `category` drives the tag color (Activity, Membership, T-shirt,
 Miscellaneous).
 
 Records are created in the Firebase console (or by a trusted admin tool) — the
-rules deny client-side writes. The tracker requires a signed-in session and
-looks records up by exact Student ID. Create a real account from `/signup`;
-there are no shared demo logins.
+rules deny client-side writes. Students look records up from the public
+tracker with just their Student ID (document lookup by the `studentId` field),
+so payment-record reads are public. Create a real account from `/signup` for
+the officer dashboard; there are no shared demo logins.
 
 The tracker shows the overall balance, separate institute and organization
 subtotals, every charge with its own amount/paid/balance, and every payment with
