@@ -1,8 +1,7 @@
 /* =========================================================
    TCGC PayTrack — login & sign-up logic
-   Front-end demo only: accounts are stored in this browser's
-   localStorage, never sent anywhere. Wire this to a real API
-   and server-side password hashing before production use.
+   Accounts are created in Firebase Authentication and stored
+   in the Firestore `users` collection.
    ========================================================= */
 
 (function () {
@@ -10,8 +9,6 @@
 
   var api = window.TCGC;
   if (!api) return;
-
-  var DEMO_ACCOUNT = api.DEMO_ACCOUNT;
 
   var STUDENT_ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
 
@@ -174,9 +171,6 @@
 
       window.setTimeout(function () {
         var normalized = api.normalizeStudentId(studentId);
-        var isDemo =
-          normalized === api.normalizeStudentId(DEMO_ACCOUNT.studentId) &&
-          password === DEMO_ACCOUNT.password;
 
         function nextTarget() {
           var nextView = "";
@@ -241,11 +235,6 @@
               "Double-check your student ID and password, or contact the Finance Office for help.",
             "error"
           );
-        }
-
-        if (isDemo) {
-          finish(DEMO_ACCOUNT, "");
-          return;
         }
 
         var local = api.findUser(normalized);
@@ -464,16 +453,7 @@
         showError(studentIdInput, "Enter your student ID number.");
         invalid.push(studentIdInput);
       } else if (!STUDENT_ID_RE.test(studentId)) {
-        showError(studentIdInput, "Use 4–15 letters, numbers, or hyphens (e.g. 2024-00123).");
-        invalid.push(studentIdInput);
-      } else if (
-        api.normalizeStudentId(studentId) ===
-        api.normalizeStudentId(DEMO_ACCOUNT.studentId)
-      ) {
-        showError(
-          studentIdInput,
-          "An account already uses this student ID. Try logging in instead."
-        );
+        showError(studentIdInput, "Use 4–15 letters, numbers, or hyphens.");
         invalid.push(studentIdInput);
       } else if (api.findUser(studentId)) {
         showError(
@@ -671,7 +651,7 @@
       var kind = link.getAttribute("data-legal");
       api.toast(
         kind === "privacy" ? "Privacy Policy" : "Terms of Service",
-        "This demo storefront keeps your details in this browser only. The official policy is available at the Finance Office.",
+        "Your account details are stored in Firebase. The official policy is available at the Finance Office.",
         "info"
       );
     });

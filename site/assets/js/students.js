@@ -806,11 +806,7 @@
 
   /* ---------- template ---------- */
   function downloadTemplate() {
-    var lines = [
-      TEMPLATE_HEADERS.join(","),
-      "2024-00123,SANTOS,MARIA,CRUZ,BS Information Technology,4TH YEAR,REGULAR",
-      "2024-00124,DELA CRUZ,JUAN,REYES,BS Computer Science,3RD YEAR,IRREGULAR"
-    ];
+    var lines = [TEMPLATE_HEADERS.join(",")];
 
     var blob = new Blob(["\uFEFF" + lines.join("\r\n")], {
       type: "text/csv;charset=utf-8"

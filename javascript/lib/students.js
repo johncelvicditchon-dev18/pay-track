@@ -285,11 +285,7 @@ export function filterStudents(students, query) {
 }
 
 export function buildTemplateCsv() {
-  const lines = [
-    TEMPLATE_HEADERS.join(","),
-    "2024-00123,SANTOS,MARIA,CRUZ,BS Information Technology,4TH YEAR,REGULAR",
-    "2024-00124,DELA CRUZ,JUAN,REYES,BS Computer Science,3RD YEAR,IRREGULAR"
-  ];
+  const lines = [TEMPLATE_HEADERS.join(",")];
 
   return lines.join("\r\n");
 }

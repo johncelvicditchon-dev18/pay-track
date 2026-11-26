@@ -618,5 +618,55 @@
     return loadPage(null);
   };
 
+  client.findPaymentRecord = function (studentId, council) {
+    var code = String(council || "").toUpperCase();
+    var id = String(studentId || "").trim().toUpperCase();
+    if (!code || !id) return Promise.resolve(null);
+
+    return request(BASE_URL + ":runQuery" + KEY_PARAM, {
+      method: "POST",
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: PAYMENTS_COLLECTION }],
+          where: {
+            compositeFilter: {
+              op: "AND",
+              filters: [
+                {
+                  fieldFilter: {
+                    field: { fieldPath: "council" },
+                    op: "EQUAL",
+                    value: { stringValue: code }
+                  }
+                },
+                {
+                  fieldFilter: {
+                    field: { fieldPath: "studentId" },
+                    op: "EQUAL",
+                    value: { stringValue: id }
+                  }
+                }
+              ]
+            }
+          },
+          limit: 1
+        }
+      })
+    }).then(function (rows) {
+      var found = (rows || [])
+        .map(function (row) {
+          return row && row.document;
+        })
+        .filter(Boolean)[0];
+
+      if (!found) return null;
+
+      var record = decodeFields(found.fields || {});
+      record.studentId = record.studentId || id;
+      record.council = record.council || code;
+      return record;
+    });
+  };
+
   window.TCGCFirebase = client;
 })();

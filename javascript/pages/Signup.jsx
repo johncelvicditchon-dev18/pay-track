@@ -136,7 +136,7 @@ export default function Signup() {
     if (!studentId) {
       next.studentId = "Enter your student ID number.";
     } else if (!STUDENT_ID_RE.test(studentId)) {
-      next.studentId = "Use 4–15 letters, numbers, or hyphens (e.g. 2024-00123).";
+      next.studentId = "Use 4–15 letters, numbers, or hyphens.";
     }
 
     const position = form.position.trim();

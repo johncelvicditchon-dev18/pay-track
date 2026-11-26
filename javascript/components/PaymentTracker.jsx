@@ -363,7 +363,7 @@ export default function PaymentTracker() {
     }
 
     if (!ID_RE.test(id)) {
-      setError("Enter a valid Student ID (for example 2024-00123).");
+      setError("Enter a valid Student ID.");
       inputRef.current?.focus();
       return;
     }

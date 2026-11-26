@@ -244,22 +244,6 @@
   color: rgba(255, 255, 255, 0.54);
 }
 
-.hero-track__demo {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--accent-soft);
-  font: inherit;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-
-.hero-track__demo:hover {
-  color: #fff;
-}
-
 .hero-track__error {
   margin-top: 7px;
   font-size: 0.76rem;

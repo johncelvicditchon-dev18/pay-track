@@ -71,12 +71,6 @@
     return session ? api.normalizeStudentId(session.studentId) : "";
   }
 
-  function demoId() {
-    return api.DEMO_ACCOUNT
-      ? api.normalizeStudentId(api.DEMO_ACCOUNT.studentId)
-      : "";
-  }
-
   function findStoredAccount(studentId) {
     var needle = api.normalizeStudentId(studentId);
     var match = null;
@@ -94,7 +88,6 @@
     var users = api.getUsers().map(function (user) {
       return Object.assign({}, user);
     });
-    var builtInId = demoId();
 
     remoteUsers.forEach(function (remote) {
       var remoteId = api.normalizeStudentId(remote.studentId);
@@ -108,16 +101,6 @@
       if (index === -1) users.push(synced);
       else users[index] = synced;
     });
-
-    if (api.DEMO_ACCOUNT) {
-      var hasDemo = users.some(function (user) {
-        return api.normalizeStudentId(user.studentId) === builtInId;
-      });
-
-      if (!hasDemo) {
-        users = users.concat([api.DEMO_ACCOUNT]);
-      }
-    }
 
     users.sort(function (a, b) {
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
@@ -141,11 +124,8 @@
     body.innerHTML = users
       .map(function (user) {
         var id = api.normalizeStudentId(user.studentId);
-        var isDemo = builtInId && id === builtInId;
         var isCurrent = sessionId && id === sessionId;
-        var actions = isDemo
-          ? '<span class="row-note">Built-in</span>'
-          : user.__remote
+        var actions = user.__remote
           ? '<span class="row-note">Synced</span>'
           : '<span class="row-actions">' +
             '<button class="row-action" type="button" data-action="edit" data-id="' +
@@ -234,11 +214,6 @@
 
     if (!name || !studentId || !position || !yearLevel || !council) {
       setError("Fill in every field before saving.");
-      return;
-    }
-
-    if (studentId === demoId()) {
-      setError("The built-in demo account cannot use that Student ID.");
       return;
     }
 

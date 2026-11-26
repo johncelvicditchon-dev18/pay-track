@@ -11,7 +11,7 @@ Run it locally with `npx serve site` and open `index.html`.
 Sign-up creates a real **Firebase Authentication** login and a Firestore profile
 in the `users` collection (document ID = the Auth UID). Because Firebase Auth
 needs an email-shaped identifier, each Student ID gets a deterministic internal
-address (`2024-00123@students.tcgc.local`) built in
+address (`<student-id>@students.tcgc.local`) built in
 `assets/js/firebase-client.js`. The plain password is never stored locally or in
 Firestore — Firebase Auth keeps its own hash.
 

@@ -6,7 +6,7 @@ import { normalizeCouncil } from "../data/councils";
 /*
  * Payment records live in the Firestore `paymentRecords` collection.
  * The document ID is "<council>::<studentId>" (for example
- * "ISC-ICS::2024-00123"), so every council keeps its own record for a student.
+ * "ISC-ICS::STUDENTID"), so every council keeps its own record for a student.
  * Finance staff create and update these documents from the Firebase console
  * or a trusted admin tool; the app only reads them.
  */

@@ -7,198 +7,8 @@
 (function () {
   "use strict";
 
+  var api = window.TCGC;
   var ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
-
-  var RECORDS = {
-    "2024-00123": {
-      name: "Maria Santos",
-      institute: "ICS",
-      program: "BSCS",
-      yearLevel: "4TH YEAR",
-      organization: "ICS Student Council",
-      statement: "A.Y. 2026–2027 · 1st Semester",
-      updated: "October 9, 2026",
-      nextDue: "October 15, 2026",
-      charges: [
-        {
-          label: "Activity contribution — Intramurals",
-          category: "Activity",
-          scope: "Institute",
-          unit: "ICS",
-          amount: 500,
-          paid: 500,
-          dueDate: "August 15, 2026"
-        },
-        {
-          label: "ICS membership fee",
-          category: "Membership",
-          scope: "Organization",
-          unit: "ICS Student Council",
-          amount: 300,
-          paid: 300,
-          dueDate: "September 2, 2026"
-        },
-        {
-          label: "T-shirt fee",
-          category: "T-shirt",
-          scope: "Institute",
-          unit: "ICS",
-          amount: 750,
-          paid: 500,
-          dueDate: "October 15, 2026"
-        },
-        {
-          label: "Miscellaneous — Student ID replacement",
-          category: "Miscellaneous",
-          scope: "Institute",
-          unit: "ICS",
-          amount: 200,
-          paid: 0,
-          dueDate: "October 20, 2026"
-        }
-      ],
-      payments: [
-        {
-          label: "Intramurals activity fee",
-          date: "August 15, 2026",
-          ref: "OR-2026-10428",
-          amount: 500,
-          method: "Cash · Finance Office"
-        },
-        {
-          label: "ICS membership fee",
-          date: "September 2, 2026",
-          ref: "OR-2026-10577",
-          amount: 300,
-          method: "Cash · Finance Office"
-        },
-        {
-          label: "T-shirt fee (partial)",
-          date: "September 28, 2026",
-          ref: "OR-2026-10702",
-          amount: 500,
-          method: "GCash · Finance Office"
-        }
-      ]
-    },
-    "2023-00456": {
-      name: "Juan Dela Cruz",
-      institute: "IBFS",
-      program: "BSBA-FM",
-      yearLevel: "3RD YEAR",
-      organization: "IBFS Business Leaders Society",
-      statement: "A.Y. 2026–2027 · 1st Semester",
-      updated: "October 9, 2026",
-      nextDue: "October 20, 2026",
-      charges: [
-        {
-          label: "Activity contribution — Acquaintance",
-          category: "Activity",
-          scope: "Institute",
-          unit: "IBFS",
-          amount: 400,
-          paid: 400,
-          dueDate: "August 12, 2026"
-        },
-        {
-          label: "IBFS membership fee",
-          category: "Membership",
-          scope: "Organization",
-          unit: "IBFS Business Leaders Society",
-          amount: 500,
-          paid: 500,
-          dueDate: "August 28, 2026"
-        },
-        {
-          label: "T-shirt fee",
-          category: "T-shirt",
-          scope: "Institute",
-          unit: "IBFS",
-          amount: 600,
-          paid: 0,
-          dueDate: "October 20, 2026"
-        }
-      ],
-      payments: [
-        {
-          label: "Acquaintance activity fee",
-          date: "August 12, 2026",
-          ref: "OR-2026-20114",
-          amount: 400,
-          method: "Cash · Finance Office"
-        },
-        {
-          label: "IBFS membership fee",
-          date: "August 28, 2026",
-          ref: "OR-2026-20203",
-          amount: 500,
-          method: "Cash · Finance Office"
-        }
-      ]
-    },
-    "2025-00789": {
-      name: "Ana Reyes",
-      institute: "ITE",
-      program: "BEED",
-      yearLevel: "2ND YEAR",
-      organization: "ITE Educators' Guild",
-      statement: "A.Y. 2026–2027 · 1st Semester",
-      updated: "October 9, 2026",
-      nextDue: "Fully paid for this semester",
-      charges: [
-        {
-          label: "Activity contribution — Field trip",
-          category: "Activity",
-          scope: "Institute",
-          unit: "ITE",
-          amount: 500,
-          paid: 500,
-          dueDate: "August 5, 2026"
-        },
-        {
-          label: "ITE membership fee",
-          category: "Membership",
-          scope: "Organization",
-          unit: "ITE Educators' Guild",
-          amount: 400,
-          paid: 400,
-          dueDate: "August 5, 2026"
-        },
-        {
-          label: "T-shirt fee",
-          category: "T-shirt",
-          scope: "Institute",
-          unit: "ITE",
-          amount: 500,
-          paid: 500,
-          dueDate: "August 5, 2026"
-        }
-      ],
-      payments: [
-        {
-          label: "Field trip activity fee",
-          date: "August 5, 2026",
-          ref: "OR-2026-30021",
-          amount: 500,
-          method: "Cash · Finance Office"
-        },
-        {
-          label: "ITE membership fee",
-          date: "August 5, 2026",
-          ref: "OR-2026-30022",
-          amount: 400,
-          method: "Cash · Finance Office"
-        },
-        {
-          label: "T-shirt fee",
-          date: "August 5, 2026",
-          ref: "OR-2026-30023",
-          amount: 500,
-          method: "GCash · Finance Office"
-        }
-      ]
-    }
-  };
 
   function money(value) {
     return "₱" + Number(value || 0).toLocaleString("en-PH", {
@@ -221,7 +31,7 @@
   }
 
   function summarize(record) {
-    var charges = record.charges.map(function (charge) {
+    var charges = (record.charges || []).map(function (charge) {
       var amount = Number(charge.amount || 0);
       var paid = Number(charge.paid || 0);
       return {
@@ -279,7 +89,56 @@
     return { label: "Unpaid", tone: "due" };
   }
 
+  function esc(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function normalizeRecord(record, studentId) {
+    var source = record || {};
+
+    return {
+      name: esc(source.name || studentId || "Student"),
+      institute: esc(source.institute || "—"),
+      program: esc(source.program || "—"),
+      yearLevel: esc(source.yearLevel || "—"),
+      organization: esc(source.organization || "—"),
+      statement: esc(source.statement || source.council || ""),
+      updated: esc(source.updated || "—"),
+      nextDue: esc(source.nextDue || "—"),
+      charges: (Array.isArray(source.charges) ? source.charges : []).map(
+        function (charge) {
+          return {
+            label: esc(charge.label || "Charge"),
+            category: esc(charge.category || "Miscellaneous"),
+            scope: esc(charge.scope || "Institute"),
+            unit: esc(charge.unit || "—"),
+            dueDate: esc(charge.dueDate || "—"),
+            amount: Number(charge.amount || 0),
+            paid: Number(charge.paid || 0)
+          };
+        }
+      ),
+      payments: (Array.isArray(source.payments) ? source.payments : []).map(
+        function (payment) {
+          return {
+            label: esc(payment.label || "Payment"),
+            date: esc(payment.date || "—"),
+            ref: esc(payment.ref || "—"),
+            method: esc(payment.method || "—"),
+            amount: Number(payment.amount || 0)
+          };
+        }
+      )
+    };
+  }
+
   function renderRecord(record, studentId) {
+    record = normalizeRecord(record, studentId);
     var summary = summarize(record);
     var openCharges = summary.charges.filter(function (charge) {
       return charge.balance > 0;
@@ -423,11 +282,40 @@
             '<circle cx="11" cy="11" r="7" /><path d="m20 20-3.6-3.6" /></svg>' +
         "</span>" +
         '<span class="eyebrow">No record found</span>' +
-        '<h2 id="track-dialog-title">We couldn&apos;t find that ID</h2>' +
-        "<p>No payment record matches <strong>" + studentId +
-          "</strong>. Check the student ID on your school ID card, or contact the Finance Office for help.</p>" +
+        '<h2 id="track-dialog-title">We couldn&apos;t find that record</h2>' +
+        "<p>No payment record matches <strong>" + esc(studentId) +
+          "</strong> for your council. Check the Student ID, or contact the Finance Office if your assessment hasn&apos;t been posted yet.</p>" +
         '<button class="btn btn--primary" type="button" data-track-retry>Try another ID</button>' +
-        '<p class="track-empty__hint">Demo IDs: 2024-00123 · 2023-00456 · 2025-00789</p>' +
+      "</div>"
+    );
+  }
+
+  function renderLoginRequired() {
+    return (
+      '<div class="track-empty">' +
+        '<span class="track-empty__icon">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>' +
+        "</span>" +
+        '<span class="eyebrow">Sign in required</span>' +
+        '<h2 id="track-dialog-title">Log in to view your record</h2>' +
+        "<p>Payment records are private. Log in with your Student ID and password to see your balances, charges, and official receipts.</p>" +
+        '<a class="btn btn--primary" href="pages/login.html">Go to log in</a>' +
+      "</div>"
+    );
+  }
+
+  function renderLookupError() {
+    return (
+      '<div class="track-empty">' +
+        '<span class="track-empty__icon">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<circle cx="12" cy="12" r="9" /><path d="M12 7.5v5M12 16.5h.01" /></svg>' +
+        "</span>" +
+        '<span class="eyebrow">Lookup failed</span>' +
+        '<h2 id="track-dialog-title">We couldn&apos;t check that record</h2>' +
+        "<p>Check your connection and try again, or contact the Finance Office if this keeps happening.</p>" +
+        '<button class="btn btn--primary" type="button" data-track-retry>Try again</button>' +
       "</div>"
     );
   }
@@ -449,12 +337,36 @@
 
     function show(id) {
       var normalized = id.trim().toUpperCase();
-      if (RECORDS[normalized]) {
-        result.innerHTML = renderRecord(RECORDS[normalized], normalized);
-      } else {
-        result.innerHTML = renderMissing(normalized);
+      var session = api && api.getSession ? api.getSession() : null;
+
+      if (
+        !session ||
+        !session.council ||
+        !session.idToken ||
+        !window.TCGCFirebase ||
+        !window.TCGCFirebase.findPaymentRecord
+      ) {
+        result.innerHTML = renderLoginRequired();
+        openDialog();
+        return;
       }
+
+      result.innerHTML =
+        '<div class="track-empty" aria-live="polite"><p><span class="spinner"></span> Checking your payment record…</p></div>';
       openDialog();
+
+      window.TCGCFirebase.findPaymentRecord(normalized, session.council)
+        .then(function (record) {
+          if (!record) {
+            result.innerHTML = renderMissing(normalized);
+            return;
+          }
+          result.innerHTML = renderRecord(record, normalized);
+        })
+        .catch(function (lookupError) {
+          console.warn("[track] Payment lookup failed:", lookupError);
+          result.innerHTML = renderLookupError();
+        });
     }
 
     function submit() {
@@ -467,7 +379,7 @@
       }
 
       if (!ID_RE.test(id)) {
-        if (error) error.textContent = "Enter a valid Student ID (for example 2024-00123).";
+        if (error) error.textContent = "Enter a valid Student ID.";
         input.focus();
         return;
       }
@@ -484,16 +396,6 @@
     input.addEventListener("input", function () {
       if (error) error.textContent = "";
     });
-
-    Array.prototype.forEach.call(
-      document.querySelectorAll("[data-demo-id]"),
-      function (button) {
-        button.addEventListener("click", function () {
-          input.value = button.getAttribute("data-demo-id") || "";
-          submit();
-        });
-      }
-    );
 
     if (close) {
       close.addEventListener("click", function () { dialog.close(); });

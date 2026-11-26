@@ -9,15 +9,6 @@
   var SESSION_KEY = "tcgc_paytrack_session";
   var memory = Object.create(null);
 
-  var DEMO_ACCOUNT = {
-    name: "Maria Santos",
-    password: "tcgc1234",
-    studentId: "2024-00123",
-    position: "PRESIDENT",
-    yearLevel: "4TH YEAR",
-    council: "ISC-ICS"
-  };
-
   var COUNCILS = [
     "ISC-ICS",
     "ISC-IAS",
@@ -267,7 +258,6 @@
   }
 
   window.TCGC = {
-    DEMO_ACCOUNT: DEMO_ACCOUNT,
     COUNCILS: COUNCILS,
     ISC_POSITIONS: ISC_POSITIONS,
     SRO_POSITIONS: SRO_POSITIONS,

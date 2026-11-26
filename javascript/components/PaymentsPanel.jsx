@@ -201,7 +201,7 @@ export default function PaymentsPanel({ council }) {
             <p>No payment records for {activeCouncil} yet.</p>
             <small>
               Add documents to the <code>paymentRecords</code> collection with
-              IDs like <code>{activeCouncil}::2024-00123</code>.
+              IDs like <code>{activeCouncil}::STUDENTID</code>.
             </small>
           </div>
         ) : null}

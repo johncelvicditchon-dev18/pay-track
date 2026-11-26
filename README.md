@@ -112,7 +112,7 @@ Authentication and student profiles run on Firebase:
   using the Firebase Auth UID as the document ID.
 - The student's **Student ID is the username**. Because Firebase Auth needs an
   email-shaped identifier, each account gets a deterministic internal address
-  (`2024-00123@students.tcgc.local`) built in `javascript/lib/auth.js`. That
+  (`<student-id>@students.tcgc.local`) built in `javascript/lib/auth.js`. That
   address is never shown, never stored as a profile field, and cannot receive
   mail — so password resets are handled by the Finance Office.
 - On sign-up the app also writes one verifiable field to the `users` document:
@@ -160,14 +160,14 @@ Google Cloud console to your own domains and to the Firebase APIs this app uses.
 ## Payment records
 
 The payment tracker reads the Firestore `paymentRecords` collection. Each
-document ID is `<council>::<studentId>` (for example `ISC-ICS::2024-00123`), so
+document ID is `<council>::<studentId>` (for example `ISC-ICS::STUDENTID`), so
 each council keeps its own record for a student. The document holds the
 `council` plus that student's charges and official receipts:
 
 ```json
 {
   "council": "ISC-ICS",
-  "name": "Maria Santos",
+  "name": "Student Name",
   "institute": "ICS",
   "program": "BSCS",
   "yearLevel": "4TH YEAR",
