@@ -600,6 +600,82 @@ html:has(.dashboard-page) {
   letter-spacing: 0.04em;
 }
 
+/* hover/focus card for a year-level point */
+#analytics-chart {
+  position: relative;
+}
+
+.enroll-chart__guide {
+  stroke: var(--green-300);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 5;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.enroll-chart__guide.is-visible {
+  opacity: 1;
+}
+
+.enroll-node {
+  cursor: pointer;
+  outline: none;
+}
+
+.enroll-node__hit {
+  fill: transparent;
+}
+
+.enroll-node.is-active .enroll-chart__dot,
+.enroll-node:focus-visible .enroll-chart__dot {
+  stroke: var(--accent);
+  stroke-width: 3.2;
+}
+
+.enroll-tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 132px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  background: rgba(6, 35, 24, 0.95);
+  color: #fff;
+  box-shadow: 0 18px 34px -18px rgba(3, 20, 12, 0.75);
+  transform: translate(-50%, -100%) translateY(-10px);
+  pointer-events: none;
+  text-align: left;
+}
+
+.enroll-tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  background: rgba(6, 35, 24, 0.95);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.enroll-tooltip strong {
+  display: block;
+  color: var(--accent-soft);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.enroll-tooltip span {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .chart-empty {
   padding: 54px 16px 64px;
   text-align: center;

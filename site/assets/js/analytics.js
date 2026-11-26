@@ -172,11 +172,37 @@
         ' Z" fill="url(#enrollFade)"></path>'
     );
     parts.push('<path class="enroll-chart__line" d="' + line + '"></path>');
+    parts.push(
+      '<line class="enroll-chart__guide" data-guide x1="0" x2="0" y1="' +
+        PAD.top +
+        '" y2="' +
+        (PAD.top + plotH) +
+        '"></line>'
+    );
 
     plotted.forEach(function (point) {
       var isPeak = point.index === highest.index && point.value > 0;
+      var amount =
+        point.value + (point.value === 1 ? " student" : " students");
+
       parts.push(
-        '<circle class="enroll-chart__dot' +
+        '<g class="enroll-node" tabindex="0" data-year="' +
+          point.label +
+          '" data-count="' +
+          point.value +
+          '" data-x="' +
+          point.x +
+          '" aria-label="' +
+          point.label +
+          ": " +
+          amount +
+          '">' +
+          '<circle class="enroll-node__hit" cx="' +
+          point.x +
+          '" cy="' +
+          point.y +
+          '" r="22"></circle>' +
+          '<circle class="enroll-chart__dot' +
           (isPeak ? " is-peak" : "") +
           '" cx="' +
           point.x +
@@ -184,15 +210,8 @@
           point.y +
           '" r="' +
           (isPeak ? 7 : 5) +
-          '"><title>' +
-          point.label +
-          ": " +
-          point.value +
-          (point.value === 1 ? " student" : " students") +
-          "</title></circle>"
-      );
-      parts.push(
-        '<text class="enroll-chart__value' +
+          '"></circle>' +
+          '<text class="enroll-chart__value' +
           (isPeak ? " is-peak" : "") +
           '" x="' +
           point.x +
@@ -200,7 +219,8 @@
           (point.y - (isPeak ? 16 : 13)) +
           '" text-anchor="middle">' +
           point.value +
-          "</text>"
+          "</text>" +
+          "</g>"
       );
       parts.push(
         '<text class="enroll-chart__label" x="' +
@@ -257,7 +277,66 @@
       return;
     }
 
-    chartEl.innerHTML = svgFor(points, total);
+    chartEl.innerHTML =
+      svgFor(points, total) +
+      '<div class="enroll-tooltip" hidden><strong></strong><span></span></div>';
+
+    var tooltip = chartEl.querySelector(".enroll-tooltip");
+    var guide = chartEl.querySelector("[data-guide]");
+    var nodes = chartEl.querySelectorAll(".enroll-node");
+
+    function hideTip() {
+      if (tooltip) tooltip.hidden = true;
+      if (guide) guide.classList.remove("is-visible");
+      Array.prototype.forEach.call(nodes, function (node) {
+        node.classList.remove("is-active");
+      });
+    }
+
+    function showTip(node) {
+      if (!tooltip) return;
+
+      var year = node.getAttribute("data-year") || "";
+      var count = Number(node.getAttribute("data-count") || 0);
+
+      tooltip.querySelector("strong").textContent = year;
+      tooltip.querySelector("span").textContent =
+        count + (count === 1 ? " student enrolled" : " students enrolled");
+
+      var chartRect = chartEl.getBoundingClientRect();
+      var nodeRect = node.getBoundingClientRect();
+      var x = nodeRect.left - chartRect.left + nodeRect.width / 2;
+      var y = nodeRect.top - chartRect.top;
+
+      tooltip.style.left =
+        Math.max(72, Math.min(chartRect.width - 72, x)) + "px";
+      tooltip.style.top = Math.max(4, y) + "px";
+      tooltip.hidden = false;
+
+      if (guide) {
+        var guideX = node.getAttribute("data-x");
+        guide.setAttribute("x1", guideX);
+        guide.setAttribute("x2", guideX);
+        guide.classList.add("is-visible");
+      }
+
+      Array.prototype.forEach.call(nodes, function (other) {
+        other.classList.toggle("is-active", other === node);
+      });
+    }
+
+    Array.prototype.forEach.call(nodes, function (node) {
+      node.addEventListener("mouseenter", function () {
+        showTip(node);
+      });
+      node.addEventListener("focus", function () {
+        showTip(node);
+      });
+      node.addEventListener("mouseleave", hideTip);
+      node.addEventListener("blur", hideTip);
+    });
+
+    chartEl.addEventListener("mouseleave", hideTip);
   }
 
   window.TCGCRefreshAnalytics = render;
