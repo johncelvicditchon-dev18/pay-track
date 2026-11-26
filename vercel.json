@@ -2,8 +2,27 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/((?!assets/|logo/).*)",
+      "source": "/archive/legacy-static",
+      "destination": "/archive/legacy-static/index.html"
+    },
+    {
+      "source": "/archive/legacy-static/",
+      "destination": "/archive/legacy-static/index.html"
+    },
+    {
+      "source": "/((?!assets/|logo/|archive/legacy-static/).*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/archive/legacy-static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
     }
   ]
 }

@@ -136,7 +136,7 @@ Before the app can log people in, in the
 [Firebase console](https://console.firebase.google.com/project/tcgc-payment-tracking-system):
 
 1. **Authentication → Sign-in method**: enable **Email/Password**. If you use the
-   archived static dashboard's Firebase sync, enable **Anonymous** as well.
+   static student portal's Firebase sync, enable **Anonymous** as well.
 2. **Authentication → Settings → Authorized domains**: add `localhost` and your
    production domain.
 3. **Firestore Database**: create the database, then deploy the bundled rules:
@@ -238,7 +238,9 @@ javascript/             React application code
 
 assets/logo/            TCGC logo used by the public site
 
-archive/legacy-static/  Earlier plain HTML/CSS/JavaScript version (archived)
+archive/legacy-static/  Static student portal (all HTML pages; served at /archive/legacy-static/)
+
+scripts/                Build helper that copies the static portal into dist
 ```
 
 The root also keeps the project configuration (`package.json`,
@@ -253,7 +255,28 @@ Keep payment amounts out of student-side writes — the rules already deny them 
 and maintain those documents only from the Firebase console or a trusted admin
 tool before using this with real financial data.
 
-## Legacy version
+## Static student portal
 
-`archive/legacy-static/` contains the earlier plain HTML/CSS/JavaScript version
-for reference only. It is not used by the React application.
+`archive/legacy-static/` contains the standalone HTML/CSS/JavaScript student
+portal — `index.html` plus every page in `pages/`. It is part of the active
+deployment:
+
+- `npm run build` builds the React app into `dist/`, then
+  `scripts/copy-static.mjs` copies the portal to
+  `dist/archive/legacy-static/`.
+- Vercel serves the portal at `/archive/legacy-static/` (for example
+  `/archive/legacy-static/index.html`), while the React app stays at `/`.
+- The SPA rewrite in `vercel.json` excludes the portal path, so its HTML pages
+  are served directly. Portal responses are marked `no-cache` so a refresh
+  picks up the latest deployment.
+
+Run it locally with `npx serve archive/legacy-static`, or serve the project root
+and open `/archive/legacy-static/index.html`.
+
+## Deployment (Vercel)
+
+- `npm run build` produces `dist/` with both the React app and the static portal.
+- The React app is served at `/`; the static portal at `/archive/legacy-static/`.
+- If a deployment does not pick up a change, confirm the Vercel project is on
+  the `main` branch, auto-deploy is enabled, and the build command is
+  `npm run build` with output directory `dist`. Then redeploy and hard-refresh.
