@@ -174,31 +174,11 @@
 
       window.setTimeout(function () {
         var normalized = api.normalizeStudentId(studentId);
-        var stored = api.findUser(normalized);
         var isDemo =
           normalized === api.normalizeStudentId(DEMO_ACCOUNT.studentId) &&
           password === DEMO_ACCOUNT.password;
-        var account = isDemo ? DEMO_ACCOUNT : stored;
 
-        if (account && password === account.password) {
-          api.setSession(
-            {
-              name: account.name,
-              studentId: account.studentId || normalized,
-              position: account.position || "",
-              yearLevel: account.yearLevel || "",
-              council: account.council || "",
-              signedInAt: new Date().toISOString()
-            },
-            Boolean(loginRemember && loginRemember.checked)
-          );
-
-          api.toast(
-            "Welcome back, " + String(account.name).trim().split(/\s+/)[0] + "!",
-            "Your account is ready. Taking you to your dashboard…",
-            "success"
-          );
-
+        function nextTarget() {
           var nextView = "";
           try {
             nextView =
@@ -211,27 +191,126 @@
             accounts: "dashboard.html#accounts",
             students: "dashboard.html#students"
           };
-          var target = destinations[nextView] || "dashboard.html";
+          return destinations[nextView] || "dashboard.html";
+        }
 
-          redirectSoon(target, 1000);
+        function finish(account, idToken) {
+          if (window.TCGCFirebase && window.TCGCFirebase.setAuthToken) {
+            window.TCGCFirebase.setAuthToken(idToken || "");
+          }
+
+          api.setSession(
+            {
+              name: account.name || "Student",
+              studentId: account.studentId || normalized,
+              position: account.position || "",
+              yearLevel: account.yearLevel || "",
+              council: account.council || "",
+              idToken: idToken || "",
+              signedInAt: new Date().toISOString()
+            },
+            Boolean(loginRemember && loginRemember.checked)
+          );
+
+          api.toast(
+            "Welcome back, " +
+              String(account.name || "Student").trim().split(/\s+/)[0] +
+              "!",
+            "Your account is ready. Taking you to your dashboard…",
+            "success"
+          );
+
+          redirectSoon(nextTarget(), 1000);
+        }
+
+        function fail(message) {
+          loginBusy = false;
+          setLoading(loginSubmit, false);
+
+          showError(
+            loginPassword,
+            message ||
+              "The student ID and password don't match our records. Please try again."
+          );
+          loginPassword.focus();
+          loginPassword.select();
+
+          api.toast(
+            "Couldn't sign you in",
+            message ||
+              "Double-check your student ID and password, or contact the Finance Office for help.",
+            "error"
+          );
+        }
+
+        if (isDemo) {
+          finish(DEMO_ACCOUNT, "");
           return;
         }
 
-        loginBusy = false;
-        setLoading(loginSubmit, false);
+        var local = api.findUser(normalized);
 
-        showError(
-          loginPassword,
-          "The student ID and password don't match our records. Please try again."
-        );
-        loginPassword.focus();
-        loginPassword.select();
+        function localFallback() {
+          if (local && password === local.password) {
+            finish(local, "");
+            return true;
+          }
+          return false;
+        }
 
-        api.toast(
-          "Couldn't sign you in",
-          "Double-check your student ID and password, or contact the Finance Office for help.",
-          "error"
-        );
+        if (
+          window.TCGCFirebase &&
+          window.TCGCFirebase.available &&
+          window.TCGCFirebase.signInAccount
+        ) {
+          window.TCGCFirebase.signInAccount(normalized, password)
+            .then(function (result) {
+              var profile = result.profile || {};
+
+              finish(
+                {
+                  name: profile.name || (local && local.name) || "Student",
+                  studentId: profile.studentId || normalized,
+                  position: profile.position || (local && local.position) || "",
+                  yearLevel:
+                    profile.yearLevel || (local && local.yearLevel) || "",
+                  council: profile.council || (local && local.council) || ""
+                },
+                result.idToken
+              );
+            })
+            .catch(function (error) {
+              if (localFallback()) return;
+
+              var code = error && error.code;
+              if (code === "auth-disabled") {
+                fail(
+                  "Email/password sign-in isn't enabled in Firebase Authentication."
+                );
+                return;
+              }
+              if (code === "unauthorized-domain") {
+                fail(
+                  "This domain isn't authorized in Firebase Authentication. Add it under Authorized domains."
+                );
+                return;
+              }
+              if (code === "unavailable") {
+                fail(
+                  "Can't reach Firebase right now. Check your connection and try again."
+                );
+                return;
+              }
+              if (code === "too-many-requests") {
+                fail("Too many attempts. Please wait a moment and try again.");
+                return;
+              }
+              fail();
+            });
+          return;
+        }
+
+        if (!localFallback()) fail();
       }, 650);
     });
 
@@ -471,31 +550,116 @@
       setLoading(signupSubmit, true, "Creating your account…");
 
       window.setTimeout(function () {
-        var users = api.getUsers();
         var studentId = api.normalizeStudentId(studentIdInput.value);
-
-        users.push({
+        var account = {
           name: nameInput.value.trim().toUpperCase(),
           studentId: studentId,
           position: positionInput.value.trim().toUpperCase(),
           yearLevel: yearLevelInput.value,
           council: api.normalizeCouncil(councilInput.value),
-          password: passwordInput.value,
           createdAt: new Date().toISOString()
+        };
+
+        function done(result) {
+          if (result && result.profileSaved === false) {
+            api.toast(
+              "Account created",
+              "Your login was created, but your profile couldn't be saved to Firestore. Deploy the Firebase rules and contact the Finance Office if details are missing.",
+              "info"
+            );
+          } else {
+            api.toast(
+              "Account created",
+              "You're all set. Redirecting you to the login page…",
+              "success"
+            );
+          }
+
+          redirectSoon(
+            "login.html?registered=1&studentId=" + encodeURIComponent(studentId),
+            1100
+          );
+        }
+
+        function fail(message, field) {
+          signupBusy = false;
+          setLoading(signupSubmit, false);
+
+          if (field) showError(field, message);
+
+          api.toast("Couldn't create your account", message, "error");
+        }
+
+        if (
+          window.TCGCFirebase &&
+          window.TCGCFirebase.available &&
+          window.TCGCFirebase.createAccount
+        ) {
+          window.TCGCFirebase.createAccount({
+            name: account.name,
+            studentId: account.studentId,
+            position: account.position,
+            yearLevel: account.yearLevel,
+            council: account.council,
+            password: passwordInput.value
+          })
+            .then(done)
+            .catch(function (error) {
+              var code = error && error.code;
+
+              if (code === "email-in-use") {
+                fail(
+                  "That Student ID already has a login. Try logging in instead.",
+                  studentIdInput
+                );
+                return;
+              }
+
+              if (code === "weak-password") {
+                fail(
+                  "Use at least 8 characters, including letters and numbers.",
+                  passwordInput
+                );
+                return;
+              }
+
+              if (code === "auth-disabled") {
+                fail(
+                  "Email/password sign-in isn't enabled in Firebase Authentication."
+                );
+                return;
+              }
+
+              if (code === "unauthorized-domain") {
+                fail(
+                  "This domain isn't authorized in Firebase Authentication. Add it under Authorized domains."
+                );
+                return;
+              }
+
+              fail(
+                error && error.message
+                  ? "Firebase rejected the sign-up: " + error.message
+                  : "We couldn't save your account. Please try again."
+              );
+            });
+          return;
+        }
+
+        // Offline fallback: keep the account in this browser only.
+        var users = api.getUsers();
+        users.push({
+          name: account.name,
+          studentId: account.studentId,
+          position: account.position,
+          yearLevel: account.yearLevel,
+          council: account.council,
+          password: passwordInput.value,
+          createdAt: account.createdAt
         });
 
         api.saveUsers(users);
-
-        api.toast(
-          "Account created",
-          "You're all set. Redirecting you to the login page…",
-          "success"
-        );
-
-        redirectSoon(
-          "login.html?registered=1&studentId=" + encodeURIComponent(studentId),
-          1100
-        );
+        done();
       }, 700);
     });
   }

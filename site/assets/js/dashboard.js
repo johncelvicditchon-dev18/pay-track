@@ -11,6 +11,10 @@
 
   var session = api.getSession ? api.getSession() : null;
 
+  if (session && session.idToken && window.TCGCFirebase && window.TCGCFirebase.setAuthToken) {
+    window.TCGCFirebase.setAuthToken(session.idToken);
+  }
+
   // Every dashboard belongs to a signed-in user.
   if (!session) {
     var hashView = String(window.location.hash || "").replace(/^#/, "");

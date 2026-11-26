@@ -26,6 +26,25 @@
     authError: null
   };
 
+  client.setAuthToken = function (value) {
+    token = value || null;
+    tokenPromise = value ? Promise.resolve(value) : null;
+    return client;
+  };
+
+  // Reuse the signed-in account's token when the page reloads.
+  try {
+    var storedSession =
+      window.localStorage.getItem("tcgc_paytrack_session") ||
+      window.sessionStorage.getItem("tcgc_paytrack_session");
+    var storedSessionData = storedSession ? JSON.parse(storedSession) : null;
+    if (storedSessionData && storedSessionData.idToken) {
+      client.setAuthToken(storedSessionData.idToken);
+    }
+  } catch (error) {
+    /* ignore unreadable sessions */
+  }
+
   function makeError(message, code) {
     var error = new Error(message || "Firebase request failed.");
     error.code = code || "unknown";
@@ -213,6 +232,32 @@
     });
   }
 
+  // Firestore rules are not filters: a council-scoped read must use a query
+  // that already filters by council, so use runQuery instead of listing all.
+  function queryDocuments(collectionId, field, value) {
+    return request(BASE_URL + ":runQuery" + KEY_PARAM, {
+      method: "POST",
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: collectionId }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: field },
+              op: "EQUAL",
+              value: { stringValue: value }
+            }
+          }
+        }
+      })
+    }).then(function (rows) {
+      return (rows || [])
+        .map(function (row) {
+          return row && row.document;
+        })
+        .filter(Boolean);
+    });
+  }
+
   function inChunks(items, size) {
     var chunks = [];
 
@@ -224,8 +269,15 @@
   }
 
   client.loadStudents = function (council) {
-    var students = [];
     var filter = String(council || "").toUpperCase();
+
+    if (filter) {
+      return queryDocuments(COLLECTION, "council", filter).then(function (documents) {
+        return documents.map(fromDocument);
+      });
+    }
+
+    var students = [];
 
     function loadPage(pageToken) {
       var url =
@@ -236,18 +288,14 @@
         "&pageSize=500" +
         (pageToken ? "&pageToken=" + encodeURIComponent(pageToken) : "");
 
-      return request(url)
-        .then(function (data) {
-          (data.documents || []).forEach(function (document) {
-            var student = fromDocument(document);
-            if (!filter || String(student.council || "").toUpperCase() === filter) {
-              students.push(student);
-            }
-          });
-
-          if (data.nextPageToken) return loadPage(data.nextPageToken);
-          return students;
+      return request(url).then(function (data) {
+        (data.documents || []).forEach(function (document) {
+          students.push(fromDocument(document));
         });
+
+        if (data.nextPageToken) return loadPage(data.nextPageToken);
+        return students;
+      });
     }
 
     return loadPage(null);
@@ -274,6 +322,27 @@
 
   client.loadPayments = function (council) {
     var filter = String(council || "").toUpperCase();
+
+    function recordFromDocument(document) {
+      var record = decodeFields(document.fields || {});
+      var docId = String(document.name || "").split("/").pop();
+      var parts = decodeURIComponent(docId).split("::");
+      var councilFromId = parts.length > 1 ? parts[0] : "";
+      var studentFromId =
+        parts.length > 1 ? parts.slice(1).join("::") : parts[0] || "";
+      record.studentId = record.studentId || studentFromId;
+      record.council = record.council || councilFromId;
+      return record;
+    }
+
+    if (filter) {
+      return queryDocuments(PAYMENTS_COLLECTION, "council", filter).then(
+        function (documents) {
+          return documents.map(recordFromDocument);
+        }
+      );
+    }
+
     var records = [];
 
     function loadPage(pageToken) {
@@ -287,20 +356,7 @@
 
       return request(url).then(function (data) {
         (data.documents || []).forEach(function (document) {
-          var record = decodeFields(document.fields || {});
-          var docId = String(document.name || "").split("/").pop();
-          var parts = decodeURIComponent(docId).split("::");
-          var councilFromId = parts.length > 1 ? parts[0] : "";
-          var studentFromId =
-            parts.length > 1 ? parts.slice(1).join("::") : parts[0] || "";
-          record.studentId = record.studentId || studentFromId;
-          record.council = record.council || councilFromId;
-          if (
-            !filter ||
-            String(record.council || "").toUpperCase() === filter
-          ) {
-            records.push(record);
-          }
+          records.push(recordFromDocument(document));
         });
 
         if (data.nextPageToken) return loadPage(data.nextPageToken);
@@ -334,6 +390,232 @@
         });
       }, Promise.resolve());
     });
+  };
+
+  /* ---------- accounts (Firebase Auth + Firestore users) ---------- */
+  var AUTH_BASE = "https://identitytoolkit.googleapis.com/v1/accounts:";
+  var USERS_COLLECTION = "users";
+  var STUDENT_EMAIL_DOMAIN = "students.tcgc.local";
+
+  function studentEmail(studentId) {
+    return String(studentId || "").trim().toLowerCase() + "@" + STUDENT_EMAIL_DOMAIN;
+  }
+
+  function authErrorCode(message) {
+    var text = String(message || "").toUpperCase();
+    if (text.indexOf("EMAIL_EXISTS") !== -1) return "email-in-use";
+    if (text.indexOf("WEAK_PASSWORD") !== -1) return "weak-password";
+    if (text.indexOf("INVALID_LOGIN_CREDENTIALS") !== -1 ||
+        text.indexOf("INVALID_PASSWORD") !== -1 ||
+        text.indexOf("EMAIL_NOT_FOUND") !== -1) {
+      return "invalid-credentials";
+    }
+    if (text.indexOf("OPERATION_NOT_ALLOWED") !== -1) return "auth-disabled";
+    if (text.indexOf("UNAUTHORIZED_DOMAIN") !== -1) return "unauthorized-domain";
+    if (text.indexOf("TOO_MANY_ATTEMPTS") !== -1) return "too-many-requests";
+    return "auth";
+  }
+
+  function authRequest(path, payload) {
+    return window
+      .fetch(AUTH_BASE + path + KEY_PARAM, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .catch(function (error) {
+        throw makeError(error.message, "unavailable");
+      })
+      .then(function (response) {
+        return response
+          .json()
+          .catch(function () {
+            return {};
+          })
+          .then(function (data) {
+            if (!response.ok) {
+              var message =
+                (data.error && data.error.message) || "Firebase sign-in failed.";
+              throw makeError(message, authErrorCode(message));
+            }
+            return data;
+          });
+      });
+  }
+
+  function userFields(profile) {
+    return {
+      name: { stringValue: profile.name || "" },
+      studentId: { stringValue: profile.studentId || "" },
+      position: { stringValue: profile.position || "" },
+      yearLevel: { stringValue: profile.yearLevel || "" },
+      council: { stringValue: profile.council || "" },
+      createdAt: {
+        timestampValue: profile.createdAt || new Date().toISOString()
+      }
+    };
+  }
+
+  function profileFromDocument(document) {
+    var fields = document.fields || {};
+    return {
+      uid: String(document.name || "").split("/").pop(),
+      name: fieldValue(fields, "name"),
+      studentId: fieldValue(fields, "studentId"),
+      position: fieldValue(fields, "position"),
+      yearLevel: fieldValue(fields, "yearLevel"),
+      council: fieldValue(fields, "council")
+    };
+  }
+
+  function userDocUrl(uid) {
+    return (
+      BASE_URL +
+      "/" +
+      USERS_COLLECTION +
+      "/" +
+      encodeURIComponent(uid) +
+      KEY_PARAM
+    );
+  }
+
+  client.createAccount = function (account) {
+    var email = studentEmail(account.studentId);
+
+    function signUp() {
+      return authRequest("signUp", {
+        email: email,
+        password: account.password,
+        returnSecureToken: true
+      }).catch(function (error) {
+        if (error.code !== "email-in-use") throw error;
+
+        // A previous attempt may have created the Auth login without the
+        // Firestore profile. If the password matches and no profile exists,
+        // finish that account instead of reporting a duplicate.
+        return authRequest("signInWithPassword", {
+          email: email,
+          password: account.password,
+          returnSecureToken: true
+        })
+          .then(function (data) {
+            return window
+              .fetch(userDocUrl(data.localId), {
+                headers: { Authorization: "Bearer " + data.idToken }
+              })
+              .then(function (response) {
+                if (response.ok) throw error;
+                return data;
+              });
+          })
+          .catch(function (recoveryError) {
+            if (recoveryError === error) throw error;
+            throw error;
+          });
+      });
+    }
+
+    return signUp().then(function (data) {
+      var profile = {
+        name: account.name || "",
+        studentId: account.studentId || "",
+        position: account.position || "",
+        yearLevel: account.yearLevel || "",
+        council: account.council || "",
+        createdAt: new Date().toISOString()
+      };
+
+      return window
+        .fetch(userDocUrl(data.localId), {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + data.idToken
+          },
+          body: JSON.stringify({ fields: userFields(profile) })
+        })
+        .then(readJson)
+        .then(function () {
+          return {
+            uid: data.localId,
+            idToken: data.idToken,
+            profile: profile,
+            profileSaved: true
+          };
+        })
+        .catch(function (error) {
+          // The Auth login exists; the Firestore profile can be retried later.
+          console.warn("[firebase] Could not save the user profile:", error);
+          return {
+            uid: data.localId,
+            idToken: data.idToken,
+            profile: profile,
+            profileSaved: false
+          };
+        });
+    });
+  };
+
+  client.signInAccount = function (studentId, password) {
+    return authRequest("signInWithPassword", {
+      email: studentEmail(studentId),
+      password: password,
+      returnSecureToken: true
+    }).then(function (data) {
+      return window
+        .fetch(userDocUrl(data.localId), {
+          headers: { Authorization: "Bearer " + data.idToken }
+        })
+        .then(readJson)
+        .then(function (document) {
+          var profile = profileFromDocument(document);
+          if (!profile.studentId) profile.studentId = studentId;
+          return { uid: data.localId, idToken: data.idToken, profile: profile };
+        })
+        .catch(function () {
+          return {
+            uid: data.localId,
+            idToken: data.idToken,
+            profile: {
+              uid: data.localId,
+              name: "",
+              studentId: studentId,
+              position: "",
+              yearLevel: "",
+              council: ""
+            }
+          };
+        });
+    });
+  };
+
+  client.listUserAccounts = function (idToken) {
+    var users = [];
+
+    if (!idToken) return Promise.resolve(users);
+
+    function loadPage(pageToken) {
+      var url =
+        BASE_URL +
+        "/" +
+        USERS_COLLECTION +
+        KEY_PARAM +
+        "&pageSize=300" +
+        (pageToken ? "&pageToken=" + encodeURIComponent(pageToken) : "");
+
+      return window
+        .fetch(url, { headers: { Authorization: "Bearer " + idToken } })
+        .then(readJson)
+        .then(function (data) {
+          (data.documents || []).forEach(function (document) {
+            users.push(profileFromDocument(document));
+          });
+          if (data.nextPageToken) return loadPage(data.nextPageToken);
+          return users;
+        });
+    }
+
+    return loadPage(null);
   };
 
   window.TCGCFirebase = client;

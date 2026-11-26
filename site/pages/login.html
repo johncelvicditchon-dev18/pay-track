@@ -102,11 +102,12 @@
               <label for="login-student-id">Student ID</label>
               <div class="input-wrap">
                 <input
-                  type="number"
+                  type="text"
                   id="login-student-id"
                   name="studentId"
                   placeholder="XXXXXXX"
                   autocomplete="username"
+                  autocapitalize="characters"
                   spellcheck="false"
                   aria-describedby="login-student-id-error"
                   required
@@ -167,6 +168,7 @@
     </div>
 
     <script src="../assets/js/ui.js"></script>
+    <script src="../assets/js/firebase-client.js"></script>
     <script src="../assets/js/auth.js"></script>
   </body>
 </html>

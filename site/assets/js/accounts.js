@@ -48,6 +48,7 @@
   };
 
   var editingId = null;
+  var remoteUsers = [];
 
   if (!api || !body) return;
 
@@ -90,8 +91,23 @@
   }
 
   function render() {
-    var users = api.getUsers();
+    var users = api.getUsers().map(function (user) {
+      return Object.assign({}, user);
+    });
     var builtInId = demoId();
+
+    remoteUsers.forEach(function (remote) {
+      var remoteId = api.normalizeStudentId(remote.studentId);
+      var index = -1;
+
+      users.forEach(function (user, i) {
+        if (api.normalizeStudentId(user.studentId) === remoteId) index = i;
+      });
+
+      var synced = Object.assign({}, remote, { __remote: true });
+      if (index === -1) users.push(synced);
+      else users[index] = synced;
+    });
 
     if (api.DEMO_ACCOUNT) {
       var hasDemo = users.some(function (user) {
@@ -129,6 +145,8 @@
         var isCurrent = sessionId && id === sessionId;
         var actions = isDemo
           ? '<span class="row-note">Built-in</span>'
+          : user.__remote
+          ? '<span class="row-note">Synced</span>'
           : '<span class="row-actions">' +
             '<button class="row-action" type="button" data-action="edit" data-id="' +
             escapeHtml(user.studentId) +
@@ -355,5 +373,22 @@
   uppercaseField(fields.studentId);
   uppercaseField(fields.position);
 
+  function loadRemote() {
+    var session = api.getSession ? api.getSession() : null;
+
+    if (!session || !session.idToken) return;
+    if (!window.TCGCFirebase || !window.TCGCFirebase.listUserAccounts) return;
+
+    window.TCGCFirebase.listUserAccounts(session.idToken)
+      .then(function (rows) {
+        remoteUsers = rows || [];
+        render();
+      })
+      .catch(function (error) {
+        console.warn("[accounts] Could not load Firebase accounts:", error);
+      });
+  }
+
   render();
+  loadRemote();
 })();
