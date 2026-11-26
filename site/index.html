@@ -6,7 +6,7 @@
     <title>pay-track</title>
     <meta
       name="description"
-      content="Track institute and organization fees, balances, and official receipts at Tangub City Global College."
+      content="Every payment, perfectly tracked. Track institute and organization fees, balances, and official receipts at Tangub City Global College."
     />
     <link rel="icon" type="image/png" href="assets/logo-toggle.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,9 +37,20 @@
 
         <nav class="nav" id="primary-nav" aria-label="Primary">
           <a class="nav-student" href="pages/dashboard.html#students" aria-label="Student records">Student</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+          <a class="nav-login" href="pages/login.html">Login</a>
+          <a class="nav-auth" href="pages/signup.html">Get Started</a>
         </nav>
 
         <div class="header-actions" id="header-actions">
+          <a class="header-login" href="pages/login.html" aria-label="Login for officers">Login</a>
+          <a class="btn btn--light" href="pages/signup.html" aria-label="Get started for officers">
+            Get Started
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
           <button
             class="nav-toggle"
             type="button"
@@ -59,16 +70,32 @@
     </header>
 
     <main id="main">
+      <!-- ================= 1. HERO ================= -->
       <section class="hero" id="top">
         <div class="container">
           <div class="hero-grid">
             <div class="hero-copy">
+              <span class="hero-pill">
+                <b>Official</b>
+                Tangub City Global College
+              </span>
+
               <h1>Every payment,<br /><span class="accent">perfectly tracked.</span></h1>
 
               <p class="hero-lead">
                 Track institute and organization fees, balances, and official
-                receipts in one place.
+                receipts.
               </p>
+
+              <div class="hero-actions">
+                <a class="btn btn--light" href="pages/signup.html">
+                  Get Started
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+                <a class="btn btn--outline-light" href="pages/login.html">Login</a>
+              </div>
 
               <form class="hero-track" id="track" novalidate>
                 <label class="hero-track__label" for="track-student-id">
@@ -99,11 +126,121 @@
                 </div>
                 <p class="hero-track__error" id="track-error" role="alert" hidden></p>
               </form>
+
+              <ul class="hero-points">
+                <li>
+                  <span class="check-dot" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                  </span>
+                  Institute &amp; organization fees
+                </li>
+                <li>
+                  <span class="check-dot" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                  </span>
+                  Live balances
+                </li>
+                <li>
+                  <span class="check-dot" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                  </span>
+                  Official receipts
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. ABOUT / OFFICERS ================= -->
+      <section class="section section--tint" id="about">
+        <div class="container">
+          <div class="about-card">
+            <img
+              class="about-watermark"
+              src="assets/logo-toggle.png"
+              alt=""
+              aria-hidden="true"
+            />
+            <div class="about-copy">
+              <span class="eyebrow">For officers</span>
+              <p class="about-statement">
+                Manage every student record, payment, and receipt with
+                <strong>confidence</strong>.
+              </p>
+              <p class="about-description">
+                Officers sign in to import class lists, update payments, and keep
+                every balance accurate for their council or organization. Students
+                can look up their own record with a Student ID.
+              </p>
+              <div class="about-actions">
+                <a class="btn btn--primary" href="pages/signup.html">
+                  Get Started
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+                <a class="btn btn--outline" href="pages/login.html">Login</a>
+              </div>
             </div>
           </div>
         </div>
       </section>
     </main>
+
+    <!-- ================= 3. CONTACT / FOOTER ================= -->
+    <footer class="site-footer" id="contact">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <a class="brand" href="index.html" aria-label="TCGC PayTrack home">
+              <img class="brand-logo" src="assets/logo-toggle.png" alt="TCGC logo" />
+              <span class="brand-text">
+                <strong>TCGC PayTrack</strong>
+                <span>Payment Tracking System</span>
+              </span>
+            </a>
+            <p>
+              Every payment, perfectly tracked — institute and organization fees,
+              balances, and official receipts for Tangub City Global College.
+            </p>
+          </div>
+
+          <div class="footer-col">
+            <h3>Product</h3>
+            <ul>
+              <li><a href="#top">Home</a></li>
+              <li><a href="#about">For officers</a></li>
+              <li><a href="pages/signup.html">Get Started</a></li>
+              <li><a href="pages/login.html">Login</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h3>Support</h3>
+            <ul>
+              <li><a href="pages/login.html">Account help</a></li>
+              <li><a href="#contact">Contact finance</a></li>
+              <li><a href="#top">Back to top</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h3>Visit us</h3>
+            <p>Tangub City Global College</p>
+            <p>Tangub City, Misamis Occidental</p>
+            <p style="margin-top: 10px">
+              <a href="mailto:finance@tcgc.edu.ph">finance@tcgc.edu.ph</a>
+            </p>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span>&copy; <span id="year">2026</span> TCGC PayTrack. All rights reserved.</span>
+          <span>Made for Tangub City Global College</span>
+        </div>
+      </div>
+    </footer>
 
     <dialog class="track-dialog" id="track-dialog" aria-labelledby="track-dialog-title">
       <button

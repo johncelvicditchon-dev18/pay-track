@@ -1413,6 +1413,14 @@ body.track-open {
   margin-inline: auto;
 }
 
+.home .hero-actions {
+  margin-inline: auto;
+}
+
+.home .hero-points {
+  justify-content: center;
+}
+
 .home .hero-track {
   max-width: 430px;
   margin: 34px auto 0;
