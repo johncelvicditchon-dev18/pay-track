@@ -1,12 +1,18 @@
-# Static student portal
+# Archived static version
 
-This folder is the standalone plain HTML/CSS/JavaScript student portal for TCGC
-PayTrack. It is part of the active deployment: `npm run build` copies it to
-`dist/portal`, and Vercel serves it at `/portal/`.
+This folder is the original plain HTML/CSS/JavaScript version of TCGC PayTrack,
+kept for reference only.
 
-Run it locally with `npx serve portal` and open `index.html`, or serve the
-project root and open `/portal/index.html`. The React + Vite app in the project
-root is separate and served at `/`.
+The live application is now the React + Vite app in the project root:
+
+- `javascript/pages/Welcome.jsx`
+- `javascript/pages/Login.jsx`
+- `javascript/pages/Signup.jsx`
+- `javascript/components/PaymentTracker.jsx`
+- `html/index.html`
+
+Run `npm run dev` from the project root to use the current app. The files in
+this folder are not loaded by the React build.
 
 ## Student records (dashboard)
 
