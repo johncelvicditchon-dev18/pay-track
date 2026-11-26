@@ -293,6 +293,24 @@
   padding-right: 3.2rem;
 }
 
+/* Hide native browser controls — the form provides its own password toggle
+   and the Student ID field does not need number spinners. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
 .field select {
   appearance: none;
   padding-right: 2.6rem;
