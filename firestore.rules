@@ -19,23 +19,34 @@ service cloud.firestore {
     }
 
     // Class list imported from Excel. Document ID = "<council>::<studentId>".
-    // Officers only see and change records that belong to their own council.
+    // Publicly readable so the student login can match a Student ID to its
+    // record; officers can only change records from their own council.
     match /students/{studentId} {
-      allow read: if request.auth != null
-        && resource.data.council == signedInCouncil();
+      allow read: if true;
       allow create, update: if request.auth != null
         && request.resource.data.council == signedInCouncil();
       allow delete: if request.auth != null
         && resource.data.council == signedInCouncil();
     }
 
-    // Payment records. Document ID = "<council>::<studentId>". Seeded and kept
-    // up to date by the Finance Office through the Firebase console (or a
-    // trusted admin tool). Students look up their own record with a Student ID
-    // from the public tracker, so reads are public; writes stay disabled.
+    // Payment types created by officers, e.g.
+    // "2ND SEMESTER - 2026-2027 | MEMBERSHIP FEE".
+    match /paymentTypes/{typeId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+        && request.resource.data.council == signedInCouncil();
+      allow delete: if request.auth != null
+        && resource.data.council == signedInCouncil();
+    }
+
+    // Payment records. Document ID = "<council>::<studentId>". Students look up
+    // their own record from the public tracker with just a Student ID, so reads
+    // are public. Only officers of that council can add or update charges.
     match /paymentRecords/{recordId} {
       allow read: if true;
-      allow write: if false;
+      allow create, update: if request.auth != null
+        && request.resource.data.council == signedInCouncil();
+      allow delete: if false;
     }
   }
 }

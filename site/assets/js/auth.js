@@ -138,6 +138,129 @@
     var loginSubmit = document.getElementById("login-submit");
     var loginBusy = false;
 
+    var authTabs = document.querySelectorAll("[data-auth-mode]");
+    var studentForm = document.getElementById("student-login-form");
+    var studentInput = document.getElementById("student-login-id");
+    var studentError = document.getElementById("student-login-error");
+    var studentSubmit = document.getElementById("student-login-submit");
+    var authSwitch = document.querySelector(".auth-switch");
+    var studentBusy = false;
+
+    function setAuthMode(mode) {
+      Array.prototype.forEach.call(authTabs, function (tab) {
+        var active = tab.getAttribute("data-auth-mode") === mode;
+        tab.classList.toggle("is-active", active);
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+      });
+
+      if (loginForm) loginForm.hidden = mode !== "officer";
+      if (studentForm) studentForm.hidden = mode !== "student";
+      if (authSwitch) authSwitch.hidden = mode === "student";
+      if (studentError) studentError.hidden = true;
+    }
+
+    Array.prototype.forEach.call(authTabs, function (tab) {
+      tab.addEventListener("click", function () {
+        setAuthMode(tab.getAttribute("data-auth-mode"));
+      });
+    });
+
+    function setStudentError(message) {
+      if (!studentError) return;
+      studentError.textContent = message || "";
+      studentError.hidden = !message;
+      if (studentInput) {
+        studentInput.setAttribute("aria-invalid", message ? "true" : "false");
+      }
+    }
+
+    if (studentForm && studentInput) {
+      studentInput.addEventListener("input", function () {
+        setStudentError("");
+      });
+
+      studentForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (studentBusy) return;
+
+        var studentId = api.normalizeStudentId(studentInput.value);
+
+        if (!studentId) {
+          setStudentError("Enter your Student ID.");
+          studentInput.focus();
+          return;
+        }
+
+        if (!STUDENT_ID_RE.test(studentId)) {
+          setStudentError("Enter a valid Student ID.");
+          studentInput.focus();
+          return;
+        }
+
+        if (
+          !window.TCGCFirebase ||
+          !window.TCGCFirebase.findStudentRecord
+        ) {
+          setStudentError(
+            "Can't check Student IDs right now. Check your connection and try again."
+          );
+          return;
+        }
+
+        studentBusy = true;
+        setLoading(studentSubmit, true, "Checking your record…");
+
+        window.TCGCFirebase.findStudentRecord(studentId)
+          .then(function (record) {
+            studentBusy = false;
+            setLoading(studentSubmit, false);
+
+            if (!record) {
+              setStudentError(
+                "No student record matches that Student ID. Ask the Finance Office to add you to the class list."
+              );
+              api.toast(
+                "No student record found",
+                "That Student ID isn't in the class list yet. Contact the Finance Office.",
+                "error"
+              );
+              return;
+            }
+
+            api.setSession(
+              {
+                role: "student",
+                name:
+                  record.name ||
+                  [record.firstName, record.middleName, record.lastName]
+                    .filter(Boolean)
+                    .join(" "),
+                studentId: studentId,
+                yearLevel: record.yearLevel || record.year || "",
+                council: record.council || "",
+                signedInAt: new Date().toISOString()
+              },
+              true
+            );
+
+            api.toast(
+              "Student record found",
+              "Opening your payment dashboard…",
+              "success"
+            );
+            redirectSoon("student.html", 900);
+          })
+          .catch(function (lookupError) {
+            studentBusy = false;
+            setLoading(studentSubmit, false);
+            console.warn("[login] Student lookup failed:", lookupError);
+            setStudentError(
+              "We couldn't check that Student ID right now. Check your connection and try again."
+            );
+          });
+      });
+    }
+
     attachClearHandlers(loginForm);
 
     loginForm.addEventListener("submit", function (event) {

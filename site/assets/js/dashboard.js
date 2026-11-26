@@ -23,6 +23,12 @@
     return;
   }
 
+  // Students use the read-only payment dashboard, not the officer portal.
+  if (session.role === "student") {
+    window.location.replace("student.html");
+    return;
+  }
+
   var NAV_KEY = "tcgc_paytrack_nav";
   var shell = document.getElementById("dash-shell");
   var sideNav = document.getElementById("side-nav");
@@ -179,6 +185,9 @@
     }
     if (name === "payments" && typeof window.TCGCRefreshPayments === "function") {
       window.TCGCRefreshPayments();
+    }
+    if (name === "payments" && typeof window.TCGCRefreshPaymentTools === "function") {
+      window.TCGCRefreshPaymentTools();
     }
 
     if (isMobile()) closeMobileNav();

@@ -727,6 +727,137 @@ html:has(.dashboard-page) {
   color: var(--orange-800);
 }
 
+/* ---------- payment types + charge posting ---------- */
+.pay-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0 20px;
+}
+
+.pay-tool {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.pay-tool h2 {
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.pay-tool__hint {
+  margin: 4px 0 12px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.pay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pay-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pay-form input,
+.pay-form select {
+  width: 100%;
+  padding: 0.58rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fffdfa;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.pay-form input:focus,
+.pay-form select:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(21, 125, 84, 0.1);
+}
+
+.pay-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pay-form .btn {
+  align-self: flex-start;
+}
+
+.pay-form__hint {
+  min-height: 1em;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.pay-form__hint[data-state="success"] {
+  color: var(--green-700);
+  font-weight: 700;
+}
+
+.pay-form__hint[data-state="error"] {
+  color: #a5372b;
+  font-weight: 700;
+}
+
+.type-list {
+  margin: 14px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.type-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.type-list__item strong {
+  display: block;
+  font-size: 0.74rem;
+  overflow-wrap: anywhere;
+}
+
+.type-list__item small {
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.type-list__empty {
+  padding: 12px 0 2px;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+@media (max-width: 900px) {
+  .pay-tools {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- help panel ---------- */
 .help-panel {
   display: flex;

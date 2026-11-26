@@ -94,7 +94,16 @@
               </span>
             </a>
             <h1>Welcome back</h1>
-            <p>Log in with the student ID you registered with.</p>
+            <p>Officers log in with their account. Students use their Student ID.</p>
+          </div>
+
+          <div class="auth-tabs" role="tablist" aria-label="Login type">
+            <button class="auth-tab is-active" type="button" data-auth-mode="officer" role="tab" aria-selected="true">
+              Officer
+            </button>
+            <button class="auth-tab" type="button" data-auth-mode="student" role="tab" aria-selected="false">
+              Student
+            </button>
           </div>
 
           <form class="auth-form" id="login-form" novalidate>
@@ -157,6 +166,32 @@
             <button class="btn btn--primary btn--block" type="submit" id="login-submit">
               Log in
             </button>
+          </form>
+
+          <form class="auth-form" id="student-login-form" novalidate hidden>
+            <div class="field" id="student-login-field">
+              <label for="student-login-id">Student ID</label>
+              <input
+                type="text"
+                id="student-login-id"
+                name="studentId"
+                placeholder="Enter your Student ID"
+                autocomplete="username"
+                autocapitalize="characters"
+                spellcheck="false"
+                required
+              />
+              <p class="field-error" id="student-login-error" role="alert" hidden></p>
+            </div>
+
+            <button class="btn btn--primary btn--block" type="submit" id="student-login-submit">
+              View my payments
+            </button>
+
+            <p class="student-login-note">
+              No password needed. Your Student ID is matched to the record the
+              Finance Office created for you.
+            </p>
           </form>
 
           <p class="auth-switch">

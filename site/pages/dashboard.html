@@ -236,6 +236,93 @@
               <span class="dash-count" id="payments-count">—</span>
             </div>
 
+            <div class="pay-tools">
+              <article class="pay-tool">
+                <h2>Create payment type</h2>
+                <p class="pay-tool__hint">
+                  Example: “2ND SEMESTER - 2026-2027 | MEMBERSHIP FEE”.
+                </p>
+                <form class="pay-form" id="type-form" novalidate>
+                  <div class="pay-form__row">
+                    <label for="type-semester">
+                      Semester
+                      <select id="type-semester" required>
+                        <option value="1ST SEMESTER">1ST SEMESTER</option>
+                        <option value="2ND SEMESTER" selected>2ND SEMESTER</option>
+                        <option value="SUMMER">SUMMER</option>
+                      </select>
+                    </label>
+                    <label for="type-year">
+                      Academic year
+                      <input type="text" id="type-year" placeholder="2026-2027" required />
+                    </label>
+                  </div>
+                  <label for="type-name">
+                    Payment name
+                    <input type="text" id="type-name" placeholder="MEMBERSHIP FEE" required />
+                  </label>
+                  <div class="pay-form__row">
+                    <label for="type-scope">
+                      Scope
+                      <select id="type-scope">
+                        <option value="Organization" selected>Organization</option>
+                        <option value="Institute">Institute</option>
+                      </select>
+                    </label>
+                    <label for="type-category">
+                      Category
+                      <select id="type-category">
+                        <option value="Activity">Activity</option>
+                        <option value="Membership" selected>Membership</option>
+                        <option value="T-shirt">T-shirt</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                      </select>
+                    </label>
+                  </div>
+                  <button class="btn btn--primary btn--sm" type="submit">
+                    Add payment type
+                  </button>
+                  <p class="pay-form__hint" id="type-hint" role="status"></p>
+                </form>
+                <ul class="type-list" id="type-list"></ul>
+              </article>
+
+              <article class="pay-tool">
+                <h2>Add charge to a student</h2>
+                <p class="pay-tool__hint">
+                  Post a payment type to one of your council's students.
+                </p>
+                <form class="pay-form" id="charge-form" novalidate>
+                  <label for="charge-student">
+                    Student
+                    <select id="charge-student" required></select>
+                  </label>
+                  <label for="charge-type">
+                    Payment type
+                    <select id="charge-type" required></select>
+                  </label>
+                  <div class="pay-form__row">
+                    <label for="charge-amount">
+                      Amount
+                      <input type="number" id="charge-amount" min="0" step="0.01" placeholder="0.00" required />
+                    </label>
+                    <label for="charge-paid">
+                      Paid
+                      <input type="number" id="charge-paid" min="0" step="0.01" value="0" />
+                    </label>
+                  </div>
+                  <label for="charge-due">
+                    Due date
+                    <input type="date" id="charge-due" required />
+                  </label>
+                  <button class="btn btn--primary btn--sm" type="submit">
+                    Save charge
+                  </button>
+                  <p class="pay-form__hint" id="charge-hint" role="status"></p>
+                </form>
+              </article>
+            </div>
+
             <div class="accounts-table-wrap">
               <div class="accounts-table-scroll" id="payments-table-wrap" hidden>
                 <table class="accounts-table payments-table">
@@ -437,6 +524,7 @@
     <script src="../assets/js/students.js"></script>
     <script src="../assets/js/analytics.js"></script>
     <script src="../assets/js/payments.js"></script>
+    <script src="../assets/js/payment-types.js"></script>
     <script src="../assets/js/dashboard.js"></script>
   </body>
 </html>

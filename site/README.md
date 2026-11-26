@@ -44,8 +44,24 @@ locally and the page explains what to enable.
 
 ## Student payment lookup
 
-On the landing page, a student types their **Student ID** and the tracker reads
-the matching `paymentRecords` document by its `studentId` field, then shows the
-balance, charges, and official receipts. No account is needed for this lookup,
-so `firestore.rules` allows public reads of `paymentRecords` while keeping all
-writes disabled — only the Finance Office can add or change records.
+Students don't create accounts. On `login.html` they switch to the **Student**
+tab and enter their Student ID; the page matches it against the `students`
+roster (imported by officers) and opens `pages/student.html`, which shows their
+balance and charges grouped by semester and payment type, plus official
+receipts.
+
+The landing-page tracker also looks a record up by Student ID. Both use public
+reads of `students`/`paymentRecords`, so `firestore.rules` keeps writes
+disabled — only signed-in officers can add or change data.
+
+## Payment types and charges
+
+Officers use the **Payments** tab to:
+
+- create payment types such as `2ND SEMESTER - 2026-2027 | MEMBERSHIP FEE`
+  (semester, academic year, name, scope, category), stored in `paymentTypes`;
+- post a charge to one of their council's students, which merges a new entry
+  into that student's `paymentRecords/<council>::<studentId>` document with the
+  semester, academic year, type label, amount, paid amount, and due date.
+
+Students then see those charges grouped by semester and type in their portal.

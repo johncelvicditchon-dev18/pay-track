@@ -11,6 +11,7 @@
   var API_KEY = "AIzaSyB0CH4x8ORDadrG2Q7J8v4DR7Mj3UGCZ2M";
   var COLLECTION = "students";
   var PAYMENTS_COLLECTION = "paymentRecords";
+  var TYPES_COLLECTION = "paymentTypes";
   var BATCH_SIZE = 450;
   var BASE_URL =
     "https://firestore.googleapis.com/v1/projects/" +
@@ -678,6 +679,258 @@
         throw error;
       });
   };
+
+  client.findStudentRecord = function (studentId) {
+    var id = String(studentId || "").trim().toUpperCase();
+    if (!id) return Promise.resolve(null);
+
+    return request(BASE_URL + ":runQuery" + KEY_PARAM, {
+      method: "POST",
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: COLLECTION }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: "studentId" },
+              op: "EQUAL",
+              value: { stringValue: id }
+            }
+          },
+          limit: 1
+        }
+      })
+    }).then(function (rows) {
+      var found = (rows || [])
+        .map(function (row) {
+          return row && row.document;
+        })
+        .filter(Boolean)[0];
+
+      return found ? decodeFields(found.fields || {}) : null;
+    });
+  };
+
+  client.findStudentPayments = function (studentId) {
+    var id = String(studentId || "").trim().toUpperCase();
+    if (!id) return Promise.resolve([]);
+
+    return request(BASE_URL + ":runQuery" + KEY_PARAM, {
+      method: "POST",
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: PAYMENTS_COLLECTION }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: "studentId" },
+              op: "EQUAL",
+              value: { stringValue: id }
+            }
+          }
+        }
+      })
+    }).then(function (rows) {
+      return (rows || [])
+        .map(function (row) {
+          return row && row.document;
+        })
+        .filter(Boolean)
+        .map(function (document) {
+          var record = decodeFields(document.fields || {});
+          record.studentId = record.studentId || id;
+          return record;
+        });
+    });
+  };
+
+  function typeFromDocument(document) {
+    var type = decodeFields(document.fields || {});
+    type.id = String(document.name || "").split("/").pop();
+    return type;
+  }
+
+  client.listPaymentTypes = function (council) {
+    var code = String(council || "").toUpperCase();
+    if (!code) return Promise.resolve([]);
+
+    return queryDocuments(TYPES_COLLECTION, "council", code).then(
+      function (documents) {
+        return documents.map(typeFromDocument);
+      }
+    );
+  };
+
+  client.createPaymentType = function (type) {
+    return window
+      .fetch(BASE_URL + "/" + TYPES_COLLECTION + KEY_PARAM, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + (token || "")
+        },
+        body: JSON.stringify({ fields: encodeFields(type) })
+      })
+      .then(readJson)
+      .then(typeFromDocument);
+  };
+
+  client.deletePaymentType = function (typeId) {
+    return window
+      .fetch(
+        BASE_URL +
+          "/" +
+          TYPES_COLLECTION +
+          "/" +
+          encodeURIComponent(typeId) +
+          KEY_PARAM,
+        {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + (token || "") }
+        }
+      )
+      .then(function (response) {
+        if (!response.ok) {
+          throw makeError("Could not delete the payment type.", "delete-failed");
+        }
+        return true;
+      });
+  };
+
+  client.addCharge = function (options) {
+    var council = String(options.council || "").toUpperCase();
+    var studentId = String(options.studentId || "").trim().toUpperCase();
+    var type = options.type || {};
+    var student = options.student || {};
+    var amount = Number(options.amount || 0);
+    var paid = Number(options.paid || 0);
+    var dueDate = String(options.dueDate || "");
+    var docId = council + "::" + studentId;
+    var path = PAYMENTS_COLLECTION + "/" + encodeURIComponent(docId);
+
+    if (!council || !studentId) {
+      return Promise.reject(
+        makeError("Missing council or Student ID.", "invalid-argument")
+      );
+    }
+
+    return getDocumentOrNull(path).then(function (document) {
+      var record = document ? decodeFields(document.fields || {}) : {};
+      var charges = Array.isArray(record.charges) ? record.charges.slice() : [];
+      var payments = Array.isArray(record.payments) ? record.payments.slice() : [];
+
+      charges.push({
+        id: "charge-" + Date.now(),
+        label: type.name || "Payment",
+        category: type.category || "Miscellaneous",
+        scope: type.scope || "Organization",
+        unit: type.council || council,
+        semester: type.semester || "",
+        academicYear: type.academicYear || "",
+        typeLabel: type.label || type.name || "Payment",
+        amount: amount,
+        paid: Math.min(paid, amount),
+        dueDate: dueDate
+      });
+
+      var total = charges.reduce(function (sum, charge) {
+        return sum + Number(charge.amount || 0);
+      }, 0);
+      var paidTotal = charges.reduce(function (sum, charge) {
+        return sum + Number(charge.paid || 0);
+      }, 0);
+      var openDates = charges
+        .filter(function (charge) {
+          return Number(charge.amount || 0) - Number(charge.paid || 0) > 0;
+        })
+        .map(function (charge) {
+          return charge.dueDate || "";
+        })
+        .filter(Boolean)
+        .sort();
+
+      var fullName = [student.firstName, student.middleName, student.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+      var nextRecord = Object.assign({}, record, {
+        council: council,
+        studentId: studentId,
+        name: record.name || fullName || studentId,
+        institute: record.institute || student.institute || "",
+        program: record.program || student.program || "",
+        yearLevel: record.yearLevel || student.year || "",
+        statement:
+          record.statement ||
+          [type.semester, type.academicYear].filter(Boolean).join(" - "),
+        updated: new Date().toLocaleDateString("en-PH", {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        }),
+        nextDue:
+          total - paidTotal > 0
+            ? openDates[0] || "See charges"
+            : "Fully paid for this semester",
+        charges: charges,
+        payments: payments
+      });
+
+      return patchDocument(path, nextRecord).then(function () {
+        return nextRecord;
+      });
+    });
+  };
+
+  function encodeValue(value) {
+    if (value === null || value === undefined) return { nullValue: null };
+    if (typeof value === "string") return { stringValue: value };
+    if (typeof value === "boolean") return { booleanValue: value };
+    if (typeof value === "number") {
+      return Number.isInteger(value)
+        ? { integerValue: String(value) }
+        : { doubleValue: value };
+    }
+    if (Array.isArray(value)) {
+      return { arrayValue: { values: value.map(encodeValue) } };
+    }
+    if (typeof value === "object") {
+      return { mapValue: { fields: encodeFields(value) } };
+    }
+    return { nullValue: null };
+  }
+
+  function encodeFields(object) {
+    var fields = {};
+    Object.keys(object || {}).forEach(function (key) {
+      fields[key] = encodeValue(object[key]);
+    });
+    return fields;
+  }
+
+  function patchDocument(path, data) {
+    return window
+      .fetch(BASE_URL + "/" + path + KEY_PARAM, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + (token || "")
+        },
+        body: JSON.stringify({ fields: encodeFields(data) })
+      })
+      .then(readJson);
+  }
+
+  function getDocumentOrNull(path) {
+    return window
+      .fetch(BASE_URL + "/" + path + KEY_PARAM, {
+        headers: token ? { Authorization: "Bearer " + token } : {}
+      })
+      .then(readJson)
+      .catch(function (error) {
+        if (error && error.code === "not-found") return null;
+        throw error;
+      });
+  }
 
   window.TCGCFirebase = client;
 })();

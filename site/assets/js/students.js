@@ -523,6 +523,9 @@
     if (typeof window.TCGCRefreshAnalytics === "function") {
       window.TCGCRefreshAnalytics();
     }
+    if (typeof window.TCGCRefreshPaymentTools === "function") {
+      window.TCGCRefreshPaymentTools();
+    }
   }
 
   /* ---------- editing & deleting ---------- */

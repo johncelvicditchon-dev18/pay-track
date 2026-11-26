@@ -1,0 +1,332 @@
+/* =========================================================
+   TCGC PayTrack — student payment dashboard
+   ========================================================= */
+
+.student-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(38, 154, 105, 0.14), transparent 55%),
+    radial-gradient(ellipse at 100% 0%, rgba(245, 147, 69, 0.12), transparent 50%),
+    #f7fbf8;
+}
+
+.student-main {
+  padding: calc(var(--header-h, 76px) + 46px) 0 70px;
+}
+
+.student-gate {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 38px 36px;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--shadow-md, 0 24px 60px -40px rgba(6, 35, 24, 0.35));
+  text-align: center;
+}
+
+.student-gate h1 {
+  margin: 8px 0 10px;
+  font-size: clamp(1.7rem, 3vw, 2.15rem);
+  letter-spacing: -0.02em;
+}
+
+.student-gate > p {
+  max-width: 42ch;
+  margin: 0 auto 24px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.student-id-form {
+  text-align: left;
+}
+
+.student-id-form label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green-800);
+}
+
+.student-id-row {
+  display: flex;
+  gap: 10px;
+}
+
+.student-id-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #dfe8da;
+  border-radius: 12px;
+  background: #fffdfa;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.student-id-row input:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 4px rgba(21, 125, 84, 0.1);
+}
+
+.student-id-form .field-error {
+  margin-top: 8px;
+}
+
+.student-hint {
+  margin-top: 22px !important;
+  color: var(--muted);
+  font-size: 0.74rem !important;
+}
+
+/* ---------- loaded dashboard ---------- */
+.student-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.student-head h1 {
+  margin: 6px 0 4px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  letter-spacing: -0.02em;
+}
+
+.student-head p {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.student-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.student-stat {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(6, 35, 24, 0.06));
+}
+
+.student-stat--accent {
+  border-color: var(--green-100);
+  background: linear-gradient(140deg, #fff 0%, var(--green-50) 100%);
+}
+
+.student-stat span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.student-stat strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--green-900);
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.student-semester {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(6, 35, 24, 0.06));
+}
+
+.student-semester__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.student-semester__head h2 {
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.student-semester__head p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.student-semester__total {
+  color: var(--green-800);
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.student-type {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.student-type:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.student-type__maintop {
+  min-width: 0;
+}
+
+.student-type strong {
+  display: block;
+  font-size: 0.86rem;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.student-type small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.student-type__amounts {
+  text-align: right;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.student-type__amounts b {
+  display: block;
+  color: var(--green-900);
+}
+
+.student-type__amounts span {
+  color: var(--muted);
+}
+
+.student-type__amounts .is-due {
+  color: #a5372b;
+  font-weight: 700;
+}
+
+.student-receipts {
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.student-receipts h2 {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.student-receipts ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.student-receipts li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 14px;
+  padding: 10px 0;
+  border-top: 1px dashed var(--line);
+  font-size: 0.8rem;
+}
+
+.student-receipts li:first-child {
+  border-top: 0;
+}
+
+.student-receipts b {
+  color: var(--green-900);
+}
+
+.student-receipts small {
+  color: var(--muted);
+}
+
+.student-updated {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-align: center;
+}
+
+.student-empty {
+  padding: 38px 20px;
+  border: 1px dashed var(--line);
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+}
+
+.student-empty p {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.student-empty small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px) {
+  .student-main {
+    padding-top: calc(var(--header-h, 76px) + 28px);
+  }
+
+  .student-gate {
+    padding: 28px 20px;
+  }
+
+  .student-id-row {
+    flex-direction: column;
+  }
+
+  .student-id-row .btn {
+    width: 100%;
+  }
+
+  .student-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .student-type {
+    grid-template-columns: 1fr;
+  }
+
+  .student-type__amounts {
+    text-align: left;
+  }
+}
