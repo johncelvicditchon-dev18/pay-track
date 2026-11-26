@@ -1,22 +1,41 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "redirects": [
     {
       "source": "/archive/legacy-static",
-      "destination": "/archive/legacy-static/index.html"
+      "destination": "/",
+      "permanent": false
     },
     {
-      "source": "/archive/legacy-static/",
-      "destination": "/archive/legacy-static/index.html"
+      "source": "/archive/legacy-static/:path*",
+      "destination": "/:path*",
+      "permanent": false
     },
     {
-      "source": "/((?!assets/|logo/|archive/legacy-static/).*)",
-      "destination": "/index.html"
+      "source": "/portal",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/portal/:path*",
+      "destination": "/:path*",
+      "permanent": false
     }
   ],
   "headers": [
     {
-      "source": "/archive/legacy-static/(.*)",
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).html",
       "headers": [
         {
           "key": "Cache-Control",

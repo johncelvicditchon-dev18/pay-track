@@ -1,11 +1,10 @@
 # Static student portal
 
 This folder contains the standalone HTML/CSS/JavaScript student portal for TCGC
-PayTrack. It is part of the active deployment: `npm run build` copies it to
-`dist/archive/legacy-static`, and Vercel serves it at `/archive/legacy-static/`.
+PayTrack. It is the site deployed at the root of the domain: `npm run build`
+copies this folder into `dist/`, and Vercel serves `dist/` at `/`.
 
-Run it locally with `npx serve archive/legacy-static` and open `index.html`, or
-serve the project root and open `/archive/legacy-static/index.html`.
+Run it locally with `npx serve site` and open `index.html`.
 
 ## Student records (dashboard)
 

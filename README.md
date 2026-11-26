@@ -236,11 +236,14 @@ javascript/             React application code
   App.jsx
   main.jsx
 
-assets/logo/            TCGC logo used by the public site
+public/logo/            TCGC logo used by the React app
 
-archive/legacy-static/  Static student portal (all HTML pages; served at /archive/legacy-static/)
+site/                   Static student portal (all HTML pages; deployed at /)
+  index.html
+  pages/                login, signup, dashboard
+  assets/               CSS, JavaScript, vendor libraries, logo
 
-scripts/                Build helper that copies the static portal into dist
+scripts/                Build helpers (build-site.mjs copies site/ into dist/)
 ```
 
 The root also keeps the project configuration (`package.json`,
@@ -257,26 +260,29 @@ tool before using this with real financial data.
 
 ## Static student portal
 
-`archive/legacy-static/` contains the standalone HTML/CSS/JavaScript student
-portal — `index.html` plus every page in `pages/`. It is part of the active
-deployment:
+`site/` contains the standalone HTML/CSS/JavaScript student portal —
+`index.html` plus every page in `pages/`. It is the site deployed at the root of
+the domain:
 
-- `npm run build` builds the React app into `dist/`, then
-  `scripts/copy-static.mjs` copies the portal to
-  `dist/archive/legacy-static/`.
-- Vercel serves the portal at `/archive/legacy-static/` (for example
-  `/archive/legacy-static/index.html`), while the React app stays at `/`.
-- The SPA rewrite in `vercel.json` excludes the portal path, so its HTML pages
-  are served directly. Portal responses are marked `no-cache` so a refresh
-  picks up the latest deployment.
+- `npm run build` runs `scripts/build-site.mjs`, which copies `site/` into
+  `dist/`.
+- Vercel serves `dist/` at `/`, so `site/index.html` becomes `/` and
+  `site/pages/dashboard.html` becomes `/pages/dashboard.html`.
+- HTML responses are marked `no-cache`, so refreshing after a deployment always
+  shows the latest version.
+- Old `/archive/legacy-static/...` and `/portal/...` URLs redirect to the
+  matching path at `/`.
 
-Run it locally with `npx serve archive/legacy-static`, or serve the project root
-and open `/archive/legacy-static/index.html`.
+Run it locally by opening `site/index.html` through any static server (for
+example `npx serve site`).
 
 ## Deployment (Vercel)
 
-- `npm run build` produces `dist/` with both the React app and the static portal.
-- The React app is served at `/`; the static portal at `/archive/legacy-static/`.
+- `npm run build` produces `dist/` from the static portal in `site/`.
+- Vercel serves the portal at `/` with build command `npm run build` and output
+  directory `dist`.
+- The React app is kept in `html/` + `javascript/` for reference and can be
+  built separately with `npm run build:react`.
 - If a deployment does not pick up a change, confirm the Vercel project is on
   the `main` branch, auto-deploy is enabled, and the build command is
   `npm run build` with output directory `dist`. Then redeploy and hard-refresh.

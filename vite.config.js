@@ -7,7 +7,7 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: path.join(projectRoot, "html"),
-  publicDir: path.join(projectRoot, "assets"),
+  publicDir: path.join(projectRoot, "public"),
   plugins: [react()],
   build: {
     outDir: path.join(projectRoot, "dist"),
