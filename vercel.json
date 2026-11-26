@@ -1,8 +1,28 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/archive/legacy-static",
+      "destination": "/portal",
+      "permanent": false
+    },
+    {
+      "source": "/archive/legacy-static/:path*",
+      "destination": "/portal/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
-      "source": "/((?!assets/|logo/).*)",
+      "source": "/portal",
+      "destination": "/portal/index.html"
+    },
+    {
+      "source": "/portal/",
+      "destination": "/portal/index.html"
+    },
+    {
+      "source": "/((?!assets/|logo/|portal/).*)",
       "destination": "/index.html"
     }
   ]

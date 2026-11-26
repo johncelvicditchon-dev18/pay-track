@@ -136,7 +136,7 @@ Before the app can log people in, in the
 [Firebase console](https://console.firebase.google.com/project/tcgc-payment-tracking-system):
 
 1. **Authentication → Sign-in method**: enable **Email/Password**. If you use the
-   archived static dashboard's Firebase sync, enable **Anonymous** as well.
+   static student portal's Firebase sync, enable **Anonymous** as well.
 2. **Authentication → Settings → Authorized domains**: add `localhost` and your
    production domain.
 3. **Firestore Database**: create the database, then deploy the bundled rules:
@@ -238,7 +238,7 @@ javascript/             React application code
 
 assets/logo/            TCGC logo used by the public site
 
-archive/legacy-static/  Earlier plain HTML/CSS/JavaScript version (archived)
+portal/                 Standalone static student portal (served at /portal/)
 ```
 
 The root also keeps the project configuration (`package.json`,
@@ -253,7 +253,22 @@ Keep payment amounts out of student-side writes — the rules already deny them 
 and maintain those documents only from the Firebase console or a trusted admin
 tool before using this with real financial data.
 
-## Legacy version
+## Static student portal
 
-`archive/legacy-static/` contains the earlier plain HTML/CSS/JavaScript version
-for reference only. It is not used by the React application.
+`portal/` is the standalone plain HTML/CSS/JavaScript student portal. The root
+build copies it into `dist/portal` via `scripts/copy-portal.mjs`, and Vercel
+serves it at `/portal/`; the SPA rewrite in `vercel.json` excludes that path.
+
+Run it locally with `npx serve portal`, or from the project root and open
+`/portal/index.html`. To deploy it as its own Vercel project, set the project
+Root Directory to `portal`, choose the "Other" framework preset, and leave the
+build command empty.
+
+## Deployment (Vercel)
+
+- `npm run build` builds the React app into `dist/` and copies `portal/` to
+  `dist/portal/`.
+- The React app is served at `/`; the static portal is at `/portal/`.
+- If a deployment does not pick up changes, confirm the Vercel project is
+  connected to `main`, auto-deploy is enabled, and the build command is
+  `npm run build` with output directory `dist`.
