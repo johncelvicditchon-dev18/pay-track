@@ -4,7 +4,7 @@ import AuthLayout from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { STUDENT_ID_RE, authErrorMessage } from "../lib/auth";
-import { COUNCILS } from "../data/councils";
+import { COUNCILS, positionsForCouncil } from "../data/councils";
 
 const YEAR_LEVELS = ["1ST YEAR", "2ND YEAR", "3RD YEAR", "4TH YEAR"];
 
@@ -19,9 +19,9 @@ const STRENGTH_TEXT = [
 const FIELD_IDS = {
   name: "signup-name",
   studentId: "signup-student-id",
+  council: "signup-council",
   position: "signup-position",
   yearLevel: "signup-year-level",
-  council: "signup-council",
   password: "signup-password",
   confirm: "signup-confirm",
   terms: "signup-terms",
@@ -100,10 +100,15 @@ export default function Signup() {
   );
 
   const updateField = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    setForm((current) => {
+      const next = { ...current, [key]: value };
+      if (key === "council") next.position = "";
+      return next;
+    });
 
     setErrors((current) => {
       const next = { ...current, [key]: "" };
+      if (key === "council") next.position = "";
       if (key === "password") next.confirm = "";
       return next;
     });
@@ -135,22 +140,22 @@ export default function Signup() {
     }
 
     const position = form.position.trim();
+    if (!form.council) {
+      next.council = "Select your council or organization.";
+    } else if (!COUNCILS.includes(form.council)) {
+      next.council = "Choose a valid council or organization.";
+    }
+
     if (!position) {
-      next.position = "Enter your position or role.";
-    } else if (position.length < 2) {
-      next.position = "Enter a valid position (for example PRESIDENT).";
+      next.position = "Select your position.";
+    } else if (!positionsForCouncil(form.council).includes(position)) {
+      next.position = "Choose a position offered by your council or organization.";
     }
 
     if (!form.yearLevel) {
       next.yearLevel = "Select your year level.";
     } else if (!YEAR_LEVELS.includes(form.yearLevel)) {
       next.yearLevel = "Choose a valid year level.";
-    }
-
-    if (!form.council) {
-      next.council = "Select your council or organization.";
-    } else if (!COUNCILS.includes(form.council)) {
-      next.council = "Choose a valid council or organization.";
     }
 
     if (!form.password) {
@@ -316,36 +321,54 @@ export default function Signup() {
           </p>
         </div>
 
+        <div className={`field${errors.council ? " has-error" : ""}`}>
+          <label htmlFor="signup-council">Council / Organization</label>
+          <select
+            id="signup-council"
+            name="council"
+            value={form.council}
+            onChange={(event) => updateField("council", event.target.value)}
+            aria-invalid={Boolean(errors.council)}
+            aria-describedby="signup-council-error"
+            required
+          >
+            <option value="" disabled>
+              Select your council or organization
+            </option>
+            {COUNCILS.map((council) => (
+              <option key={council} value={council}>
+                {council}
+              </option>
+            ))}
+          </select>
+          <p className="field-error" id="signup-council-error" role="alert" hidden={!errors.council}>
+            {errors.council}
+          </p>
+        </div>
+
         <div className={`field${errors.position ? " has-error" : ""}`}>
           <label htmlFor="signup-position">Position</label>
-          <input
-            type="text"
+          <select
             id="signup-position"
             name="position"
-            className="is-uppercase"
             value={form.position}
             onChange={(event) => updateField("position", event.target.value)}
-            placeholder="e.g. PRESIDENT"
-            list="position-options"
-            autoComplete="organization-title"
+            disabled={!form.council}
             aria-invalid={Boolean(errors.position)}
             aria-describedby="signup-position-error"
             required
-          />
-          <datalist id="position-options">
-            <option value="GOVERNOR" />
-            <option value="VICE-GOVERNOR" />
-            <option value="PRESIDENT" />
-            <option value="VICE PRESIDENT" />
-            <option value="SECRETARY" />
-            <option value="TREASURER" />
-            <option value="AUDITOR" />
-            <option value="P.R.O." />
-            <option value="1ST REPRESENTATIVE" />
-            <option value="2ND REPRESENTATIVE" />
-            <option value="3RD REPRESENTATIVE" />
-            <option value="4TH REPRESENTATIVE" />
-          </datalist>
+          >
+            <option value="" disabled>
+              {form.council
+                ? "Select your position"
+                : "Select your council or organization first"}
+            </option>
+            {positionsForCouncil(form.council).map((position) => (
+              <option key={position} value={position}>
+                {position}
+              </option>
+            ))}
+          </select>
           <p className="field-error" id="signup-position-error" role="alert" hidden={!errors.position}>
             {errors.position}
           </p>
@@ -373,31 +396,6 @@ export default function Signup() {
           </select>
           <p className="field-error" id="signup-year-level-error" role="alert" hidden={!errors.yearLevel}>
             {errors.yearLevel}
-          </p>
-        </div>
-
-        <div className={`field${errors.council ? " has-error" : ""}`}>
-          <label htmlFor="signup-council">Council / Organization</label>
-          <select
-            id="signup-council"
-            name="council"
-            value={form.council}
-            onChange={(event) => updateField("council", event.target.value)}
-            aria-invalid={Boolean(errors.council)}
-            aria-describedby="signup-council-error"
-            required
-          >
-            <option value="" disabled>
-              Select your council or organization
-            </option>
-            {COUNCILS.map((council) => (
-              <option key={council} value={council}>
-                {council}
-              </option>
-            ))}
-          </select>
-          <p className="field-error" id="signup-council-error" role="alert" hidden={!errors.council}>
-            {errors.council}
           </p>
         </div>
 

@@ -290,7 +290,38 @@
 
     attachClearHandlers(signupForm);
 
-    [nameInput, positionInput].forEach(function (input) {
+    function populatePositions() {
+      var positions = api.positionsForCouncil(councilInput.value);
+      positionInput.innerHTML = "";
+
+      var placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      placeholder.textContent = positions.length
+        ? "Select your position"
+        : "Select your council or organization first";
+      positionInput.appendChild(placeholder);
+
+      positions.forEach(function (position) {
+        var option = document.createElement("option");
+        option.value = position;
+        option.textContent = position;
+        positionInput.appendChild(option);
+      });
+
+      positionInput.disabled = !positions.length;
+    }
+
+    if (councilInput && positionInput) {
+      councilInput.addEventListener("change", function () {
+        populatePositions();
+        clearError(positionInput);
+      });
+      populatePositions();
+    }
+
+    [nameInput].forEach(function (input) {
       if (!input) return;
 
       input.addEventListener("input", function () {
@@ -373,25 +404,30 @@
         invalid.push(studentIdInput);
       }
 
-      if (!position) {
-        showError(positionInput, "Enter your position or role.");
-        invalid.push(positionInput);
-      } else if (position.length < 2) {
-        showError(positionInput, "Enter a valid position (for example PRESIDENT).");
-        invalid.push(positionInput);
-      }
-
-      if (!yearLevel) {
-        showError(yearLevelInput, "Select your year level.");
-        invalid.push(yearLevelInput);
-      }
-
       if (!council) {
         showError(councilInput, "Select your council or organization.");
         invalid.push(councilInput);
       } else if (api.COUNCILS.indexOf(api.normalizeCouncil(council)) === -1) {
         showError(councilInput, "Choose a valid council or organization.");
         invalid.push(councilInput);
+      }
+
+      if (!position) {
+        showError(positionInput, "Select your position.");
+        invalid.push(positionInput);
+      } else if (
+        api.positionsForCouncil(council).indexOf(position.toUpperCase()) === -1
+      ) {
+        showError(
+          positionInput,
+          "Choose a position offered by your council or organization."
+        );
+        invalid.push(positionInput);
+      }
+
+      if (!yearLevel) {
+        showError(yearLevelInput, "Select your year level.");
+        invalid.push(yearLevelInput);
       }
 
       if (!password) {

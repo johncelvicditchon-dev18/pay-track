@@ -35,3 +35,36 @@ export function normalizeCouncil(value) {
 export function isCouncil(value) {
   return COUNCILS.includes(normalizeCouncil(value));
 }
+
+/* Positions offered by each council type. Add or edit here to maintain. */
+export const ISC_POSITIONS = [
+  "GOVERNOR",
+  "VICE-GOVERNOR",
+  "SECRETARY",
+  "TREASURER",
+  "AUDITOR",
+  "BM ACADEMIC AFFAIRS",
+  "BM EXTERNAL AFFAIRS",
+  "BM SPORT DEVELOPMENT",
+  "BM SOCIO-CULTURAL",
+  "BM ENVIRONMENTAL AFFAIRS",
+];
+
+export const SRO_POSITIONS = [
+  "PRESIDENT",
+  "VICE-PRESIDENT",
+  "SECRETARY",
+  "TREASURER",
+  "AUDITOR",
+  "1ST YEAR REPRESENTATIVE",
+  "2ND YEAR REPRESENTATIVE",
+  "3RD YEAR REPRESENTATIVE",
+  "4TH YEAR REPRESENTATIVE",
+];
+
+export function positionsForCouncil(council) {
+  const code = normalizeCouncil(council);
+  if (code.startsWith("ISC-")) return ISC_POSITIONS;
+  if (code.startsWith("SRO-")) return SRO_POSITIONS;
+  return [];
+}

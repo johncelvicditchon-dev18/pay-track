@@ -43,6 +43,39 @@
     "SRO-JAMEX"
   ];
 
+  /* Positions offered by each council type. Add or edit here to maintain. */
+  var ISC_POSITIONS = [
+    "GOVERNOR",
+    "VICE-GOVERNOR",
+    "SECRETARY",
+    "TREASURER",
+    "AUDITOR",
+    "BM ACADEMIC AFFAIRS",
+    "BM EXTERNAL AFFAIRS",
+    "BM SPORT DEVELOPMENT",
+    "BM SOCIO-CULTURAL",
+    "BM ENVIRONMENTAL AFFAIRS"
+  ];
+
+  var SRO_POSITIONS = [
+    "PRESIDENT",
+    "VICE-PRESIDENT",
+    "SECRETARY",
+    "TREASURER",
+    "AUDITOR",
+    "1ST YEAR REPRESENTATIVE",
+    "2ND YEAR REPRESENTATIVE",
+    "3RD YEAR REPRESENTATIVE",
+    "4TH YEAR REPRESENTATIVE"
+  ];
+
+  function positionsForCouncil(council) {
+    var code = normalizeCouncil(council);
+    if (code.indexOf("ISC-") === 0) return ISC_POSITIONS.slice();
+    if (code.indexOf("SRO-") === 0) return SRO_POSITIONS.slice();
+    return [];
+  }
+
   /* ---------- storage (with in-memory fallback) ---------- */
   function readJSON(store, key, fallback) {
     try {
@@ -236,6 +269,9 @@
   window.TCGC = {
     DEMO_ACCOUNT: DEMO_ACCOUNT,
     COUNCILS: COUNCILS,
+    ISC_POSITIONS: ISC_POSITIONS,
+    SRO_POSITIONS: SRO_POSITIONS,
+    positionsForCouncil: positionsForCouncil,
     getUsers: getUsers,
     saveUsers: saveUsers,
     findUser: findUser,

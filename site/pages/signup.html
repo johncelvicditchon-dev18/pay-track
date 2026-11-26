@@ -128,53 +128,6 @@
               <p class="field-error" id="signup-student-id-error" role="alert" hidden></p>
             </div>
 
-            <div class="field" id="position-field">
-              <label for="signup-position">Position</label>
-              <input
-                type="text"
-                id="signup-position"
-                name="position"
-                class="is-uppercase"
-                placeholder="e.g. Governor"
-                list="position-options"
-                autocomplete="organization-title"
-                aria-describedby="signup-position-error"
-                required
-              />
-              <datalist id="position-options">
-                <option value="GOVERNOR"></option>
-                <option value="VICE-GOVERNOR"></option>
-                <option value="PRESIDENT"></option>
-                <option value="VICE PRESIDENT"></option>
-                <option value="SECRETARY"></option>
-                <option value="TREASURER"></option>
-                <option value="AUDITOR"></option>
-                <option value="P.R.O."></option>
-                <option value="1ST REPRESENTATIVE"></option>
-                <option value="2ND REPRESENTATIVE"></option>
-                <option value="3RD REPRESENTATIVE"></option>
-                <option value="4TH REPRESENTATIVE"></option>
-              </datalist>
-              <p class="field-error" id="signup-position-error" role="alert" hidden></p>
-            </div>
-
-            <div class="field" id="year-level-field">
-              <label for="signup-year-level">Year level</label>
-              <select
-                id="signup-year-level"
-                name="yearLevel"
-                aria-describedby="signup-year-level-error"
-                required
-              >
-                <option value="" disabled selected>Select year level</option>
-                <option value="1ST YEAR">1ST YEAR</option>
-                <option value="2ND YEAR">2ND YEAR</option>
-                <option value="3RD YEAR">3RD YEAR</option>
-                <option value="4TH YEAR">4TH YEAR</option>
-              </select>
-              <p class="field-error" id="signup-year-level-error" role="alert" hidden></p>
-            </div>
-
             <div class="field" id="council-field">
               <label for="signup-council">Council / Organization</label>
               <select
@@ -208,6 +161,37 @@
                 <option value="SRO-JAMEX">SRO-JAMEX</option>
               </select>
               <p class="field-error" id="signup-council-error" role="alert" hidden></p>
+            </div>
+
+            <div class="field" id="position-field">
+              <label for="signup-position">Position</label>
+              <select
+                id="signup-position"
+                name="position"
+                aria-describedby="signup-position-error"
+                required
+                disabled
+              >
+                <option value="" disabled selected>Select your council or organization first</option>
+              </select>
+              <p class="field-error" id="signup-position-error" role="alert" hidden></p>
+            </div>
+
+            <div class="field" id="year-level-field">
+              <label for="signup-year-level">Year level</label>
+              <select
+                id="signup-year-level"
+                name="yearLevel"
+                aria-describedby="signup-year-level-error"
+                required
+              >
+                <option value="" disabled selected>Select year level</option>
+                <option value="1ST YEAR">1ST YEAR</option>
+                <option value="2ND YEAR">2ND YEAR</option>
+                <option value="3RD YEAR">3RD YEAR</option>
+                <option value="4TH YEAR">4TH YEAR</option>
+              </select>
+              <p class="field-error" id="signup-year-level-error" role="alert" hidden></p>
             </div>
 
             <div class="field" id="new-password-field">
