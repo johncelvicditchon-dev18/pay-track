@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My payments · TCGC PayTrack</title>
+    <meta
+      name="description"
+      content="View your TCGC PayTrack balances, charges, and official receipts by semester."
+    />
+    <link rel="icon" type="image/png" href="../assets/logo-toggle.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <link rel="stylesheet" href="../assets/css/student.css" />
+  </head>
+  <body class="student-page">
+    <header class="site-header is-scrolled" id="student-header">
+      <div class="container header-inner">
+        <a class="brand" href="../index.html" aria-label="TCGC PayTrack home">
+          <img
+            class="brand-logo"
+            src="../assets/logo-toggle.png"
+            alt="Tangub City Global College logo"
+          />
+          <span class="brand-text">
+            <strong>TCGC PayTrack</strong>
+            <span>Student portal</span>
+          </span>
+        </a>
+
+        <div class="header-actions">
+          <button
+            class="btn btn--outline btn--sm"
+            type="button"
+            id="student-logout"
+            hidden
+          >
+            Log out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container student-main">
+      <section class="student-gate" id="student-gate">
+        <span class="eyebrow">Student portal</span>
+        <h1>Track your payments</h1>
+        <p>
+          Enter your Student ID to see your balances grouped by semester and
+          payment type.
+        </p>
+
+        <form class="student-id-form" id="student-id-form" novalidate>
+          <label for="student-id-input">Student ID</label>
+          <div class="student-id-row">
+            <input
+              type="text"
+              id="student-id-input"
+              name="studentId"
+              placeholder="Enter your Student ID"
+              autocomplete="username"
+              autocapitalize="characters"
+              spellcheck="false"
+              required
+            />
+            <button class="btn btn--primary" type="submit">View payments</button>
+          </div>
+          <p class="field-error" id="student-error" role="alert" hidden></p>
+        </form>
+
+        <p class="student-hint">
+          Your record comes from the Finance Office. Contact them if a payment
+          or receipt is missing.
+        </p>
+      </section>
+
+      <section class="student-dashboard" id="student-panel" hidden>
+        <div class="student-head">
+          <div>
+            <span class="eyebrow">Student portal</span>
+            <h1 id="student-name">Student</h1>
+            <p id="student-meta"></p>
+          </div>
+        </div>
+
+        <div class="student-stats" id="student-stats"></div>
+        <div id="student-groups"></div>
+
+        <section class="student-receipts" id="student-receipts" hidden>
+          <h2>Official receipts</h2>
+          <ul id="student-receipt-list"></ul>
+        </section>
+
+        <p class="student-updated" id="student-updated"></p>
+      </section>
+    </main>
+
+    <script src="../assets/js/ui.js"></script>
+    <script src="../assets/js/firebase-client.js"></script>
+    <script src="../assets/js/student.js"></script>
+  </body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics - TCGC PayTrack</title>
+    <meta
+      name="description"
+      content="Your TCGC PayTrack dashboard — account details, registered accounts, and quick access to your payment records."
+    />
+    <link rel="icon" type="image/png" href="../assets/logo-toggle.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <link rel="stylesheet" href="../assets/css/dashboard.css" />
+  </head>
+  <body class="dashboard-page">
+    <div class="dash-shell" id="dash-shell">
+      <!-- ================= SIDEBAR NAVIGATION ================= -->
+      <aside class="side-nav" id="side-nav" aria-label="Dashboard navigation">
+        <div class="side-nav__head">
+          <a class="side-brand" href="../index.html" aria-label="TCGC PayTrack home">
+            <img class="brand-logo" src="../assets/logo-toggle.png" alt="" />
+            <span class="brand-text">
+              <strong>TCGC PayTrack</strong>
+              <span>Payment Tracking System</span>
+            </span>
+          </a>
+          <button
+            class="side-close"
+            id="side-close"
+            type="button"
+            aria-label="Hide navigation"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="side-links" aria-label="Dashboard tabs">
+          <a class="side-link is-active" href="#analytics" data-view="analytics">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 19V5" />
+              <path d="M4 19h16" />
+              <path d="m7 15 4-5 3 3 4-6" />
+            </svg>
+            Analytics
+          </a>
+          <a class="side-link" href="#accounts" data-view="accounts">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="9" cy="8" r="3.2" />
+              <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+              <path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 13.4a5 5 0 0 1 3 4.6" />
+            </svg>
+            Accounts
+          </a>
+          <a class="side-link" href="#students" data-view="students">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M3 9h18M9 9v11" />
+            </svg>
+            Students
+          </a>
+          <a class="side-link" href="#payments" data-view="payments">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2Z" />
+              <path d="M9 7h6M9 11h6" />
+            </svg>
+            Payment Record
+          </a>        </nav>
+
+        <div class="side-nav__foot">
+          <button class="side-logout" id="dash-logout" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="m16 17 5-5-5-5M21 12H9" />
+            </svg>
+            Log out
+          </button>
+        </div>
+      </aside>
+
+      <div class="side-scrim" id="side-scrim" hidden></div>
+
+      <!-- ================= MAIN ================= -->
+      <div class="dash-wrap">
+        <header class="top-bar">
+          <button
+            class="nav-btn"
+            id="nav-toggle"
+            type="button"
+            aria-controls="side-nav"
+            aria-expanded="true"
+            aria-label="Hide navigation"
+          >
+            <svg class="nav-btn__open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+            <svg class="nav-btn__close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+
+          <div class="top-bar__meta">
+            <span class="top-bar__eyebrow">Officer portal</span>
+            <strong id="topbar-title">Analytics</strong>
+          </div>
+
+          <div class="top-bar__user">
+            <span class="top-avatar" data-session-initials aria-hidden="true">S</span>
+            <div class="top-user__copy">
+              <strong data-session="name">Student</strong>
+            </div>
+          </div>
+        </header>
+
+        <main class="dash-content">
+          <!-- ============ ANALYTICS TAB ============ -->
+          <section class="dash-view" id="analytics" data-view-panel="analytics" hidden>
+            <article class="chart-card">
+              <header class="chart-card__head">
+                <div>
+                  <h2>Students per year level</h2>
+                  <p id="analytics-note">Live roster</p>
+                </div>
+                <span class="chart-legend"><i aria-hidden="true"></i> Enrolled students</span>
+              </header>
+              <div id="analytics-chart"></div>
+            </article>
+          </section>
+
+          <!-- ============ STUDENTS TAB ============ -->
+          <section class="dash-view" id="students" data-view-panel="students" hidden>
+            <div class="records-toolbar">
+              <div class="records-actions">
+                <button class="btn btn--primary btn--sm" type="button" id="students-import">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <path d="M12 3v13" />
+                    <path d="m7 8 5-5 5 5" />
+                  </svg>
+                  Import Excel
+                </button>
+                <input
+                  type="file"
+                  id="students-file"
+                  accept=".xlsx,.xls,.csv"
+                  hidden
+                />
+                <button class="btn btn--outline btn--sm" type="button" id="students-template">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <path d="M12 3v13" />
+                    <path d="m7 13 5 5 5-5" />
+                  </svg>
+                  Download template
+                </button>
+              </div>
+
+              <label class="records-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m21 21-4.3-4.3" />
+                  <circle cx="10.5" cy="10.5" r="7.5" />
+                </svg>
+                <input
+                  type="search"
+                  id="students-search"
+                  placeholder="Search students"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <p class="records-status" id="students-status" role="status"></p>
+
+            <div class="accounts-table-wrap" id="students-table-wrap" hidden>
+              <div class="accounts-table-scroll">
+                <table class="accounts-table students-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Student ID</th>
+                      <th scope="col">Last Name</th>
+                      <th scope="col">First Name</th>
+                      <th scope="col">Middle Name</th>
+                      <th scope="col">Program</th>
+                      <th scope="col">Year</th>
+                      <th scope="col">Classification</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="students-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="records-empty" id="students-empty">
+              <p>No student records yet.</p>
+              <small>Use <strong>Import Excel</strong> or download the template to get started.</small>
+            </div>
+          </section>
+
+          <!-- ============ PAYMENTS TAB ============ -->
+          <section class="dash-view" id="payments" data-view-panel="payments" hidden>
+            <form class="pay-create" id="payment-type-form" novalidate>
+              <label for="payment-type-name">
+                Payment Type
+                <input type="text" id="payment-type-name" placeholder="MEMBERSHIP FEE" required />
+              </label>
+              <label for="payment-type-amount">
+                Amount
+                <input type="number" id="payment-type-amount" min="0" step="0.01" placeholder="0.00" required />
+              </label>
+              <button class="btn btn--primary btn--sm" type="submit">Create Payment Type</button>
+              <p class="pay-form__hint" id="payment-hint" role="status"></p>
+            </form>
+
+            <div class="accounts-table-wrap">
+              <div class="accounts-table-scroll" id="payments-table-wrap" hidden>
+                <table class="accounts-table payments-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Student ID</th>
+                      <th scope="col">Full Name</th>
+                      <th scope="col">Payment Type</th>
+                      <th scope="col" class="num">Amount</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Recorded By</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payments-body"></tbody>
+                </table>
+              </div>
+
+              <div class="accounts-empty" id="payments-empty">
+                <p>No payment records for this council yet.</p>
+                <small>Create a payment type above, then use Record Payment on a student.</small>
+              </div>
+            </div>
+          </section>
+          <!-- ============ ACCOUNTS TAB ============ -->
+          <section class="dash-view" id="accounts" data-view-panel="accounts" hidden>
+            <div class="accounts-table-wrap">
+              <div class="accounts-table-scroll">
+                <table class="accounts-table registry-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Full Name</th>
+                      <th scope="col">Student ID</th>
+                      <th scope="col">Position</th>
+                      <th scope="col">Year Level</th>
+                      <th scope="col">Council / Organization</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="accounts-body"></tbody>
+                </table>
+              </div>
+
+              <div class="accounts-empty" id="accounts-empty" hidden>
+                <p>No accounts created yet.</p>
+                <a href="signup.html">Create an account</a>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <footer class="dash-foot">
+          <span>TANGUB CITY GLOBAL COLLEGE · <span id="dash-foot-institute">OFFICER PORTAL</span></span>
+        </footer>
+      </div>
+    </div>
+
+    <dialog class="edit-dialog" id="student-dialog" aria-labelledby="student-dialog-title">
+      <form class="edit-form" id="student-form" novalidate>
+        <header class="edit-form__head">
+          <h2 id="student-dialog-title">Edit student</h2>
+          <button class="edit-form__close" type="button" id="student-dialog-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="edit-grid">
+          <div class="field">
+            <label for="edit-student-id">Student ID</label>
+            <input type="text" id="edit-student-id" name="studentId" autocomplete="off" spellcheck="false" required />
+          </div>
+          <div class="field">
+            <label for="edit-last-name">Last name</label>
+            <input type="text" id="edit-last-name" name="lastName" class="is-uppercase" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-first-name">First name</label>
+            <input type="text" id="edit-first-name" name="firstName" class="is-uppercase" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-middle-name">Middle name</label>
+            <input type="text" id="edit-middle-name" name="middleName" class="is-uppercase" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="edit-program">Program</label>
+            <input type="text" id="edit-program" name="program" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="edit-year">Year</label>
+            <input type="text" id="edit-year" name="year" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="edit-classification">Classification</label>
+            <input type="text" id="edit-classification" name="classification" autocomplete="off" />
+          </div>
+        </div>
+
+        <p class="edit-form__error" id="student-form-error" role="alert" hidden></p>
+
+        <footer class="edit-form__actions">
+          <button class="btn btn--outline btn--sm" type="button" id="student-form-cancel">Cancel</button>
+          <button class="btn btn--primary btn--sm" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            Save changes
+          </button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="edit-dialog" id="account-dialog" aria-labelledby="account-dialog-title">
+      <form class="edit-form" id="account-form" novalidate>
+        <header class="edit-form__head">
+          <h2 id="account-dialog-title">Edit account</h2>
+          <button class="edit-form__close" type="button" id="account-dialog-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="edit-grid">
+          <div class="field">
+            <label for="edit-account-name">Full name</label>
+            <input type="text" id="edit-account-name" name="name" class="is-uppercase" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-student-id">Student ID</label>
+            <input type="text" id="edit-account-student-id" name="studentId" autocomplete="off" spellcheck="false" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-position">Position</label>
+            <input type="text" id="edit-account-position" name="position" class="is-uppercase" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-year">Year level</label>
+            <input type="text" id="edit-account-year" name="yearLevel" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="edit-account-council">Council / Organization</label>
+            <select id="edit-account-council" name="council" required>
+              <option value="" disabled>Select council or organization</option>
+              <option value="ISC-ICS">ISC-ICS</option>
+              <option value="ISC-IAS">ISC-IAS</option>
+              <option value="ISC-IHS">ISC-IHS</option>
+              <option value="ISC-ITE">ISC-ITE</option>
+              <option value="ISC-IBFS">ISC-IBFS</option>
+              <option value="ISC-ICJE">ISC-ICJE</option>
+              <option value="SRO-JPEG.COM">SRO-JPEG.COM</option>
+              <option value="SRO-ISMTSU">SRO-ISMTSU</option>
+              <option value="SRO-VOSS">SRO-VOSS</option>
+              <option value="SRO-CITU">SRO-CITU</option>
+              <option value="SRO-AYOA">SRO-AYOA</option>
+              <option value="SRO-GLEE-C">SRO-GLEE-C</option>
+              <option value="SRO-PSC">SRO-PSC</option>
+              <option value="SRO-YLS">SRO-YLS</option>
+              <option value="SRO-JEHRO">SRO-JEHRO</option>
+              <option value="SRO-TMS-FIL">SRO-TMS-FIL</option>
+              <option value="SRO-JFINEX">SRO-JFINEX</option>
+              <option value="SRO-COMMUNITY">SRO-COMMUNITY</option>
+              <option value="SRO-GAME">SRO-GAME</option>
+              <option value="SRO-CRCYC">SRO-CRCYC</option>
+              <option value="SRO-TEEM">SRO-TEEM</option>
+              <option value="SRO-JAMEX">SRO-JAMEX</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="edit-form__error" id="account-form-error" role="alert" hidden></p>
+
+        <footer class="edit-form__actions">
+          <button class="btn btn--outline btn--sm" type="button" id="account-form-cancel">Cancel</button>
+          <button class="btn btn--primary btn--sm" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            Save changes
+          </button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="edit-dialog" id="payment-dialog" aria-labelledby="payment-dialog-title">
+      <form class="edit-form" id="payment-form" novalidate>
+        <header class="edit-form__head">
+          <h2 id="payment-dialog-title">Record payment</h2>
+          <button class="edit-form__close" type="button" id="payment-dialog-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </header>
+
+        <p class="payment-dialog__student" id="payment-student">—</p>
+
+        <div class="edit-grid">
+          <div class="field field--wide">
+            <label for="payment-type-select">Payment Type</label>
+            <select id="payment-type-select" required>
+              <option value="" disabled selected>Select a payment type</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="payment-amount">Amount paid</label>
+            <input type="number" id="payment-amount" min="0" step="0.01" placeholder="0.00" required />
+          </div>
+          <div class="field">
+            <label for="payment-date">Payment date</label>
+            <input type="date" id="payment-date" required />
+          </div>
+          <div class="field">
+            <label for="payment-ref">OR / Reference</label>
+            <input type="text" id="payment-ref" placeholder="OR-2026-00000" required />
+          </div>
+          <div class="field">
+            <label for="payment-method">Method</label>
+            <input type="text" id="payment-method" placeholder="Cash · Finance Office" />
+          </div>
+        </div>
+
+        <p class="edit-form__error" id="payment-error" role="alert" hidden></p>
+
+        <footer class="edit-form__actions">
+          <button class="btn btn--outline btn--sm" type="button" id="payment-cancel">Cancel</button>
+          <button class="btn btn--primary btn--sm" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+            Save payment
+          </button>
+        </footer>
+      </form>
+    </dialog>
+
+    <script src="../assets/vendor/xlsx.full.min.js"></script>
+    <script src="../assets/js/ui.js"></script>
+    <script src="../assets/js/firebase-client.js"></script>
+    <script src="../assets/js/accounts.js"></script>
+    <script src="../assets/js/students.js"></script>
+    <script src="../assets/js/analytics.js"></script>
+    <script src="../assets/js/payments.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
+  </body>
+</html>
