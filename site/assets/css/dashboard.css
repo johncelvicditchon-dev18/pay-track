@@ -780,12 +780,12 @@ html:has(.dashboard-page) {
 }
 
 .pay-create label:first-of-type {
-  flex: 0 0 800px;
+  flex: 0 0 auto;
   max-width: 100%;
 }
 
 .pay-create #payment-type-name {
-  width: 800px;
+  width: 80px;
   max-width: 100%;
   min-width: 0;
 }
