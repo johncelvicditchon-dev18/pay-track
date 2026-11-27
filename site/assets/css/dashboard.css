@@ -785,7 +785,7 @@ html:has(.dashboard-page) {
 }
 
 .pay-create #payment-type-name {
-  width: 80px;
+  width: 200px;
   max-width: 100%;
   min-width: 0;
 }
