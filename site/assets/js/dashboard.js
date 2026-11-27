@@ -150,7 +150,7 @@
     analytics: "Analytics",
     accounts: "Accounts",
     students: "Students",
-    payments: "Payments"
+    payments: "Payment Record"
   };
 
   var viewLinks = document.querySelectorAll("[data-view]");
@@ -185,9 +185,6 @@
     }
     if (name === "payments" && typeof window.TCGCRefreshPayments === "function") {
       window.TCGCRefreshPayments();
-    }
-    if (name === "payments" && typeof window.TCGCRefreshPaymentTools === "function") {
-      window.TCGCRefreshPaymentTools();
     }
 
     if (isMobile()) closeMobileNav();

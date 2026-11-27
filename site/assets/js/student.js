@@ -115,7 +115,8 @@
           academicYear: String(charge.academicYear || ""),
           amount: Number(charge.amount || 0),
           paid: Number(charge.paid || 0),
-          dueDate: String(charge.dueDate || "—")
+          dueDate: String(charge.dueDate || "—"),
+          locked: Boolean(charge.locked)
         });
       });
 
@@ -175,12 +176,13 @@
           var rows = group.charges
             .map(function (charge) {
               var remaining = Math.max(charge.amount - charge.paid, 0);
-              var status =
-                remaining <= 0
-                  ? "Paid"
-                  : charge.paid > 0
-                  ? "Partial"
-                  : "Unpaid";
+              var status = charge.locked
+                ? "Locked"
+                : remaining <= 0
+                ? "Paid"
+                : charge.paid > 0
+                ? "Partial"
+                : "Unpaid";
 
               return (
                 '<div class="student-type">' +

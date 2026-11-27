@@ -913,12 +913,15 @@
       );
 
       var remaining = amount;
+      var anyOpen = charges.some(function (charge) {
+        return charge.amount - charge.paid > 0;
+      });
       var openCharges = charges
         .map(function (charge, index) {
           return { charge: charge, index: index };
         })
         .filter(function (entry) {
-          return entry.charge.amount - entry.charge.paid > 0;
+          return !entry.charge.locked && entry.charge.amount - entry.charge.paid > 0;
         })
         .sort(function (a, b) {
           var da = Date.parse(a.charge.dueDate || "");
@@ -928,6 +931,10 @@
           if (isNaN(db)) return -1;
           return da - db;
         });
+
+      if (anyOpen && !openCharges.length) {
+        throw makeError("All open charges are locked.", "locked");
+      }
 
       openCharges.forEach(function (entry) {
         if (remaining <= 0) return;
@@ -983,6 +990,140 @@
 
       return patchDocument(path, nextRecord).then(function () {
         return nextRecord;
+      });
+    });
+  };
+
+  function paymentDocName(council, studentId) {
+    return (
+      "projects/" +
+      PROJECT_ID +
+      "/databases/(default)/documents/" +
+      PAYMENTS_COLLECTION +
+      "/" +
+      encodeURIComponent(String(council) + "::" + String(studentId))
+    );
+  }
+
+  client.applyPaymentType = function (options) {
+    var council = String(options.council || "").toUpperCase();
+    var name = String(options.name || "").trim();
+    var amount = Number(options.amount || 0);
+    var students = Array.isArray(options.students) ? options.students : [];
+
+    if (!council || !name || !(amount > 0) || !students.length) {
+      return Promise.reject(
+        makeError("Missing payment type, amount, or students.", "invalid-argument")
+      );
+    }
+
+    return client.loadPayments(council).then(function (records) {
+      var byStudent = {};
+      records.forEach(function (record) {
+        byStudent[String(record.studentId || "").toUpperCase()] = record;
+      });
+
+      var seen = {};
+      var writes = [];
+      var now = new Date().toISOString();
+
+      students.forEach(function (student, index) {
+        var studentId = String(student.studentId || "").trim().toUpperCase();
+        if (!studentId || seen[studentId]) return;
+        seen[studentId] = true;
+
+        var record =
+          byStudent[studentId] ||
+          {
+            council: council,
+            studentId: studentId,
+            name: "",
+            charges: [],
+            payments: []
+          };
+
+        var charges = (Array.isArray(record.charges) ? record.charges : []).slice();
+        charges.push({
+          id: "charge-" + Date.now() + "-" + index,
+          label: name,
+          category: "Miscellaneous",
+          scope: "Organization",
+          unit: council,
+          typeLabel: name,
+          semester: "",
+          academicYear: "",
+          amount: amount,
+          paid: 0,
+          dueDate: "",
+          locked: false
+        });
+
+        var fullName = [student.firstName, student.middleName, student.lastName]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+
+        var nextRecord = Object.assign({}, record, {
+          council: council,
+          studentId: studentId,
+          name: record.name || fullName || studentId,
+          statement: record.statement || "",
+          updated: now.slice(0, 10),
+          nextDue: "See charges",
+          charges: charges,
+          payments: Array.isArray(record.payments) ? record.payments : []
+        });
+
+        writes.push({
+          update: {
+            name: paymentDocName(council, studentId),
+            fields: encodeFields(nextRecord)
+          }
+        });
+      });
+
+      return inChunks(writes, BATCH_SIZE).reduce(function (chain, chunk) {
+        return chain.then(function () {
+          return commit(chunk);
+        });
+      }, Promise.resolve()).then(function () {
+        return { students: Object.keys(seen).length };
+      });
+    });
+  };
+
+  client.setChargeLock = function (options) {
+    var council = String(options.council || "").toUpperCase();
+    var studentId = String(options.studentId || "").trim().toUpperCase();
+    var locked = Boolean(options.locked);
+    var path = PAYMENTS_COLLECTION + "/" + encodeURIComponent(council + "::" + studentId);
+
+    return getDocumentOrNull(path).then(function (document) {
+      if (!document) throw makeError("No payment record found.", "not-found");
+
+      var record = decodeFields(document.fields || {});
+      var charges = (Array.isArray(record.charges) ? record.charges : []).map(
+        function (charge) {
+          return Object.assign({}, charge);
+        }
+      );
+
+      var target = null;
+      if (options.chargeId) {
+        target = charges.filter(function (charge) {
+          return charge.id === options.chargeId;
+        })[0];
+      }
+      if (!target && typeof options.index === "number") {
+        target = charges[options.index];
+      }
+      if (!target) throw makeError("Charge not found.", "not-found");
+
+      target.locked = locked;
+      record.charges = charges;
+
+      return patchDocument(path, record).then(function () {
+        return record;
       });
     });
   };

@@ -1,5 +1,6 @@
 /* =========================================================
-   TCGC PayTrack — payments tab (council-scoped summary)
+   TCGC PayTrack — payments tab
+   Payment records per imported student + lock/unlock.
    ========================================================= */
 
 (function () {
@@ -16,11 +17,10 @@
 
   var tableWrap = document.getElementById("payments-table-wrap");
   var empty = document.getElementById("payments-empty");
-  var countEl = document.getElementById("payments-count");
-  var billedEl = document.getElementById("payments-billed");
-  var paidEl = document.getElementById("payments-paid");
-  var balanceEl = document.getElementById("payments-balance");
-  var openEl = document.getElementById("payments-open");
+  var typeForm = document.getElementById("payment-type-form");
+  var typeName = document.getElementById("payment-type-name");
+  var typeAmount = document.getElementById("payment-type-amount");
+  var typeHint = document.getElementById("payment-hint");
 
   var dialog = document.getElementById("payment-dialog");
   var form = document.getElementById("payment-form");
@@ -46,7 +46,7 @@
     );
   }
 
-  function escapeHtml(value) {
+  function esc(value) {
     return String(value == null ? "" : value)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -57,62 +57,84 @@
 
   function text(value) {
     var copy = String(value == null ? "" : value).trim();
-    return copy ? escapeHtml(copy) : "—";
+    return copy ? esc(copy) : "—";
   }
 
-  function summarize(record) {
-    var charges = Array.isArray(record.charges) ? record.charges : [];
-    var total = 0;
-    var paid = 0;
-    var open = 0;
+  function setHint(message, tone) {
+    if (!typeHint) return;
+    typeHint.textContent = message || "";
+    typeHint.setAttribute("data-state", tone || "");
+  }
 
-    charges.forEach(function (charge) {
-      var amount = Number(charge.amount || 0);
-      var paidAmount = Number(charge.paid || 0);
-      total += amount;
-      paid += paidAmount;
-      if (amount - paidAmount > 0) open += 1;
+  function rosterNames() {
+    var list =
+      window.TCGCStudents && window.TCGCStudents.getStudents
+        ? window.TCGCStudents.getStudents()
+        : [];
+    var map = {};
+
+    list.forEach(function (student) {
+      var id = api.normalizeStudentId(student.studentId);
+      var name = [student.firstName, student.middleName, student.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      map[id] = name || id;
     });
 
-    return {
-      total: total,
-      paid: paid,
-      balance: Math.max(total - paid, 0),
-      open: open,
-      receipts: Array.isArray(record.payments) ? record.payments.length : 0
-    };
+    return map;
   }
 
-  function render(loaded) {
-    records = loaded || [];
-    var rows = records
-      .map(function (record) {
-        return { record: record, summary: summarize(record) };
-      })
-      .sort(function (a, b) {
-        return String(a.record.name || "").localeCompare(String(b.record.name || ""));
-      });
+  function flatten() {
+    var names = rosterNames();
+    var rows = [];
 
-    var totals = rows.reduce(
-      function (acc, row) {
-        return {
-          billed: acc.billed + row.summary.total,
-          paid: acc.paid + row.summary.paid,
-          balance: acc.balance + row.summary.balance,
-          open: acc.open + (row.summary.balance > 0 ? 1 : 0)
-        };
+    records.forEach(function (record) {
+      var id = api.normalizeStudentId(record.studentId);
+      var name = names[id] || record.name || id;
+
+      (Array.isArray(record.charges) ? record.charges : []).forEach(
+        function (charge, index) {
+          rows.push({
+            record: record,
+            charge: charge,
+            index: index,
+            studentId: id,
+            studentName: name
+          });
+        }
+      );
+    });
+
+    rows.sort(function (a, b) {
+      return (
+        a.studentName.localeCompare(b.studentName, "en", {
+          sensitivity: "base"
+        }) ||
+        String(a.charge.typeLabel || a.charge.label || "").localeCompare(
+          String(b.charge.typeLabel || b.charge.label || "")
+        )
+      );
+    });
+
+    return rows;
+  }
+
+  function payableBalance(record) {
+    return (Array.isArray(record.charges) ? record.charges : []).reduce(
+      function (sum, charge) {
+        if (charge.locked) return sum;
+        return (
+          sum +
+          Math.max(Number(charge.amount || 0) - Number(charge.paid || 0), 0)
+        );
       },
-      { billed: 0, paid: 0, balance: 0, open: 0 }
+      0
     );
+  }
 
-    if (billedEl) billedEl.textContent = money(totals.billed);
-    if (paidEl) paidEl.textContent = money(totals.paid);
-    if (balanceEl) balanceEl.textContent = money(totals.balance);
-    if (openEl) openEl.textContent = totals.open + " with an open balance";
-    if (countEl) {
-      countEl.textContent =
-        rows.length + (rows.length === 1 ? " record" : " records");
-    }
+  function render() {
+    var rows = flatten();
 
     if (!rows.length) {
       body.innerHTML = "";
@@ -126,31 +148,198 @@
 
     body.innerHTML = rows
       .map(function (row) {
-        var record = row.record;
-        var summary = row.summary;
-        var settled = summary.balance <= 0;
+        var charge = row.charge;
+        var locked = Boolean(charge.locked);
 
         return (
           "<tr>" +
-          '<td class="cell-name">' + text(record.name) + "</td>" +
-          "<td>" + text(record.studentId) + "</td>" +
-          '<td class="num">' + money(summary.total) + "</td>" +
-          '<td class="num">' + money(summary.paid) + "</td>" +
-          '<td class="num' + (settled ? "" : " is-due") + '">' +
-          money(summary.balance) + "</td>" +
-          '<td class="num">' + summary.receipts + "</td>" +
-          "<td>" + text(record.nextDue) + "</td>" +
-          "<td><span class=\"pay-status " +
-          (settled ? "pay-status--paid" : "pay-status--due") +
+          "<td>" + text(row.studentId) + "</td>" +
+          '<td class="cell-name">' + text(row.studentName) + "</td>" +
+          "<td>" + text(charge.typeLabel || charge.label || "Payment") + "</td>" +
+          '<td class="num">' + money(charge.amount) + "</td>" +
+          '<td><span class="pay-status ' +
+          (locked ? "pay-status--due" : "pay-status--paid") +
           '">' +
-          (settled ? "Fully paid" : summary.open + " open") +
+          (locked ? "Locked" : "Unlocked") +
           "</span></td>" +
+          '<td class="cell-actions">' +
+          '<button class="row-action' +
+          (locked ? "" : " row-action--danger") +
+          '" type="button" data-lock-student="' +
+          esc(row.studentId) +
+          '" data-lock-index="' +
+          row.index +
+          '" data-lock-id="' +
+          esc(charge.id || "") +
+          '" data-lock-state="' +
+          (locked ? "true" : "false") +
+          '">' +
+          (locked ? "Unlock Payment" : "Lock Payment") +
+          "</button>" +
+          "</td>" +
           "</tr>"
         );
       })
       .join("");
   }
 
+  function load() {
+    if (!COUNCIL) {
+      records = [];
+      render();
+      if (empty) {
+        empty.hidden = false;
+        empty.innerHTML =
+          "<p>No Council/Organization assigned.</p>" +
+          "<small>Contact the Finance Office to assign your council or organization.</small>";
+      }
+      return;
+    }
+
+    if (!window.TCGCFirebase || !window.TCGCFirebase.loadPayments) {
+      records = [];
+      render();
+      return;
+    }
+
+    window.TCGCFirebase.loadPayments(COUNCIL)
+      .then(function (rows) {
+        records = rows || [];
+        render();
+      })
+      .catch(function (error) {
+        console.warn("[payments] Could not load payment records:", error);
+        records = [];
+        render();
+        if (empty) {
+          empty.hidden = false;
+          empty.innerHTML =
+            "<p>We couldn't load the payment records right now.</p>" +
+            "<small>Check your Firebase rules and connection, then try again.</small>";
+        }
+      });
+  }
+
+  if (typeForm) {
+    typeForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      var name = typeName ? typeName.value.trim().toUpperCase() : "";
+      var amount = typeAmount ? Number(typeAmount.value) : 0;
+      var students =
+        window.TCGCStudents && window.TCGCStudents.getStudents
+          ? window.TCGCStudents.getStudents()
+          : [];
+
+      if (!COUNCIL) {
+        setHint("Your account has no Council/Organization assigned.", "error");
+        return;
+      }
+      if (!name) {
+        setHint("Enter the payment type.", "error");
+        if (typeName) typeName.focus();
+        return;
+      }
+      if (!(amount > 0)) {
+        setHint("Enter an amount greater than zero.", "error");
+        if (typeAmount) typeAmount.focus();
+        return;
+      }
+      if (!students.length) {
+        setHint(
+          "Import students in the Students tab before adding a payment type.",
+          "error"
+        );
+        return;
+      }
+
+      var submit = typeForm.querySelector('button[type="submit"]');
+      if (submit) submit.disabled = true;
+      setHint("Adding " + name + " to your students…");
+
+      window.TCGCFirebase.applyPaymentType({
+        council: COUNCIL,
+        name: name,
+        amount: amount,
+        students: students
+      })
+        .then(function (result) {
+          setHint(
+            "Added " +
+              name +
+              " (" +
+              money(amount) +
+              ") to " +
+              result.students +
+              " student(s).",
+            "success"
+          );
+          if (typeName) typeName.value = "";
+          if (typeAmount) typeAmount.value = "";
+          load();
+        })
+        .catch(function (error) {
+          console.warn("[payments] Could not add the payment type:", error);
+          setHint(
+            "Couldn't add the payment type. Check your session and Firestore rules.",
+            "error"
+          );
+        })
+        .then(function () {
+          if (submit) submit.disabled = false;
+        });
+    });
+  }
+
+  if (body) {
+    body.addEventListener("click", function (event) {
+      var button =
+        event.target && event.target.closest
+          ? event.target.closest("[data-lock-student]")
+          : null;
+      if (!button) return;
+
+      var studentId = button.getAttribute("data-lock-student");
+      var currentlyLocked = button.getAttribute("data-lock-state") === "true";
+      var index = Number(button.getAttribute("data-lock-index"));
+      var chargeId = button.getAttribute("data-lock-id");
+
+      button.disabled = true;
+
+      window.TCGCFirebase.setChargeLock({
+        council: COUNCIL,
+        studentId: studentId,
+        index: isNaN(index) ? undefined : index,
+        chargeId: chargeId || undefined,
+        locked: !currentlyLocked
+      })
+        .then(function () {
+          if (api.toast) {
+            api.toast(
+              "Payment " + (currentlyLocked ? "unlocked" : "locked"),
+              (currentlyLocked
+                ? "The charge is editable again."
+                : "The charge is now frozen."),
+              "success"
+            );
+          }
+          load();
+        })
+        .catch(function (error) {
+          console.warn("[payments] Lock update failed:", error);
+          button.disabled = false;
+          if (api.toast) {
+            api.toast(
+              "Couldn't update the charge",
+              "Check your session and Firestore rules.",
+              "error"
+            );
+          }
+        });
+    });
+  }
+
+  /* ---------- record payment dialog ---------- */
   function setError(message) {
     if (!errorEl) return;
     errorEl.textContent = message || "";
@@ -164,24 +353,32 @@
     activeRecord = null;
   }
 
+  function recordFor(studentId) {
+    var id = api.normalizeStudentId(studentId);
+    return (
+      records.filter(function (record) {
+        return api.normalizeStudentId(record.studentId) === id;
+      })[0] || null
+    );
+  }
+
   function openDialog(record) {
     if (!dialog || !record) return;
 
     activeRecord = record;
-    var summary = summarize(record);
+    var payable = payableBalance(record);
 
     if (studentEl) {
       studentEl.textContent =
         (record.name || "Student") +
         " · " +
         record.studentId +
-        " · Balance " +
-        money(summary.balance);
+        " · Payable " +
+        money(payable);
     }
 
     if (amountInput) {
-      amountInput.value =
-        summary.balance > 0 ? summary.balance.toFixed(2) : "";
+      amountInput.value = payable > 0 ? payable.toFixed(2) : "";
     }
     if (dateInput) {
       dateInput.value = new Date().toISOString().slice(0, 10);
@@ -201,38 +398,27 @@
     }, 60);
   }
 
-  function recordFor(studentId) {
-    var id = api.normalizeStudentId(studentId);
-    return (
-      records.filter(function (record) {
-        return api.normalizeStudentId(record.studentId) === id;
-      })[0] || null
-    );
-  }
-
-  // Used by the Students table's "Record Payment" action.
   window.TCGCStartPayment = function (studentId, name) {
     if (!COUNCIL) return;
 
     var existing = recordFor(studentId);
     if (existing) {
+      if (!existing.name && name) existing.name = name;
       openDialog(existing);
       return;
     }
 
-    if (!window.TCGCFirebase || !window.TCGCFirebase.findPaymentRecord) {
-      return;
-    }
+    if (!window.TCGCFirebase || !window.TCGCFirebase.findPaymentRecord) return;
 
     window.TCGCFirebase.findPaymentRecord(studentId, COUNCIL)
       .then(function (found) {
         if (!found) {
-          if (found === null) {
+          if (api.toast) {
             api.toast(
               "No charges yet",
-              "Add a charge for " +
+              "Add a payment type before recording a payment for " +
                 (name || "this student") +
-                " before recording a payment.",
+                ".",
               "info"
             );
           }
@@ -243,25 +429,8 @@
       })
       .catch(function (error) {
         console.warn("[payments] Could not load the student's record:", error);
-        api.toast(
-          "Couldn't open the payment form",
-          "Check your connection and Firestore rules.",
-          "error"
-        );
       });
   };
-
-  if (body) {
-    body.addEventListener("click", function (event) {
-      var button =
-        event.target && event.target.closest
-          ? event.target.closest("[data-record-payment]")
-          : null;
-      if (!button) return;
-      var record = recordFor(button.getAttribute("data-record-payment"));
-      if (record) openDialog(record);
-    });
-  }
 
   if (form) {
     form.addEventListener("submit", function (event) {
@@ -315,9 +484,13 @@
         })
         .catch(function (error) {
           console.warn("[payments] Record payment failed:", error);
-          setError(
-            "Couldn't save the payment. Check your session and Firestore rules, then try again."
-          );
+          if (error && error.code === "locked") {
+            setError("All open charges for this student are locked.");
+          } else {
+            setError(
+              "Couldn't save the payment. Check your session and Firestore rules, then try again."
+            );
+          }
         })
         .then(function () {
           if (submit) submit.disabled = false;
@@ -334,39 +507,6 @@
     dialog.addEventListener("close", function () {
       activeRecord = null;
     });
-  }
-
-  function load() {
-    if (!COUNCIL) {
-      render([]);
-      if (empty) {
-        empty.hidden = false;
-        empty.innerHTML =
-          "<p>No Council/Organization assigned.</p>" +
-          "<small>Contact the Finance Office to assign your council or organization.</small>";
-      }
-      return;
-    }
-
-    if (!window.TCGCFirebase || !window.TCGCFirebase.available) {
-      render([]);
-      return;
-    }
-
-    if (countEl) countEl.textContent = "Loading…";
-
-    window.TCGCFirebase.loadPayments(COUNCIL)
-      .then(render)
-      .catch(function (error) {
-        console.warn("[payments] Could not load payment records:", error);
-        render([]);
-        if (empty) {
-          empty.hidden = false;
-          empty.innerHTML =
-            "<p>We couldn't load the payment records right now.</p>" +
-            "<small>Check your Firebase rules and connection, then try again.</small>";
-        }
-      });
   }
 
   window.TCGCRefreshPayments = load;

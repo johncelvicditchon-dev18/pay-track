@@ -739,30 +739,57 @@ html:has(.dashboard-page) {
 }
 
 /* ---------- payment types + charge posting ---------- */
-.pay-tools {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin: 18px 0 20px;
-}
-
-.pay-tool {
-  padding: 18px;
+.pay-create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 16px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 14px;
   background: #fff;
   box-shadow: var(--shadow-sm);
 }
 
-.pay-tool h2 {
-  font-size: 0.95rem;
-  letter-spacing: -0.01em;
+.pay-create label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.pay-tool__hint {
-  margin: 4px 0 12px;
-  color: var(--muted);
-  font-size: 0.72rem;
+.pay-create input {
+  padding: 0.62rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fffdfa;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.pay-create input:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(21, 125, 84, 0.1);
+}
+
+.pay-create #payment-type-name {
+  min-width: 240px;
+}
+
+.pay-create #payment-type-amount {
+  width: 150px;
+}
+
+.pay-create .pay-form__hint {
+  flex-basis: 100%;
+  margin: 0;
 }
 
 .pay-form {

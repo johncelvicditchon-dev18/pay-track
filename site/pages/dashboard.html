@@ -71,9 +71,8 @@
               <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2Z" />
               <path d="M9 7h6M9 11h6" />
             </svg>
-            Payments
-          </a>
-        </nav>
+            Payment Record
+          </a>        </nav>
 
         <div class="side-nav__foot">
           <button class="side-logout" id="dash-logout" type="button">
@@ -207,106 +206,30 @@
 
           <!-- ============ PAYMENTS TAB ============ -->
           <section class="dash-view" id="payments" data-view-panel="payments" hidden>
-            <div class="pay-tools">
-              <article class="pay-tool">
-                <h2>Create payment type</h2>
-                <p class="pay-tool__hint">
-                  Example: “2ND SEMESTER - 2026-2027 | MEMBERSHIP FEE”.
-                </p>
-                <form class="pay-form" id="type-form" novalidate>
-                  <div class="pay-form__row">
-                    <label for="type-semester">
-                      Semester
-                      <select id="type-semester" required>
-                        <option value="1ST SEMESTER">1ST SEMESTER</option>
-                        <option value="2ND SEMESTER" selected>2ND SEMESTER</option>
-                        <option value="SUMMER">SUMMER</option>
-                      </select>
-                    </label>
-                    <label for="type-year">
-                      Academic year
-                      <input type="text" id="type-year" placeholder="2026-2027" required />
-                    </label>
-                  </div>
-                  <label for="type-name">
-                    Payment name
-                    <input type="text" id="type-name" placeholder="MEMBERSHIP FEE" required />
-                  </label>
-                  <div class="pay-form__row">
-                    <label for="type-scope">
-                      Scope
-                      <select id="type-scope">
-                        <option value="Organization" selected>Organization</option>
-                        <option value="Institute">Institute</option>
-                      </select>
-                    </label>
-                    <label for="type-category">
-                      Category
-                      <select id="type-category">
-                        <option value="Activity">Activity</option>
-                        <option value="Membership" selected>Membership</option>
-                        <option value="T-shirt">T-shirt</option>
-                        <option value="Miscellaneous">Miscellaneous</option>
-                      </select>
-                    </label>
-                  </div>
-                  <button class="btn btn--primary btn--sm" type="submit">
-                    Add payment type
-                  </button>
-                  <p class="pay-form__hint" id="type-hint" role="status"></p>
-                </form>
-                <ul class="type-list" id="type-list"></ul>
-              </article>
-
-              <article class="pay-tool">
-                <h2>Add charge to a student</h2>
-                <p class="pay-tool__hint">
-                  Post a payment type to one of your council's students.
-                </p>
-                <form class="pay-form" id="charge-form" novalidate>
-                  <label for="charge-student">
-                    Student
-                    <select id="charge-student" required></select>
-                  </label>
-                  <label for="charge-type">
-                    Payment type
-                    <select id="charge-type" required></select>
-                  </label>
-                  <div class="pay-form__row">
-                    <label for="charge-amount">
-                      Amount
-                      <input type="number" id="charge-amount" min="0" step="0.01" placeholder="0.00" required />
-                    </label>
-                    <label for="charge-paid">
-                      Paid
-                      <input type="number" id="charge-paid" min="0" step="0.01" value="0" />
-                    </label>
-                  </div>
-                  <label for="charge-due">
-                    Due date
-                    <input type="date" id="charge-due" required />
-                  </label>
-                  <button class="btn btn--primary btn--sm" type="submit">
-                    Save charge
-                  </button>
-                  <p class="pay-form__hint" id="charge-hint" role="status"></p>
-                </form>
-              </article>
-            </div>
+            <form class="pay-create" id="payment-type-form" novalidate>
+              <label for="payment-type-name">
+                Payment Type
+                <input type="text" id="payment-type-name" placeholder="MEMBERSHIP FEE" required />
+              </label>
+              <label for="payment-type-amount">
+                Amount
+                <input type="number" id="payment-type-amount" min="0" step="0.01" placeholder="0.00" required />
+              </label>
+              <button class="btn btn--primary btn--sm" type="submit">Add Payment Type</button>
+              <p class="pay-form__hint" id="payment-hint" role="status"></p>
+            </form>
 
             <div class="accounts-table-wrap">
               <div class="accounts-table-scroll" id="payments-table-wrap" hidden>
                 <table class="accounts-table payments-table">
                   <thead>
                     <tr>
-                      <th scope="col">Student</th>
                       <th scope="col">Student ID</th>
-                      <th scope="col" class="num">Billed</th>
-                      <th scope="col" class="num">Paid</th>
-                      <th scope="col" class="num">Balance</th>
-                      <th scope="col" class="num">Receipts</th>
-                      <th scope="col">Next due</th>
+                      <th scope="col">Full Name</th>
+                      <th scope="col">Payment Type</th>
+                      <th scope="col" class="num">Amount</th>
                       <th scope="col">Status</th>
+                      <th scope="col">Actions</th>
                     </tr>
                   </thead>
                   <tbody id="payments-body"></tbody>
@@ -315,11 +238,10 @@
 
               <div class="accounts-empty" id="payments-empty">
                 <p>No payment records for this council yet.</p>
-                <small>Payment records sync from Firestore.</small>
+                <small>Add a payment type above to create records for your students.</small>
               </div>
             </div>
           </section>
-
           <!-- ============ ACCOUNTS TAB ============ -->
           <section class="dash-view" id="accounts" data-view-panel="accounts" hidden>
             <div class="accounts-table-wrap">
@@ -534,7 +456,6 @@
     <script src="../assets/js/students.js"></script>
     <script src="../assets/js/analytics.js"></script>
     <script src="../assets/js/payments.js"></script>
-    <script src="../assets/js/payment-types.js"></script>
     <script src="../assets/js/dashboard.js"></script>
   </body>
 </html>
