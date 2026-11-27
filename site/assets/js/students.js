@@ -222,10 +222,6 @@
               }
             });
         }
-
-        if (remote.length && !statusEl.textContent.trim()) {
-          setStatus("Synced " + remote.length + " record(s) from Firebase.", "success");
-        }
       })
       .catch(function (error) {
         console.warn("[students] Firebase load failed:", error);
