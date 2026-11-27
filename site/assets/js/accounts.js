@@ -85,11 +85,20 @@
   }
 
   function render() {
-    var users = api.getUsers().map(function (user) {
-      return Object.assign({}, user);
-    });
+    var users = api
+      .getUsers()
+      .filter(function (user) {
+        return COUNCIL && api.normalizeCouncil(user.council) === COUNCIL;
+      })
+      .map(function (user) {
+        return Object.assign({}, user);
+      });
 
-    remoteUsers.forEach(function (remote) {
+    remoteUsers
+      .filter(function (user) {
+        return COUNCIL && api.normalizeCouncil(user.council) === COUNCIL;
+      })
+      .forEach(function (remote) {
       var remoteId = api.normalizeStudentId(remote.studentId);
       var index = -1;
 
