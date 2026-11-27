@@ -84,12 +84,19 @@
     );
   }
 
-  function studentName(student) {    return (
-      [student.firstName, student.middleName, student.lastName]
-        .filter(Boolean)
-        .join(" ")
-        .trim() || student.studentId
-    );
+  function studentName(student) {
+    var lastName = String(student.lastName || "").trim();
+    var given = [student.firstName, student.middleName]
+      .map(function (part) {
+        return String(part || "").trim();
+      })
+      .filter(Boolean)
+      .join(" ");
+
+    if (lastName && given) return lastName + ", " + given;
+    if (lastName) return lastName;
+    if (given) return given;
+    return student.studentId;
   }
 
   function render() {
