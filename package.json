@@ -6,8 +6,7 @@
   "description": "TCGC PayTrack — institute payment and contribution tracking portal",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/build-site.mjs",
-    "build:react": "vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
