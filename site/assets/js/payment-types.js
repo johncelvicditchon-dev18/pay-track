@@ -243,7 +243,23 @@
       })
       .catch(function (error) {
         console.warn("[payment-types] Create failed:", error);
-        setHint("Couldn't create the payment type. Check your session and rules.", "error");
+
+        var code = error && error.code;
+
+        if (code === "permission-denied") {
+          setHint(
+            "Firestore denied the write. Deploy the latest firestore.rules and make sure your profile has a council.",
+            "error"
+          );
+        } else if (code === "auth") {
+          setHint("Your session expired. Log out and log in again.", "error");
+        } else {
+          setHint(
+            "Couldn't create the payment type. " +
+              (error && error.message ? error.message : "Please try again."),
+            "error"
+          );
+        }
       })
       .then(function () {
         if (submit) submit.disabled = false;

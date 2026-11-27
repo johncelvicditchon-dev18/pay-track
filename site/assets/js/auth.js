@@ -216,7 +216,7 @@
           return destinations[nextView] || "dashboard.html";
         }
 
-        function finish(account, idToken) {
+        function finish(account, idToken, refreshToken) {
           if (window.TCGCFirebase && window.TCGCFirebase.setAuthToken) {
             window.TCGCFirebase.setAuthToken(idToken || "");
           }
@@ -233,6 +233,7 @@
               yearLevel: account.yearLevel || "",
               council: account.council || "",
               idToken: idToken || "",
+              refreshToken: refreshToken || "",
               signedInAt: new Date().toISOString()
             },
             Boolean(loginRemember && loginRemember.checked)
@@ -297,7 +298,8 @@
                     profile.yearLevel || (local && local.yearLevel) || "",
                   council: profile.council || (local && local.council) || ""
                 },
-                result.idToken
+                result.idToken,
+                result.refreshToken
               );
             })
             .catch(function (error) {

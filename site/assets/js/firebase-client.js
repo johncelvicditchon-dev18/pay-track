@@ -33,6 +33,80 @@
     return client;
   };
 
+  function storedSession() {
+    try {
+      var raw =
+        window.localStorage.getItem("tcgc_paytrack_session") ||
+        window.sessionStorage.getItem("tcgc_paytrack_session");
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function refreshAuthToken() {
+    var session = storedSession();
+    var refreshToken = session && session.refreshToken;
+
+    if (!refreshToken) {
+      return Promise.reject(makeError("Session expired.", "auth"));
+    }
+
+    return window
+      .fetch("https://securetoken.googleapis.com/v1/token" + KEY_PARAM, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body:
+          "grant_type=refresh_token&refresh_token=" +
+          encodeURIComponent(refreshToken)
+      })
+      .then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok) {
+            throw makeError("Session expired.", "auth");
+          }
+
+          token = data.id_token || null;
+          tokenPromise = token ? Promise.resolve(token) : null;
+
+          if (window.TCGC && window.TCGC.updateSession) {
+            window.TCGC.updateSession({
+              idToken: data.id_token || "",
+              refreshToken: data.refresh_token || refreshToken
+            });
+          }
+
+          return token;
+        });
+      });
+  }
+
+  function authorizedFetch(url, options) {
+    var settings = options || {};
+
+    function run(authToken) {
+      settings.headers = Object.assign(
+        {},
+        settings.headers || {},
+        authToken ? { Authorization: "Bearer " + authToken } : {}
+      );
+
+      return window.fetch(url, settings);
+    }
+
+    return run(token).then(function (response) {
+      if (response.status !== 401 && response.status !== 403) return response;
+
+      return refreshAuthToken()
+        .then(function () {
+          return run(token);
+        })
+        .catch(function () {
+          return response;
+        });
+    });
+  }
+
   // Reuse the signed-in account's token when the page reloads.
   try {
     var storedSession =
@@ -571,12 +645,13 @@
         .then(function (document) {
           var profile = profileFromDocument(document);
           if (!profile.studentId) profile.studentId = studentId;
-          return { uid: data.localId, idToken: data.idToken, profile: profile };
+          return { uid: data.localId, idToken: data.idToken, refreshToken: data.refreshToken, profile: profile };
         })
         .catch(function () {
           return {
             uid: data.localId,
             idToken: data.idToken,
+            refreshToken: data.refreshToken,
             profile: {
               uid: data.localId,
               name: "",
@@ -765,15 +840,13 @@
       locked: Boolean(type.locked)
     });
 
-    return window
-      .fetch(BASE_URL + "/" + TYPES_COLLECTION + KEY_PARAM, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + (token || "")
-        },
-        body: JSON.stringify({ fields: encodeFields(payload) })
-      })
+    return authorizedFetch(BASE_URL + "/" + TYPES_COLLECTION + KEY_PARAM, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ fields: encodeFields(payload) })
+    })
       .then(readJson)
       .then(typeFromDocument);
   };
