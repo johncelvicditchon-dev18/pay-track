@@ -1132,6 +1132,12 @@
       );
     }
 
+    if (type.locked) {
+      return Promise.reject(
+        makeError("That payment type is locked.", "locked-type")
+      );
+    }
+
     return getDocumentOrNull(path).then(function (document) {
       var record = document ? decodeFields(document.fields || {}) : {
         council: council,

@@ -462,6 +462,13 @@
         if (typeSelect) typeSelect.focus();
         return;
       }
+      if (type.locked) {
+        setError(
+          "This payment type is locked. Unlock it in Payment Types before recording."
+        );
+        if (typeSelect) typeSelect.focus();
+        return;
+      }
       if (!(amount > 0)) {
         setError("Enter an amount greater than zero.");
         if (amountInput) amountInput.focus();
@@ -510,7 +517,11 @@
         })
         .catch(function (error) {
           console.warn("[payments] Record payment failed:", error);
-          if (error && error.code === "locked") {
+          if (error && error.code === "locked-type") {
+            setError(
+              "This payment type is locked. Unlock it in Payment Types before recording."
+            );
+          } else if (error && error.code === "locked") {
             setError("All open charges for this student are locked.");
           } else {
             setError(
