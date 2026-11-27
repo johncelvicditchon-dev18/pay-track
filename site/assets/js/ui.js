@@ -58,7 +58,7 @@
     "2ND YEAR REPRESENTATIVE",
     "3RD YEAR REPRESENTATIVE",
     "4TH YEAR REPRESENTATIVE",
-    "5TH YEAR REPRESENTATIVE"
+    "5TH YEAR REPRESENTATIVEd"
   ];
 
   function positionsForCouncil(council) {
