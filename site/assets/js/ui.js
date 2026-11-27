@@ -57,8 +57,7 @@
     "1ST YEAR REPRESENTATIVE",
     "2ND YEAR REPRESENTATIVE",
     "3RD YEAR REPRESENTATIVE",
-    "4TH YEAR REPRESENTATIVE",
-    "walwawala"
+    "4TH YEAR REPRESENTATIVE"
   ];
 
   function positionsForCouncil(council) {
