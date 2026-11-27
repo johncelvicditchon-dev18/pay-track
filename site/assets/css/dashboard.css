@@ -1806,3 +1806,50 @@ html:has(.dashboard-page) {
   justify-content: flex-end;
   gap: 10px;
 }
+
+/* horizontal scrolling for the wide payment record grid */
+#payments .accounts-table-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--green-300) transparent;
+}
+
+#payments .accounts-table-scroll::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+#payments .accounts-table-scroll::-webkit-scrollbar-track {
+  background: var(--green-50);
+  border-radius: 99px;
+}
+
+#payments .accounts-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--green-300);
+  border-radius: 99px;
+}
+
+#payments .accounts-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--green-400);
+}
+
+.payments-table {
+  width: max-content;
+  min-width: 100%;
+}
+
+.payments-table th,
+.payments-table td {
+  min-width: 130px;
+}
+
+.payments-table th:first-child,
+.payments-table td:first-child {
+  min-width: 110px;
+}
+
+.payments-table th:nth-child(2),
+.payments-table td:nth-child(2) {
+  min-width: 220px;
+}
