@@ -1698,7 +1698,7 @@ html:has(.dashboard-page) {
 
 /* payment record student search */
 .pay-filter .records-search {
-  flex: 1 1 260px;
+  flex: 0 1 300px;
   min-width: 220px;
   padding: 0 12px;
   color: var(--ink);
@@ -1711,4 +1711,11 @@ html:has(.dashboard-page) {
 .pay-filter .records-search input {
   padding: 11px 0;
   font-size: 0.84rem;
+}
+
+.pay-filter__type {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
 }

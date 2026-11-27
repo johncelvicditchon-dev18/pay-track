@@ -216,10 +216,6 @@
           <!-- ============ PAYMENTS TAB ============ -->
           <section class="dash-view" id="payments" data-view-panel="payments" hidden>
             <div class="pay-filter">
-              <label for="payment-record-filter">Filter by Payment Type</label>
-              <select id="payment-record-filter">
-                <option value="">All payment types</option>
-              </select>
               <label class="records-search pay-search">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="m21 21-4.3-4.3" />
@@ -233,6 +229,13 @@
                   aria-label="Search student ID or name"
                 />
               </label>
+
+              <div class="pay-filter__type">
+                <label for="payment-record-filter">Filter by Payment Type</label>
+                <select id="payment-record-filter">
+                  <option value="">All payment types</option>
+                </select>
+              </div>
             </div>
 
             <div class="accounts-table-wrap">
