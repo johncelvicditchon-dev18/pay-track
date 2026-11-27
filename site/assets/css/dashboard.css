@@ -794,14 +794,14 @@ html:has(.dashboard-page) {
 }
 
 .pay-create label:first-of-type {
-  flex: 1 1 420px;
+  flex: 0 0 auto;
   max-width: 100%;
 }
 
 .pay-create #payment-type-name {
-  width: 100%;
+  width: 300px;
   max-width: 100%;
-  min-width: 240px;
+  min-width: 0;
 }
 
 .pay-create #payment-type-amount {
