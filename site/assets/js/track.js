@@ -7,6 +7,7 @@
 (function () {
   "use strict";
 
+  var api = window.TCGC;
   var ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
 
   function money(value) {
@@ -322,28 +323,19 @@
     function show(id) {
       var normalized = id.trim().toUpperCase();
 
-      if (!window.TCGCFirebase || !window.TCGCFirebase.findStudentPayment) {
-        result.innerHTML = renderLookupError();
-        openDialog();
-        return;
+      if (api && api.setSession) {
+        api.setSession(
+          {
+            role: "student",
+            studentId: normalized,
+            name: "",
+            signedInAt: new Date().toISOString()
+          },
+          true
+        );
       }
 
-      result.innerHTML =
-        '<div class="track-empty" aria-live="polite"><p><span class="spinner"></span> Checking your payment record…</p></div>';
-      openDialog();
-
-      window.TCGCFirebase.findStudentPayment(normalized)
-        .then(function (record) {
-          if (!record) {
-            result.innerHTML = renderMissing(normalized);
-            return;
-          }
-          result.innerHTML = renderRecord(record, normalized);
-        })
-        .catch(function (lookupError) {
-          console.warn("[track] Payment lookup failed:", lookupError);
-          result.innerHTML = renderLookupError();
-        });
+      window.location.href = "pages/student.html";
     }
 
     function submit() {
