@@ -1066,7 +1066,43 @@ html:has(.dashboard-page) {
   white-space: normal;
   overflow-wrap: anywhere;
   vertical-align: top;
-  padding: 0.55rem 0.7rem;
+  padding: 15px 16px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.dashboard-page .accounts-table th {
+  font-size: 0.68rem;
+}
+
+/* Roomier toolbar and content so the records table fills more of the screen */
+.dashboard-page .dash-content {
+  padding: 26px clamp(18px, 2.5vw, 30px) 20px;
+}
+
+.dashboard-page .dash-view {
+  gap: 18px;
+}
+
+.dashboard-page .records-toolbar {
+  gap: 14px;
+}
+
+.dashboard-page .btn--sm {
+  padding: 0.72rem 1.15rem;
+  font-size: 0.84rem;
+}
+
+.dashboard-page .records-search {
+  flex: 0 1 360px;
+  min-width: 240px;
+  padding: 0 14px;
+  border-radius: 12px;
+}
+
+.dashboard-page .records-search input {
+  padding: 13px 0;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 640px) {
