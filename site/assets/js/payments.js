@@ -237,9 +237,22 @@
 
     var typeTotals = columns.map(function (type) {
       var unit = Number(type.amount || 0);
+      var collected = 0;
+
+      allStudents.forEach(function (student) {
+        var record = byStudent[api.normalizeStudentId(student.studentId)];
+        var charges = record && Array.isArray(record.charges) ? record.charges : [];
+
+        charges.forEach(function (charge) {
+          if (!chargeMatchesType(charge, type)) return;
+          collected += Number(charge.paid || 0);
+        });
+      });
+
       return {
         unit: unit,
         count: allStudents.length,
+        collected: collected,
         expected: unit * allStudents.length
       };
     });
@@ -267,11 +280,9 @@
           .map(function (total) {
             return (
               '<td class="num pay-cell"><b>' +
+              money(total.collected) +
+              "</b><small>of " +
               money(total.expected) +
-              "</b><small>" +
-              total.count +
-              " × " +
-              money(total.unit) +
               "</small></td>"
             );
           })
