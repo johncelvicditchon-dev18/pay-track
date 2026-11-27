@@ -12,12 +12,20 @@
   var COUNCIL = session && session.council ? api.normalizeCouncil(session.council) : "";
 
   var form = document.getElementById("payment-type-form");
+  var semesterSelect = document.getElementById("type-semester");
+  var academicYearInput = document.getElementById("type-academic-year");
   var nameInput = document.getElementById("payment-type-name");
   var amountInput = document.getElementById("payment-type-amount");
   var hint = document.getElementById("payment-hint");
   var body = document.getElementById("payment-types-body");
   var tableWrap = document.getElementById("payment-types-table-wrap");
   var empty = document.getElementById("payment-types-empty");
+
+  /*
+   * Maintain the semester list here. Add another value and redeploy the site;
+   * the dropdown is generated from this array.
+   */
+  var SEMESTERS = ["1ST SEMESTER", "2ND SEMESTER"];
 
   var dialog = document.getElementById("payment-type-dialog");
   var editForm = document.getElementById("payment-type-edit-form");
@@ -84,6 +92,18 @@
     hint.setAttribute("data-state", tone || "");
   }
 
+  function fillSemesters() {
+    if (!semesterSelect) return;
+
+    semesterSelect.innerHTML =
+      '<option value="" disabled selected>Select semester</option>' +
+      SEMESTERS.map(function (semester) {
+        return '<option value="' + esc(semester) + '">' + esc(semester) + "</option>";
+      }).join("");
+  }
+
+  fillSemesters();
+
   function render() {
     if (!types.length) {
       body.innerHTML = "";
@@ -101,7 +121,7 @@
 
         return (
           "<tr>" +
-          '<td class="cell-name">' + esc(type.name || type.label || "Payment") + "</td>" +
+          '<td class="cell-name">' + esc(type.label || type.name || "Payment") + "</td>" +
           '<td class="num">' + money(type.amount) + "</td>" +
           '<td><span class="pay-status ' +
           (locked ? "pay-status--due" : "pay-status--paid") +
@@ -169,11 +189,25 @@
   form.addEventListener("submit", function (event) {
     event.preventDefault();
 
+    var semester = semesterSelect ? semesterSelect.value : "";
+    var academicYear = academicYearInput
+      ? academicYearInput.value.trim()
+      : "";
     var name = nameInput ? nameInput.value.trim().toUpperCase() : "";
     var amount = amountInput ? Number(amountInput.value) : 0;
 
     if (!COUNCIL) {
       setHint("Your account has no Council/Organization assigned.", "error");
+      return;
+    }
+    if (!semester) {
+      setHint("Select the semester.", "error");
+      if (semesterSelect) semesterSelect.focus();
+      return;
+    }
+    if (!/^\d{4}\s*-\s*\d{4}$/.test(academicYear)) {
+      setHint("Use an academic year like 2026-2027.", "error");
+      if (academicYearInput) academicYearInput.focus();
       return;
     }
     if (!name) {
@@ -187,19 +221,22 @@
       return;
     }
 
+    var label = semester + " - " + academicYear + " | " + name;
     var submit = form.querySelector('button[type="submit"]');
     if (submit) submit.disabled = true;
-    setHint("Creating " + name + "…");
+    setHint("Creating " + label + "…");
 
     window.TCGCFirebase.createPaymentType({
-      label: name,
+      label: label,
+      semester: semester,
+      academicYear: academicYear,
       name: name,
       amount: amount,
       council: COUNCIL,
       createdAt: new Date().toISOString()
     })
       .then(function () {
-        setHint("Payment type created: " + name + " · " + money(amount), "success");
+        setHint("Payment type created: " + label + " · " + money(amount), "success");
         if (nameInput) nameInput.value = "";
         if (amountInput) amountInput.value = "";
         load();

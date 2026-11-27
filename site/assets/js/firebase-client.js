@@ -788,7 +788,10 @@
 
       if (updates.name) {
         type.name = String(updates.name).trim().toUpperCase();
-        type.label = type.name;
+        type.label =
+          type.semester && type.academicYear
+            ? type.semester + " - " + type.academicYear + " | " + type.name
+            : type.name;
       }
       if (updates.amount != null) {
         type.amount = Number(updates.amount);
@@ -1144,6 +1147,7 @@
     var method = String(options.method || "").trim();
     var officer = options.officer || {};
     var typeName = String(type.name || type.label || "Payment").trim();
+    var typeLabel = String(type.label || typeName).trim();
     var chargeAmount = Number(type.amount || 0) || amount;
     var docId = council + "::" + studentId;
     var path = PAYMENTS_COLLECTION + "/" + encodeURIComponent(docId);
@@ -1179,11 +1183,15 @@
       );
 
       var existing = charges.filter(function (charge) {
-        var label = String(charge.typeLabel || charge.label || "");
+        var label = String(charge.typeLabel || charge.label || "").toLowerCase();
+        var name = String(charge.label || "").toLowerCase();
+
         return (
           !charge.locked &&
-          label.toLowerCase() === typeName.toLowerCase() &&
-          charge.paid < charge.amount
+          charge.paid < charge.amount &&
+          (label === typeLabel.toLowerCase() ||
+            label === typeName.toLowerCase() ||
+            name === typeName.toLowerCase())
         );
       })[0];
 
@@ -1198,7 +1206,7 @@
           category: type.category || "Miscellaneous",
           scope: type.scope || "Organization",
           unit: type.council || council,
-          typeLabel: typeName,
+          typeLabel: typeLabel,
           semester: type.semester || "",
           academicYear: type.academicYear || "",
           amount: chargeAmount,
@@ -1213,7 +1221,7 @@
       var payments = (Array.isArray(record.payments) ? record.payments : []).slice();
       payments.push({
         id: "pay-" + Date.now(),
-        label: typeName,
+        label: typeLabel,
         date: date,
         ref: ref,
         method: method,

@@ -71,8 +71,20 @@
     return String(value == null ? "" : value).trim().toLowerCase();
   }
 
-  function studentName(student) {
+  function chargeMatchesType(charge, type) {
+    var label = typeKey(type.label || type.name);
+    var name = typeKey(type.name || type.label);
+    var chargeType = typeKey(charge.typeLabel || charge.label);
+    var chargeLabel = typeKey(charge.label);
+
     return (
+      chargeType === label ||
+      chargeType === name ||
+      chargeLabel === name
+    );
+  }
+
+  function studentName(student) {    return (
       [student.firstName, student.middleName, student.lastName]
         .filter(Boolean)
         .join(" ")
@@ -113,7 +125,7 @@
 
     var filter = filterSelect ? filterSelect.value : "";
     var columns = types.filter(function (type) {
-      return !filter || typeKey(type.name || type.label) === typeKey(filter);
+      return !filter || typeKey(type.label || type.name) === typeKey(filter);
     });
 
     if (!students.length) {
@@ -142,7 +154,7 @@
           .map(function (type) {
             return (
               '<th scope="col" class="num">' +
-              esc(type.name || type.label || "Payment") +
+              esc(type.label || type.name || "Payment") +
               "<small>" +
               money(type.amount) +
               "</small></th>"
@@ -161,9 +173,8 @@
 
         var cells = columns
           .map(function (type) {
-            var key = typeKey(type.name || type.label);
             var matches = charges.filter(function (charge) {
-              return typeKey(charge.typeLabel || charge.label) === key;
+              return chargeMatchesType(charge, type);
             });
 
             if (!matches.length) {
@@ -218,7 +229,6 @@
       .join("");
 
     var typeTotals = columns.map(function (type) {
-      var key = typeKey(type.name || type.label);
       var amount = 0;
       var paid = 0;
 
@@ -227,7 +237,7 @@
         var charges = record && Array.isArray(record.charges) ? record.charges : [];
 
         charges.forEach(function (charge) {
-          if (typeKey(charge.typeLabel || charge.label) !== key) return;
+          if (!chargeMatchesType(charge, type)) return;
           amount += Number(charge.amount || 0);
           paid += Number(charge.paid || 0);
         });
@@ -340,12 +350,12 @@
         '<option value="">All payment types</option>' +
         types
           .map(function (type) {
-            var name = type.name || type.label || "Payment";
+            var label = type.label || type.name || "Payment";
             return (
               '<option value="' +
-              esc(name) +
+              esc(label) +
               '">' +
-              esc(name) +
+              esc(label) +
               (type.locked ? " \uD83D\uDD12\uFE0E" : "") +
               "</option>"
             );
@@ -353,7 +363,7 @@
           .join("");
 
       var stillThere = types.some(function (type) {
-        return (type.name || type.label) === current;
+        return (type.label || type.name) === current;
       });
       filterSelect.value = stillThere ? current : "";
     }

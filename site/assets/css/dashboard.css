@@ -804,6 +804,16 @@ html:has(.dashboard-page) {
   min-width: 0;
 }
 
+.pay-create #type-semester {
+  width: 180px;
+  max-width: 100%;
+}
+
+.pay-create #type-academic-year {
+  width: 150px;
+  max-width: 100%;
+}
+
 .pay-create #payment-type-amount {
   width: 150px;
 }

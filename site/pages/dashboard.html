@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Analytics - TCGC PayTrack</title>
+    <title>tcgc paytrack dashboard</title>
     <meta
       name="description"
       content="Your TCGC PayTrack dashboard — account details, registered accounts, and quick access to your payment records."
@@ -257,6 +257,16 @@
           <!-- ============ PAYMENT TYPES TAB ============ -->
           <section class="dash-view" id="payment-types" data-view-panel="payment-types" hidden>
             <form class="pay-create" id="payment-type-form" novalidate>
+              <label for="type-semester">
+                Semester
+                <select id="type-semester" required>
+                  <option value="" disabled selected>Select semester</option>
+                </select>
+              </label>
+              <label for="type-academic-year">
+                Academic Year
+                <input type="text" id="type-academic-year" placeholder="2026-2027" required />
+              </label>
               <label for="payment-type-name">
                 Payment Type
                 <input type="text" id="payment-type-name" placeholder="MEMBERSHIP FEE" required />
