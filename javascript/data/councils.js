@@ -60,6 +60,7 @@ export const SRO_POSITIONS = [
   "2ND YEAR REPRESENTATIVE",
   "3RD YEAR REPRESENTATIVE",
   "4TH YEAR REPRESENTATIVE",
+  "5TH YEAR REPRESENTATIVE",
 ];
 
 export function positionsForCouncil(council) {
