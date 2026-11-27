@@ -708,7 +708,8 @@ html:has(.dashboard-page) {
 }
 
 /* ---------- payments ---------- */
-.payments-table .num {
+.payments-table .num,
+.payment-types-table .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1623,4 +1624,44 @@ html:has(.dashboard-page) {
   .side-nav {
     height: 100dvh;
   }
+}
+
+/* payment record filter */
+.pay-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.pay-filter label {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pay-filter select {
+  min-width: 240px;
+  max-width: 100%;
+  padding: 0.58rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fffdfa;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.pay-filter select:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(21, 125, 84, 0.1);
 }

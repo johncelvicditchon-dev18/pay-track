@@ -17,11 +17,8 @@
 
   var tableWrap = document.getElementById("payments-table-wrap");
   var empty = document.getElementById("payments-empty");
-  var typeForm = document.getElementById("payment-type-form");
-  var typeName = document.getElementById("payment-type-name");
-  var typeAmount = document.getElementById("payment-type-amount");
-  var typeHint = document.getElementById("payment-hint");
   var typeSelect = document.getElementById("payment-type-select");
+  var filterSelect = document.getElementById("payment-record-filter");
 
   var dialog = document.getElementById("payment-dialog");
   var form = document.getElementById("payment-form");
@@ -59,12 +56,6 @@
   function text(value) {
     var copy = String(value == null ? "" : value).trim();
     return copy ? esc(copy) : "—";
-  }
-
-  function setHint(message, tone) {
-    if (!typeHint) return;
-    typeHint.textContent = message || "";
-    typeHint.setAttribute("data-state", tone || "");
   }
 
   function rosterNames() {
@@ -129,6 +120,15 @@
         )
       );
     });
+
+    var filter = filterSelect ? filterSelect.value : "";
+    if (filter) {
+      rows = rows.filter(function (row) {
+        return (
+          String(row.charge.typeLabel || row.charge.label || "") === filter
+        );
+      });
+    }
 
     return rows;
   }
@@ -235,23 +235,51 @@
   }
 
   function fillTypeSelect() {
-    if (!typeSelect) return;
+    if (typeSelect) {
+      typeSelect.innerHTML =
+        '<option value="" disabled selected>Select a payment type</option>' +
+        types
+          .map(function (type) {
+            return (
+              '<option value="' +
+              esc(type.id) +
+              '"' +
+              (type.locked ? " disabled" : "") +
+              ">" +
+              esc(type.label || type.name || "Payment") +
+              " · " +
+              money(type.amount) +
+              (type.locked ? " (locked)" : "") +
+              "</option>"
+            );
+          })
+          .join("");
+    }
 
-    typeSelect.innerHTML =
-      '<option value="" disabled selected>Select a payment type</option>' +
-      types
-        .map(function (type) {
-          return (
-            '<option value="' +
-            esc(type.id) +
-            '">' +
-            esc(type.label || type.name || "Payment") +
-            " · " +
-            money(type.amount) +
-            "</option>"
-          );
-        })
-        .join("");
+    if (filterSelect) {
+      var current = filterSelect.value;
+
+      filterSelect.innerHTML =
+        '<option value="">All payment types</option>' +
+        types
+          .map(function (type) {
+            var name = type.name || type.label || "Payment";
+            return (
+              '<option value="' +
+              esc(name) +
+              '">' +
+              esc(name) +
+              (type.locked ? " (locked)" : "") +
+              "</option>"
+            );
+          })
+          .join("");
+
+      var stillThere = types.some(function (type) {
+        return (type.name || type.label) === current;
+      });
+      filterSelect.value = stillThere ? current : "";
+    }
   }
 
   function loadTypes() {
@@ -269,55 +297,9 @@
       });
   }
 
-  if (typeForm) {
-    typeForm.addEventListener("submit", function (event) {
-      event.preventDefault();
-
-      var name = typeName ? typeName.value.trim().toUpperCase() : "";
-      var amount = typeAmount ? Number(typeAmount.value) : 0;
-
-      if (!COUNCIL) {
-        setHint("Your account has no Council/Organization assigned.", "error");
-        return;
-      }
-      if (!name) {
-        setHint("Enter the payment type.", "error");
-        if (typeName) typeName.focus();
-        return;
-      }
-      if (!(amount > 0)) {
-        setHint("Enter an amount greater than zero.", "error");
-        if (typeAmount) typeAmount.focus();
-        return;
-      }
-
-      var submit = typeForm.querySelector('button[type="submit"]');
-      if (submit) submit.disabled = true;
-      setHint("Creating " + name + "…");
-
-      window.TCGCFirebase.createPaymentType({
-        label: name,
-        name: name,
-        amount: amount,
-        council: COUNCIL,
-        createdAt: new Date().toISOString()
-      })
-        .then(function () {
-          setHint("Payment type created: " + name + " · " + money(amount), "success");
-          if (typeName) typeName.value = "";
-          if (typeAmount) typeAmount.value = "";
-          loadTypes();
-        })
-        .catch(function (error) {
-          console.warn("[payments] Could not create the payment type:", error);
-          setHint(
-            "Couldn't create the payment type. Check your session and Firestore rules.",
-            "error"
-          );
-        })
-        .then(function () {
-          if (submit) submit.disabled = false;
-        });
+  if (filterSelect) {
+    filterSelect.addEventListener("change", function () {
+      render();
     });
   }
 
@@ -402,7 +384,7 @@
         (record.name || "Student") + " · " + record.studentId;
     }
 
-    if (!types.length) loadTypes();
+    loadTypes();
     if (typeSelect) typeSelect.value = "";
     if (amountInput) amountInput.value = "";
     if (dateInput) {
@@ -553,7 +535,10 @@
     });
   }
 
-  window.TCGCRefreshPayments = load;
+  window.TCGCRefreshPayments = function () {
+    loadTypes();
+    load();
+  };
   loadTypes();
   load();
 })();

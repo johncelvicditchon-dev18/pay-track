@@ -745,6 +745,7 @@
   function typeFromDocument(document) {
     var type = decodeFields(document.fields || {});
     type.id = String(document.name || "").split("/").pop();
+    type.locked = Boolean(type.locked);
     return type;
   }
 
@@ -760,6 +761,10 @@
   };
 
   client.createPaymentType = function (type) {
+    var payload = Object.assign({ locked: false }, type, {
+      locked: Boolean(type.locked)
+    });
+
     return window
       .fetch(BASE_URL + "/" + TYPES_COLLECTION + KEY_PARAM, {
         method: "POST",
@@ -767,10 +772,25 @@
           "Content-Type": "application/json",
           Authorization: "Bearer " + (token || "")
         },
-        body: JSON.stringify({ fields: encodeFields(type) })
+        body: JSON.stringify({ fields: encodeFields(payload) })
       })
       .then(readJson)
       .then(typeFromDocument);
+  };
+
+  client.setPaymentTypeLock = function (typeId, locked) {
+    var path = TYPES_COLLECTION + "/" + encodeURIComponent(typeId);
+
+    return getDocumentOrNull(path).then(function (document) {
+      if (!document) throw makeError("Payment type not found.", "not-found");
+
+      var type = decodeFields(document.fields || {});
+      type.locked = Boolean(locked);
+
+      return patchDocument(path, type).then(function () {
+        return type;
+      });
+    });
   };
 
   client.deletePaymentType = function (typeId) {

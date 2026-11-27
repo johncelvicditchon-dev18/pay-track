@@ -150,7 +150,8 @@
     analytics: "Analytics",
     accounts: "Accounts",
     students: "Students",
-    payments: "Payment Record"
+    payments: "Payment Record",
+    "payment-types": "Payment Types"
   };
 
   var viewLinks = document.querySelectorAll("[data-view]");
@@ -185,6 +186,12 @@
     }
     if (name === "payments" && typeof window.TCGCRefreshPayments === "function") {
       window.TCGCRefreshPayments();
+    }
+    if (
+      name === "payment-types" &&
+      typeof window.TCGCRefreshPaymentTypes === "function"
+    ) {
+      window.TCGCRefreshPaymentTypes();
     }
 
     if (isMobile()) closeMobileNav();

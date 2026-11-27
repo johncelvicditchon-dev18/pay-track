@@ -72,7 +72,15 @@
               <path d="M9 7h6M9 11h6" />
             </svg>
             Payment Record
-          </a>        </nav>
+          </a>
+          <a class="side-link" href="#payment-types" data-view="payment-types">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.6 13.4 12 22l-9-9V4h9l8.6 8.6a1.4 1.4 0 0 1 0 2Z" />
+              <circle cx="7.5" cy="7.5" r="1.3" />
+            </svg>
+            Payment Types
+          </a>
+        </nav>
 
         <div class="side-nav__foot">
           <button class="side-logout" id="dash-logout" type="button">
@@ -207,18 +215,12 @@
 
           <!-- ============ PAYMENTS TAB ============ -->
           <section class="dash-view" id="payments" data-view-panel="payments" hidden>
-            <form class="pay-create" id="payment-type-form" novalidate>
-              <label for="payment-type-name">
-                Payment Type
-                <input type="text" id="payment-type-name" placeholder="MEMBERSHIP FEE" required />
-              </label>
-              <label for="payment-type-amount">
-                Amount
-                <input type="number" id="payment-type-amount" min="0" step="0.01" placeholder="0.00" required />
-              </label>
-              <button class="btn btn--primary btn--sm" type="submit">Create Payment Type</button>
-              <p class="pay-form__hint" id="payment-hint" role="status"></p>
-            </form>
+            <div class="pay-filter">
+              <label for="payment-record-filter">Filter by Payment Type</label>
+              <select id="payment-record-filter">
+                <option value="">All payment types</option>
+              </select>
+            </div>
 
             <div class="accounts-table-wrap">
               <div class="accounts-table-scroll" id="payments-table-wrap" hidden>
@@ -240,7 +242,44 @@
 
               <div class="accounts-empty" id="payments-empty">
                 <p>No payment records for this council yet.</p>
-                <small>Create a payment type above, then use Record Payment on a student.</small>
+                <small>Create a payment type in the Payment Types tab, then use Record Payment on a student.</small>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ PAYMENT TYPES TAB ============ -->
+          <section class="dash-view" id="payment-types" data-view-panel="payment-types" hidden>
+            <form class="pay-create" id="payment-type-form" novalidate>
+              <label for="payment-type-name">
+                Payment Type
+                <input type="text" id="payment-type-name" placeholder="MEMBERSHIP FEE" required />
+              </label>
+              <label for="payment-type-amount">
+                Amount
+                <input type="number" id="payment-type-amount" min="0" step="0.01" placeholder="0.00" required />
+              </label>
+              <button class="btn btn--primary btn--sm" type="submit">Create Payment Type</button>
+              <p class="pay-form__hint" id="payment-hint" role="status"></p>
+            </form>
+
+            <div class="accounts-table-wrap">
+              <div class="accounts-table-scroll" id="payment-types-table-wrap" hidden>
+                <table class="accounts-table payment-types-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Payment Type</th>
+                      <th scope="col" class="num">Amount</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payment-types-body"></tbody>
+                </table>
+              </div>
+
+              <div class="accounts-empty" id="payment-types-empty">
+                <p>No payment types yet.</p>
+                <small>Create one above to use it in filters and Record Payment.</small>
               </div>
             </div>
           </section>
@@ -460,6 +499,7 @@
     <script src="../assets/js/students.js"></script>
     <script src="../assets/js/analytics.js"></script>
     <script src="../assets/js/payments.js"></script>
+    <script src="../assets/js/payment-types.js"></script>
     <script src="../assets/js/dashboard.js"></script>
   </body>
 </html>
