@@ -18,6 +18,7 @@
   var tableWrap = document.getElementById("payments-table-wrap");
   var empty = document.getElementById("payments-empty");
   var tableHead = document.getElementById("payments-head");
+  var tableFoot = document.getElementById("payments-foot");
   var typeSelect = document.getElementById("payment-type-select");
   var filterSelect = document.getElementById("payment-record-filter");
   var searchInput = document.getElementById("payment-record-search");
@@ -118,6 +119,7 @@
     if (!students.length) {
       if (body) body.innerHTML = "";
       if (tableHead) tableHead.innerHTML = "";
+      if (tableFoot) tableFoot.innerHTML = "";
       if (tableWrap) tableWrap.hidden = true;
       if (empty) {
         empty.hidden = false;
@@ -214,6 +216,63 @@
         );
       })
       .join("");
+
+    var typeTotals = columns.map(function (type) {
+      var key = typeKey(type.name || type.label);
+      var amount = 0;
+      var paid = 0;
+
+      students.forEach(function (student) {
+        var record = byStudent[api.normalizeStudentId(student.studentId)];
+        var charges = record && Array.isArray(record.charges) ? record.charges : [];
+
+        charges.forEach(function (charge) {
+          if (typeKey(charge.typeLabel || charge.label) !== key) return;
+          amount += Number(charge.amount || 0);
+          paid += Number(charge.paid || 0);
+        });
+      });
+
+      return { amount: amount, paid: paid };
+    });
+
+    var grandAmount = 0;
+    var grandPaid = 0;
+
+    students.forEach(function (student) {
+      var record = byStudent[api.normalizeStudentId(student.studentId)];
+      var charges = record && Array.isArray(record.charges) ? record.charges : [];
+
+      charges.forEach(function (charge) {
+        grandAmount += Number(charge.amount || 0);
+        grandPaid += Number(charge.paid || 0);
+      });
+    });
+
+    var grandBalance = Math.max(grandAmount - grandPaid, 0);
+
+    if (tableFoot) {
+      tableFoot.innerHTML =
+        '<tr class="pay-total-row">' +
+        '<td colspan="2" class="cell-name">TOTAL</td>' +
+        typeTotals
+          .map(function (total) {
+            return (
+              '<td class="num pay-cell"><b>' +
+              money(total.paid) +
+              "</b><small>of " +
+              money(total.amount) +
+              "</small></td>"
+            );
+          })
+          .join("") +
+        "<td>" +
+        (grandBalance > 0
+          ? '<span class="row-note">' + money(grandBalance) + " balance</span>"
+          : '<span class="pay-status pay-status--paid">Paid</span>') +
+        "</td>" +
+        "</tr>";
+    }
   }
 
   function load() {

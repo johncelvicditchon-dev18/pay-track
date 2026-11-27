@@ -1719,3 +1719,20 @@ html:has(.dashboard-page) {
   gap: 10px;
   margin-left: auto;
 }
+
+/* floating totals row */
+.payments-table tfoot td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  border-top: 2px solid var(--green-100);
+  background: #f4f9f2;
+  color: var(--green-900);
+  font-weight: 800;
+}
+
+.pay-total-row .cell-name {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
