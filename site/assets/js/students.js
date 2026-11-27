@@ -186,6 +186,10 @@
         }
 
         render();
+
+        if (typeof window.TCGCRefreshPayments === "function") {
+          window.TCGCRefreshPayments();
+        }
       })
       .catch(function (error) {
         console.warn("[students] Firebase load failed:", error);

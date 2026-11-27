@@ -225,24 +225,14 @@
             <div class="accounts-table-wrap">
               <div class="accounts-table-scroll" id="payments-table-wrap" hidden>
                 <table class="accounts-table payments-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Student ID</th>
-                      <th scope="col">Full Name</th>
-                      <th scope="col">Payment Type</th>
-                      <th scope="col" class="num">Amount</th>
-                      <th scope="col">Status</th>
-                      <th scope="col">Recorded By</th>
-                      <th scope="col">Actions</th>
-                    </tr>
-                  </thead>
+                  <thead id="payments-head"></thead>
                   <tbody id="payments-body"></tbody>
                 </table>
               </div>
 
               <div class="accounts-empty" id="payments-empty">
-                <p>No payment records for this council yet.</p>
-                <small>Create a payment type in the Payment Types tab, then use Record Payment on a student.</small>
+                <p>No students imported yet.</p>
+                <small>Import students first, then create payment types and record payments.</small>
               </div>
             </div>
           </section>

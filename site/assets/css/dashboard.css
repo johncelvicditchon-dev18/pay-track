@@ -1671,3 +1671,27 @@ html:has(.dashboard-page) {
 .edit-grid select {
   font-variant-emoji: text;
 }
+
+/* pivot payment record table */
+.payments-table th small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.pay-cell b {
+  display: block;
+  color: var(--green-900);
+  font-size: 0.8rem;
+}
+
+.pay-cell small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-weight: 600;
+}

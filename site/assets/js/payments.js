@@ -17,6 +17,7 @@
 
   var tableWrap = document.getElementById("payments-table-wrap");
   var empty = document.getElementById("payments-empty");
+  var tableHead = document.getElementById("payments-head");
   var typeSelect = document.getElementById("payment-type-select");
   var filterSelect = document.getElementById("payment-record-filter");
 
@@ -58,99 +59,51 @@
     return copy ? esc(copy) : "—";
   }
 
-  function rosterNames() {
-    var list =
-      window.TCGCStudents && window.TCGCStudents.getStudents
-        ? window.TCGCStudents.getStudents()
-        : [];
-    var map = {};
+  function roster() {
+    return window.TCGCStudents && window.TCGCStudents.getStudents
+      ? window.TCGCStudents.getStudents()
+      : [];
+  }
 
-    list.forEach(function (student) {
-      var id = api.normalizeStudentId(student.studentId);
-      var name = [student.firstName, student.middleName, student.lastName]
+  function typeKey(value) {
+    return String(value == null ? "" : value).trim().toLowerCase();
+  }
+
+  function studentName(student) {
+    return (
+      [student.firstName, student.middleName, student.lastName]
         .filter(Boolean)
         .join(" ")
-        .trim();
-      map[id] = name || id;
-    });
-
-    return map;
-  }
-
-  function flatten() {
-    var names = rosterNames();
-    var rows = [];
-
-    records.forEach(function (record) {
-      var id = api.normalizeStudentId(record.studentId);
-      var name = names[id] || record.name || id;
-
-      (Array.isArray(record.charges) ? record.charges : []).forEach(
-        function (charge, index) {
-          var recordedBy = charge.assessedBy || "";
-          if (!recordedBy && Array.isArray(record.payments)) {
-            var match = record.payments.filter(function (payment) {
-              return (
-                String(payment.label || "").toLowerCase() ===
-                String(charge.typeLabel || charge.label || "").toLowerCase()
-              );
-            })[0];
-            recordedBy = match ? match.recordedBy || "" : "";
-          }
-
-          rows.push({
-            record: record,
-            charge: charge,
-            index: index,
-            studentId: id,
-            studentName: name,
-            recordedBy: recordedBy
-          });
-        }
-      );
-    });
-
-    rows.sort(function (a, b) {
-      return (
-        a.studentName.localeCompare(b.studentName, "en", {
-          sensitivity: "base"
-        }) ||
-        String(a.charge.typeLabel || a.charge.label || "").localeCompare(
-          String(b.charge.typeLabel || b.charge.label || "")
-        )
-      );
-    });
-
-    var filter = filterSelect ? filterSelect.value : "";
-    if (filter) {
-      rows = rows.filter(function (row) {
-        return (
-          String(row.charge.typeLabel || row.charge.label || "") === filter
-        );
-      });
-    }
-
-    return rows;
-  }
-
-  function payableBalance(record) {
-    return (Array.isArray(record.charges) ? record.charges : []).reduce(
-      function (sum, charge) {
-        if (charge.locked) return sum;
-        return (
-          sum +
-          Math.max(Number(charge.amount || 0) - Number(charge.paid || 0), 0)
-        );
-      },
-      0
+        .trim() || student.studentId
     );
   }
 
   function render() {
-    var rows = flatten();
+    var students = roster().slice().sort(function (a, b) {
+      return (
+        String(a.lastName || "").localeCompare(String(b.lastName || ""), "en", {
+          sensitivity: "base"
+        }) ||
+        String(a.firstName || "").localeCompare(String(b.firstName || ""), "en", {
+          sensitivity: "base"
+        }) ||
+        String(a.studentId || "").localeCompare(String(b.studentId || ""))
+      );
+    });
 
-    if (!rows.length) {
-      body.innerHTML = "";
+    var byStudent = {};
+    records.forEach(function (record) {
+      byStudent[api.normalizeStudentId(record.studentId)] = record;
+    });
+
+    var filter = filterSelect ? filterSelect.value : "";
+    var columns = types.filter(function (type) {
+      return !filter || typeKey(type.name || type.label) === typeKey(filter);
+    });
+
+    if (!students.length) {
+      if (body) body.innerHTML = "";
+      if (tableHead) tableHead.innerHTML = "";
       if (tableWrap) tableWrap.hidden = true;
       if (empty) empty.hidden = false;
       return;
@@ -159,38 +112,85 @@
     if (empty) empty.hidden = true;
     if (tableWrap) tableWrap.hidden = false;
 
-    body.innerHTML = rows
-      .map(function (row) {
-        var charge = row.charge;
-        var locked = Boolean(charge.locked);
+    if (tableHead) {
+      tableHead.innerHTML =
+        "<tr>" +
+        '<th scope="col">Student ID</th>' +
+        '<th scope="col">Full Name</th>' +
+        columns
+          .map(function (type) {
+            return (
+              '<th scope="col" class="num">' +
+              esc(type.name || type.label || "Payment") +
+              "<small>" +
+              money(type.amount) +
+              "</small></th>"
+            );
+          })
+          .join("") +
+        '<th scope="col">Status</th>' +
+        "</tr>";
+    }
+
+    body.innerHTML = students
+      .map(function (student) {
+        var studentId = api.normalizeStudentId(student.studentId);
+        var record = byStudent[studentId];
+        var charges = record && Array.isArray(record.charges) ? record.charges : [];
+
+        var cells = columns
+          .map(function (type) {
+            var key = typeKey(type.name || type.label);
+            var matches = charges.filter(function (charge) {
+              return typeKey(charge.typeLabel || charge.label) === key;
+            });
+
+            if (!matches.length) {
+              return '<td class="num pay-cell">—</td>';
+            }
+
+            var amount = matches.reduce(function (sum, charge) {
+              return sum + Number(charge.amount || 0);
+            }, 0);
+            var paid = matches.reduce(function (sum, charge) {
+              return sum + Number(charge.paid || 0);
+            }, 0);
+
+            return (
+              '<td class="num pay-cell"><b>' +
+              money(paid) +
+              "</b><small>of " +
+              money(amount) +
+              "</small></td>"
+            );
+          })
+          .join("");
+
+        var total = charges.reduce(function (sum, charge) {
+          return sum + Number(charge.amount || 0);
+        }, 0);
+        var paid = charges.reduce(function (sum, charge) {
+          return sum + Number(charge.paid || 0);
+        }, 0);
+        var balance = Math.max(total - paid, 0);
+        var status;
+
+        if (!charges.length) {
+          status = '<span class="row-note">No charges</span>';
+        } else if (balance <= 0) {
+          status = '<span class="pay-status pay-status--paid">Paid</span>';
+        } else if (paid > 0) {
+          status = '<span class="pay-status pay-status--due">Partial</span>';
+        } else {
+          status = '<span class="pay-status pay-status--due">Unpaid</span>';
+        }
 
         return (
           "<tr>" +
-          "<td>" + text(row.studentId) + "</td>" +
-          '<td class="cell-name">' + text(row.studentName) + "</td>" +
-          "<td>" + text(charge.typeLabel || charge.label || "Payment") + "</td>" +
-          '<td class="num">' + money(charge.amount) + "</td>" +
-          '<td><span class="pay-status ' +
-          (locked ? "pay-status--due" : "pay-status--paid") +
-          '">' +
-          (locked ? "Locked" : "Unlocked") +
-          "</span></td>" +
-          "<td>" + text(row.recordedBy) + "</td>" +
-          '<td class="cell-actions">' +
-          '<button class="row-action' +
-          (locked ? "" : " row-action--danger") +
-          '" type="button" data-lock-student="' +
-          esc(row.studentId) +
-          '" data-lock-index="' +
-          row.index +
-          '" data-lock-id="' +
-          esc(charge.id || "") +
-          '" data-lock-state="' +
-          (locked ? "true" : "false") +
-          '">' +
-          (locked ? "Unlock Payment" : "Lock Payment") +
-          "</button>" +
-          "</td>" +
+          "<td>" + text(studentId) + "</td>" +
+          '<td class="cell-name">' + text(studentName(student)) + "</td>" +
+          cells +
+          "<td>" + status + "</td>" +
           "</tr>"
         );
       })
@@ -198,6 +198,7 @@
   }
 
   function load() {
+
     if (!COUNCIL) {
       records = [];
       render();
@@ -291,6 +292,7 @@
       .then(function (rows) {
         types = rows || [];
         fillTypeSelect();
+        render();
       })
       .catch(function (error) {
         console.warn("[payments] Could not load payment types:", error);
@@ -300,54 +302,6 @@
   if (filterSelect) {
     filterSelect.addEventListener("change", function () {
       render();
-    });
-  }
-
-  if (body) {
-    body.addEventListener("click", function (event) {
-      var button =
-        event.target && event.target.closest
-          ? event.target.closest("[data-lock-student]")
-          : null;
-      if (!button) return;
-
-      var studentId = button.getAttribute("data-lock-student");
-      var currentlyLocked = button.getAttribute("data-lock-state") === "true";
-      var index = Number(button.getAttribute("data-lock-index"));
-      var chargeId = button.getAttribute("data-lock-id");
-
-      button.disabled = true;
-
-      window.TCGCFirebase.setChargeLock({
-        council: COUNCIL,
-        studentId: studentId,
-        index: isNaN(index) ? undefined : index,
-        chargeId: chargeId || undefined,
-        locked: !currentlyLocked
-      })
-        .then(function () {
-          if (api.toast) {
-            api.toast(
-              "Payment " + (currentlyLocked ? "unlocked" : "locked"),
-              (currentlyLocked
-                ? "The charge is editable again."
-                : "The charge is now frozen."),
-              "success"
-            );
-          }
-          load();
-        })
-        .catch(function (error) {
-          console.warn("[payments] Lock update failed:", error);
-          button.disabled = false;
-          if (api.toast) {
-            api.toast(
-              "Couldn't update the charge",
-              "Check your session and Firestore rules.",
-              "error"
-            );
-          }
-        });
     });
   }
 
