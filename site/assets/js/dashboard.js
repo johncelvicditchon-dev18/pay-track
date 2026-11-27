@@ -178,7 +178,7 @@
     });
 
     if (topbarTitle) topbarTitle.textContent = VIEW_TITLES[name];
-    document.title = VIEW_TITLES[name] + " · TCGC PayTrack";
+    document.title = VIEW_TITLES[name] + " - TCGC PayTrack";
 
     if (name === "analytics" && typeof window.TCGCRefreshAnalytics === "function") {
       window.TCGCRefreshAnalytics();
