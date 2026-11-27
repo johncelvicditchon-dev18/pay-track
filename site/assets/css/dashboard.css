@@ -512,12 +512,20 @@ html:has(.dashboard-page) {
 }
 
 .chart-card {
+  flex: none;
   margin-top: 20px;
-  padding: 22px 22px 12px;
+  padding: 22px 22px 18px;
   border: 1px solid var(--line);
   border-radius: 24px;
   background: #fff;
   box-shadow: var(--shadow-sm);
+}
+
+/* Keep the year labels under the chart visible instead of clipping them */
+.dash-view#analytics {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .chart-card__head {
@@ -559,8 +567,9 @@ html:has(.dashboard-page) {
 .enroll-chart {
   display: block;
   width: 100%;
+  max-width: 900px;
   height: auto;
-  margin-top: 8px;
+  margin: 8px auto 0;
   overflow: visible;
 }
 

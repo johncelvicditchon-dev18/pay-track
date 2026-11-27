@@ -19,7 +19,7 @@
   var YEARS = ["1ST YEAR", "2ND YEAR", "3RD YEAR", "4TH YEAR"];
   var W = 760;
   var H = 360;
-  var PAD = { left: 54, right: 26, top: 28, bottom: 56 };
+  var PAD = { left: 54, right: 26, top: 28, bottom: 64 };
 
   function yearBucket(value) {
     var text = String(value == null ? "" : value).trim().toUpperCase();
@@ -226,7 +226,7 @@
         '<text class="enroll-chart__label" x="' +
           point.x +
           '" y="' +
-          (H - PAD.bottom + 26) +
+          (H - 26) +
           '" text-anchor="middle">' +
           point.label +
           "</text>"
