@@ -93,17 +93,24 @@
                   Track your payment
                 </label>
                 <div class="hero-track__row">
-                  <input
-                    class="hero-track__input"
-                    type="text"
-                    id="track-student-id"
-                    name="studentId"
-                    placeholder="Enter your Student ID"
-                    autocomplete="off"
-                    spellcheck="false"
-                    aria-describedby="track-error"
-                    required
-                  />
+                  <div class="hero-track__field">
+                    <svg class="hero-track__field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M7 9h4M7 13h7M15 9h2" />
+                    </svg>
+                    <input
+                      class="hero-track__input"
+                      type="text"
+                      id="track-student-id"
+                      name="studentId"
+                      placeholder="Enter your Student ID"
+                      autocomplete="off"
+                      autocapitalize="characters"
+                      spellcheck="false"
+                      aria-describedby="track-error track-hint"
+                      required
+                    />
+                  </div>
                   <button class="btn btn--accent hero-track__btn" type="submit">
                     Track
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -111,6 +118,9 @@
                     </svg>
                   </button>
                 </div>
+                <p class="hero-track__hint" id="track-hint">
+                  Use the Student ID printed on your school ID to see your payments.
+                </p>
                 <p class="hero-track__error" id="track-error" role="alert" hidden></p>
               </form>
             </div>
