@@ -249,7 +249,7 @@
               esc(type.label || type.name || "Payment") +
               " · " +
               money(type.amount) +
-              (type.locked ? " 🔒" : "") +
+              (type.locked ? " \uD83D\uDD12\uFE0E" : "") +
               "</option>"
             );
           })
@@ -269,7 +269,7 @@
               esc(name) +
               '">' +
               esc(name) +
-              (type.locked ? " 🔒" : "") +
+              (type.locked ? " \uD83D\uDD12\uFE0E" : "") +
               "</option>"
             );
           })
