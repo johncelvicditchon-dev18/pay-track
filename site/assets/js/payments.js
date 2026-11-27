@@ -236,27 +236,18 @@
       .join("");
 
     var typeTotals = columns.map(function (type) {
-      var amount = 0;
-      var paid = 0;
-
-      students.forEach(function (student) {
-        var record = byStudent[api.normalizeStudentId(student.studentId)];
-        var charges = record && Array.isArray(record.charges) ? record.charges : [];
-
-        charges.forEach(function (charge) {
-          if (!chargeMatchesType(charge, type)) return;
-          amount += Number(charge.amount || 0);
-          paid += Number(charge.paid || 0);
-        });
-      });
-
-      return { amount: amount, paid: paid };
+      var unit = Number(type.amount || 0);
+      return {
+        unit: unit,
+        count: allStudents.length,
+        expected: unit * allStudents.length
+      };
     });
 
     var grandAmount = 0;
     var grandPaid = 0;
 
-    students.forEach(function (student) {
+    allStudents.forEach(function (student) {
       var record = byStudent[api.normalizeStudentId(student.studentId)];
       var charges = record && Array.isArray(record.charges) ? record.charges : [];
 
@@ -276,9 +267,11 @@
           .map(function (total) {
             return (
               '<td class="num pay-cell"><b>' +
-              money(total.paid) +
-              "</b><small>of " +
-              money(total.amount) +
+              money(total.expected) +
+              "</b><small>" +
+              total.count +
+              " × " +
+              money(total.unit) +
               "</small></td>"
             );
           })
