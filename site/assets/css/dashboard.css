@@ -279,14 +279,27 @@ html:has(.dashboard-page) {
 
 .top-user__copy {
   line-height: 1.25;
+  min-width: 0;
 }
 
 .top-user__copy strong {
   display: block;
-  max-width: 22ch;
-  overflow: hidden;
+  max-width: 34ch;
+  overflow-wrap: anywhere;
   font-size: 0.75rem;
+}
+
+.top-user__copy span {
+  display: block;
+  max-width: 34ch;
+  margin-top: 1px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-overflow: ellipsis;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
