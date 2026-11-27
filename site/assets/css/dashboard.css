@@ -779,7 +779,12 @@ html:has(.dashboard-page) {
   box-shadow: 0 0 0 3px rgba(21, 125, 84, 0.1);
 }
 
+.pay-create label:first-of-type {
+  flex: 1 1 420px;
+}
+
 .pay-create #payment-type-name {
+  width: 100%;
   min-width: 240px;
 }
 
