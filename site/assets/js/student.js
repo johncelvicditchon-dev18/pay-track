@@ -14,7 +14,7 @@
   var input = document.getElementById("student-id-input");
   var errorEl = document.getElementById("student-error");
   var logoutButton = document.getElementById("student-logout");
-  var switchButton = document.getElementById("student-switch");
+  var changeButton = document.getElementById("student-change");
   var nameEl = document.getElementById("student-name");
   var metaEl = document.getElementById("student-meta");
   var statsEl = document.getElementById("student-stats");
@@ -60,6 +60,7 @@
     if (gate) gate.hidden = false;
     if (panel) panel.hidden = true;
     if (logoutButton) logoutButton.hidden = true;
+    if (changeButton) changeButton.hidden = true;
     document.title = "My payments · TCGC PayTrack";
   }
 
@@ -67,6 +68,7 @@
     if (gate) gate.hidden = true;
     if (panel) panel.hidden = false;
     if (logoutButton) logoutButton.hidden = false;
+    if (changeButton) changeButton.hidden = false;
   }
 
   function groupCharges(charges) {
@@ -350,8 +352,8 @@
     });
   }
 
-  if (switchButton) {
-    switchButton.addEventListener("click", function () {
+  if (changeButton) {
+    changeButton.addEventListener("click", function () {
       api.clearSession();
       showGate();
       if (input) {
