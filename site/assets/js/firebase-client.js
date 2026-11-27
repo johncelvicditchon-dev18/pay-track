@@ -830,7 +830,20 @@
 
     return queryDocuments(TYPES_COLLECTION, "council", code).then(
       function (documents) {
-        return documents.map(typeFromDocument);
+        return documents
+          .map(typeFromDocument)
+          .sort(function (a, b) {
+            var first = String(a.createdAt || "");
+            var second = String(b.createdAt || "");
+
+            if (first && second) return first.localeCompare(second);
+            if (first) return -1;
+            if (second) return 1;
+
+            return String(a.name || a.label || "").localeCompare(
+              String(b.name || b.label || "")
+            );
+          });
       }
     );
   };
