@@ -52,6 +52,9 @@
 
   if (!api || !body) return;
 
+  var session = api.getSession ? api.getSession() : null;
+  var COUNCIL = session && session.council ? api.normalizeCouncil(session.council) : "";
+
   function escapeHtml(value) {
     return String(value)
       .replace(/&/g, "&amp;")
