@@ -20,6 +20,7 @@
   var tableHead = document.getElementById("payments-head");
   var typeSelect = document.getElementById("payment-type-select");
   var filterSelect = document.getElementById("payment-record-filter");
+  var searchInput = document.getElementById("payment-record-search");
 
   var dialog = document.getElementById("payment-dialog");
   var form = document.getElementById("payment-form");
@@ -79,7 +80,7 @@
   }
 
   function render() {
-    var students = roster().slice().sort(function (a, b) {
+    var allStudents = roster().slice().sort(function (a, b) {
       return (
         String(a.lastName || "").localeCompare(String(b.lastName || ""), "en", {
           sensitivity: "base"
@@ -90,6 +91,19 @@
         String(a.studentId || "").localeCompare(String(b.studentId || ""))
       );
     });
+
+    var query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    var students = query
+      ? allStudents.filter(function (student) {
+          return (
+            String(student.studentId || "") +
+            " " +
+            studentName(student)
+          )
+            .toLowerCase()
+            .indexOf(query) !== -1;
+        })
+      : allStudents;
 
     var byStudent = {};
     records.forEach(function (record) {
@@ -105,7 +119,12 @@
       if (body) body.innerHTML = "";
       if (tableHead) tableHead.innerHTML = "";
       if (tableWrap) tableWrap.hidden = true;
-      if (empty) empty.hidden = false;
+      if (empty) {
+        empty.hidden = false;
+        empty.innerHTML = allStudents.length
+          ? "<p>No students match your search.</p><small>Try another Student ID or name.</small>"
+          : "<p>No students imported yet.</p><small>Import students first, then create payment types and record payments.</small>";
+      }
       return;
     }
 
@@ -301,6 +320,12 @@
 
   if (filterSelect) {
     filterSelect.addEventListener("change", function () {
+      render();
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener("input", function () {
       render();
     });
   }
