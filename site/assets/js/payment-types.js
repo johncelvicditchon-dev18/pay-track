@@ -35,6 +35,11 @@
   var editClose = document.getElementById("payment-type-dialog-close");
   var editCancel = document.getElementById("payment-type-edit-cancel");
 
+  var newButton = document.getElementById("new-payment-type");
+  var createDialog = document.getElementById("new-payment-type-dialog");
+  var createClose = document.getElementById("new-payment-type-close");
+  var createCancel = document.getElementById("new-payment-type-cancel");
+
   if (!form || !body) return;
 
   var types = [];
@@ -100,6 +105,27 @@
       SEMESTERS.map(function (semester) {
         return '<option value="' + esc(semester) + '">' + esc(semester) + "</option>";
       }).join("");
+  }
+
+  function openCreateDialog() {
+    if (!createDialog) return;
+
+    setHint("");
+    if (nameInput) nameInput.value = "";
+    if (amountInput) amountInput.value = "";
+
+    if (typeof createDialog.showModal === "function") createDialog.showModal();
+    else createDialog.setAttribute("open", "open");
+
+    window.setTimeout(function () {
+      if (nameInput) nameInput.focus();
+    }, 60);
+  }
+
+  function closeCreateDialog() {
+    if (!createDialog) return;
+    if (typeof createDialog.close === "function") createDialog.close();
+    else createDialog.removeAttribute("open");
   }
 
   fillSemesters();
@@ -236,7 +262,15 @@
       createdAt: new Date().toISOString()
     })
       .then(function () {
+        closeCreateDialog();
         setHint("Payment type created: " + label + " · " + money(amount), "success");
+        if (api.toast) {
+          api.toast(
+            "Payment type created",
+            label + " · " + money(amount),
+            "success"
+          );
+        }
         if (nameInput) nameInput.value = "";
         if (amountInput) amountInput.value = "";
         load();
@@ -398,6 +432,15 @@
     });
     dialog.addEventListener("close", function () {
       editingType = null;
+    });
+  }
+
+  if (newButton) newButton.addEventListener("click", openCreateDialog);
+  if (createClose) createClose.addEventListener("click", closeCreateDialog);
+  if (createCancel) createCancel.addEventListener("click", closeCreateDialog);
+  if (createDialog) {
+    createDialog.addEventListener("click", function (event) {
+      if (event.target === createDialog) closeCreateDialog();
     });
   }
 

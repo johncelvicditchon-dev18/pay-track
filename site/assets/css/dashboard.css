@@ -1798,3 +1798,11 @@ html:has(.dashboard-page) {
 .pay-create #type-semester {
   width: 200px;
 }
+
+/* payment types toolbar */
+.pay-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
