@@ -778,6 +778,28 @@
       .then(typeFromDocument);
   };
 
+  client.updatePaymentType = function (typeId, updates) {
+    var path = TYPES_COLLECTION + "/" + encodeURIComponent(typeId);
+
+    return getDocumentOrNull(path).then(function (document) {
+      if (!document) throw makeError("Payment type not found.", "not-found");
+
+      var type = decodeFields(document.fields || {});
+
+      if (updates.name) {
+        type.name = String(updates.name).trim().toUpperCase();
+        type.label = type.name;
+      }
+      if (updates.amount != null) {
+        type.amount = Number(updates.amount);
+      }
+
+      return patchDocument(path, type).then(function () {
+        return type;
+      });
+    });
+  };
+
   client.setPaymentTypeLock = function (typeId, locked) {
     var path = TYPES_COLLECTION + "/" + encodeURIComponent(typeId);
 

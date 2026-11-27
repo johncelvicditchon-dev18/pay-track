@@ -19,9 +19,18 @@
   var tableWrap = document.getElementById("payment-types-table-wrap");
   var empty = document.getElementById("payment-types-empty");
 
+  var dialog = document.getElementById("payment-type-dialog");
+  var editForm = document.getElementById("payment-type-edit-form");
+  var editName = document.getElementById("edit-payment-type-name");
+  var editAmount = document.getElementById("edit-payment-type-amount");
+  var editError = document.getElementById("payment-type-edit-error");
+  var editClose = document.getElementById("payment-type-dialog-close");
+  var editCancel = document.getElementById("payment-type-edit-cancel");
+
   if (!form || !body) return;
 
   var types = [];
+  var editingType = null;
 
   function money(value) {
     return (
@@ -40,6 +49,33 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+  }
+
+  function actionIcon(name) {
+    var paths = {
+      edit:
+        '<path d="M12 20h9" />' +
+        '<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />',
+      delete:
+        '<path d="M3 6h18" />' +
+        '<path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />' +
+        '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />' +
+        '<path d="M10 11v6M14 11v6" />',
+      lock:
+        '<rect x="4" y="10" width="16" height="10" rx="2" />' +
+        '<path d="M8 10V7a4 4 0 0 1 8 0v3" />',
+      unlock:
+        '<rect x="4" y="10" width="16" height="10" rx="2" />' +
+        '<path d="M8 10V7a4 4 0 0 1 7-2" />'
+    };
+
+    return (
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ' +
+      'aria-hidden="true">' +
+      paths[name] +
+      "</svg>"
+    );
   }
 
   function setHint(message, tone) {
@@ -73,15 +109,33 @@
           (locked ? "Locked" : "Unlocked") +
           "</span></td>" +
           '<td class="cell-actions">' +
+          '<span class="row-actions">' +
           '<button class="row-action' +
           (locked ? "" : " row-action--danger") +
-          '" type="button" data-lock-type="' +
+          '" type="button" data-action="lock" data-id="' +
           esc(type.id) +
-          '" data-lock-state="' +
+          '" data-locked="' +
           (locked ? "true" : "false") +
           '">' +
+          actionIcon(locked ? "unlock" : "lock") +
+          "<span>" +
           (locked ? "Unlock" : "Lock") +
-          "</button>" +
+          "</span></button>" +
+          '<button class="row-action" type="button" data-action="edit" data-id="' +
+          esc(type.id) +
+          '" aria-label="Edit ' +
+          esc(type.name || type.label || "payment type") +
+          '">' +
+          actionIcon("edit") +
+          "<span>Edit</span></button>" +
+          '<button class="row-action row-action--danger" type="button" data-action="delete" data-id="' +
+          esc(type.id) +
+          '" aria-label="Delete ' +
+          esc(type.name || type.label || "payment type") +
+          '">' +
+          actionIcon("delete") +
+          "<span>Delete</span></button>" +
+          "</span>" +
           "</td>" +
           "</tr>"
         );
@@ -159,29 +213,138 @@
       });
   });
 
+  function setEditError(message) {
+    if (!editError) return;
+    editError.textContent = message || "";
+    editError.hidden = !message;
+  }
+
+  function closeEdit() {
+    if (!dialog) return;
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+    editingType = null;
+  }
+
+  function openEdit(type) {
+    if (!dialog || !type) return;
+
+    editingType = type;
+    if (editName) editName.value = type.name || type.label || "";
+    if (editAmount) editAmount.value = Number(type.amount || 0).toFixed(2);
+    setEditError("");
+
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "open");
+
+    window.setTimeout(function () {
+      if (editName) editName.focus();
+    }, 60);
+  }
+
+  if (editForm) {
+    editForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (!editingType) return;
+
+      var name = editName ? editName.value.trim().toUpperCase() : "";
+      var amount = editAmount ? Number(editAmount.value) : 0;
+
+      if (!name) {
+        setEditError("Enter the payment type.");
+        return;
+      }
+      if (!(amount > 0)) {
+        setEditError("Enter an amount greater than zero.");
+        return;
+      }
+
+      var submit = editForm.querySelector('button[type="submit"]');
+      if (submit) submit.disabled = true;
+
+      window.TCGCFirebase.updatePaymentType(editingType.id, {
+        name: name,
+        amount: amount
+      })
+        .then(function () {
+          closeEdit();
+          setHint("Payment type updated: " + name, "success");
+          load();
+        })
+        .catch(function (error) {
+          console.warn("[payment-types] Update failed:", error);
+          setEditError("Couldn't update the payment type. Check your session and rules.");
+        })
+        .then(function () {
+          if (submit) submit.disabled = false;
+        });
+    });
+  }
+
   if (body) {
     body.addEventListener("click", function (event) {
       var button =
         event.target && event.target.closest
-          ? event.target.closest("[data-lock-type]")
+          ? event.target.closest("[data-action]")
           : null;
       if (!button) return;
 
-      var typeId = button.getAttribute("data-lock-type");
-      var locked = button.getAttribute("data-lock-state") === "true";
+      var action = button.getAttribute("data-action");
+      var typeId = button.getAttribute("data-id");
+      var type = types.filter(function (item) {
+        return item.id === typeId;
+      })[0];
 
-      button.disabled = true;
+      if (!type) return;
 
-      window.TCGCFirebase.setPaymentTypeLock(typeId, !locked)
-        .then(function () {
-          setHint(locked ? "Payment type unlocked." : "Payment type locked.", "success");
-          load();
-        })
-        .catch(function (error) {
-          console.warn("[payment-types] Lock failed:", error);
-          button.disabled = false;
-          setHint("Couldn't update the payment type.", "error");
-        });
+      if (action === "edit") {
+        openEdit(type);
+        return;
+      }
+
+      if (action === "delete") {
+        if (!window.confirm("Delete payment type “" + (type.name || "this type") + "”?")) {
+          return;
+        }
+
+        window.TCGCFirebase.deletePaymentType(typeId)
+          .then(function () {
+            setHint("Payment type deleted.", "success");
+            load();
+          })
+          .catch(function (error) {
+            console.warn("[payment-types] Delete failed:", error);
+            setHint("Couldn't delete the payment type.", "error");
+          });
+        return;
+      }
+
+      if (action === "lock") {
+        var locked = button.getAttribute("data-locked") === "true";
+        button.disabled = true;
+
+        window.TCGCFirebase.setPaymentTypeLock(typeId, !locked)
+          .then(function () {
+            setHint(locked ? "Payment type unlocked." : "Payment type locked.", "success");
+            load();
+          })
+          .catch(function (error) {
+            console.warn("[payment-types] Lock failed:", error);
+            button.disabled = false;
+            setHint("Couldn't update the payment type.", "error");
+          });
+      }
+    });
+  }
+
+  if (editClose) editClose.addEventListener("click", closeEdit);
+  if (editCancel) editCancel.addEventListener("click", closeEdit);
+  if (dialog) {
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) closeEdit();
+    });
+    dialog.addEventListener("close", function () {
+      editingType = null;
     });
   }
 
