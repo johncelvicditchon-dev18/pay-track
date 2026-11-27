@@ -145,9 +145,6 @@
           '">' +
           (settled ? "Fully paid" : summary.open + " open") +
           "</span></td>" +
-          '<td class="cell-actions"><button class="row-action" type="button" data-record-payment="' +
-          escapeHtml(record.studentId) +
-          '">Record Payment</button></td>' +
           "</tr>"
         );
       })
@@ -167,23 +164,17 @@
     activeRecord = null;
   }
 
-  function openDialog(studentId) {
-    if (!dialog) return;
+  function openDialog(record) {
+    if (!dialog || !record) return;
 
-    activeRecord =
-      records.filter(function (record) {
-        return api.normalizeStudentId(record.studentId) === studentId;
-      })[0] || null;
-
-    if (!activeRecord) return;
-
-    var summary = summarize(activeRecord);
+    activeRecord = record;
+    var summary = summarize(record);
 
     if (studentEl) {
       studentEl.textContent =
-        (activeRecord.name || "Student") +
+        (record.name || "Student") +
         " · " +
-        studentId +
+        record.studentId +
         " · Balance " +
         money(summary.balance);
     }
@@ -210,6 +201,56 @@
     }, 60);
   }
 
+  function recordFor(studentId) {
+    var id = api.normalizeStudentId(studentId);
+    return (
+      records.filter(function (record) {
+        return api.normalizeStudentId(record.studentId) === id;
+      })[0] || null
+    );
+  }
+
+  // Used by the Students table's "Record Payment" action.
+  window.TCGCStartPayment = function (studentId, name) {
+    if (!COUNCIL) return;
+
+    var existing = recordFor(studentId);
+    if (existing) {
+      openDialog(existing);
+      return;
+    }
+
+    if (!window.TCGCFirebase || !window.TCGCFirebase.findPaymentRecord) {
+      return;
+    }
+
+    window.TCGCFirebase.findPaymentRecord(studentId, COUNCIL)
+      .then(function (found) {
+        if (!found) {
+          if (found === null) {
+            api.toast(
+              "No charges yet",
+              "Add a charge for " +
+                (name || "this student") +
+                " before recording a payment.",
+              "info"
+            );
+          }
+          return;
+        }
+        if (!found.name && name) found.name = name;
+        openDialog(found);
+      })
+      .catch(function (error) {
+        console.warn("[payments] Could not load the student's record:", error);
+        api.toast(
+          "Couldn't open the payment form",
+          "Check your connection and Firestore rules.",
+          "error"
+        );
+      });
+  };
+
   if (body) {
     body.addEventListener("click", function (event) {
       var button =
@@ -217,7 +258,8 @@
           ? event.target.closest("[data-record-payment]")
           : null;
       if (!button) return;
-      openDialog(button.getAttribute("data-record-payment"));
+      var record = recordFor(button.getAttribute("data-record-payment"));
+      if (record) openDialog(record);
     });
   }
 

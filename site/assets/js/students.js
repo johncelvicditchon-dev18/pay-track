@@ -21,7 +21,11 @@
         '<path d="M3 6h18" />' +
         '<path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />' +
         '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />' +
-        '<path d="M10 11v6M14 11v6" />'
+        '<path d="M10 11v6M14 11v6" />',
+      pay:
+        '<rect x="2.5" y="5" width="19" height="14" rx="2" />' +
+        '<path d="M2.5 9.5h19" />' +
+        '<path d="M16 14.5h2.5" />'
     };
 
     return (
@@ -485,6 +489,18 @@
       );
       deleteButton.innerHTML = actionIcon("delete") + "<span>Delete</span>";
 
+      var payButton = document.createElement("button");
+      payButton.type = "button";
+      payButton.className = "row-action";
+      payButton.setAttribute("data-action", "pay");
+      payButton.setAttribute("data-id", student.studentId);
+      payButton.setAttribute(
+        "aria-label",
+        "Record payment for " + student.firstName + " " + student.lastName
+      );
+      payButton.innerHTML = actionIcon("pay") + "<span>Record Payment</span>";
+
+      actions.appendChild(payButton);
       actions.appendChild(editButton);
       actions.appendChild(deleteButton);
       actionsCell.appendChild(actions);
@@ -873,6 +889,15 @@
 
       if (action === "edit") openEditDialog(studentId);
       else if (action === "delete") deleteStudentRecord(studentId);
+      else if (action === "pay") {
+        var student = findStudent(studentId);
+        var fullName = student
+          ? [student.firstName, student.lastName].filter(Boolean).join(" ")
+          : "";
+        if (typeof window.TCGCStartPayment === "function") {
+          window.TCGCStartPayment(studentId, fullName);
+        }
+      }
     });
   }
 
