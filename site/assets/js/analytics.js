@@ -266,8 +266,8 @@
     var council = session && session.council ? session.council : "";
     if (noteEl) {
       noteEl.textContent = council
-        ? "Live roster for " + council
-        : "No Council/Organization assigned.";
+        ? council + " MEMBERS"
+        : "NO COUNCIL/ORGANIZATION ASSIGNED";
     }
 
     if (!total) {
