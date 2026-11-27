@@ -12,6 +12,34 @@
 
   var STUDENT_ID_RE = /^[A-Za-z0-9][A-Za-z0-9-]{3,14}$/;
 
+  /*
+   * Firebase is the source of truth. Remove stale browser caches so records or
+   * accounts deleted in Firebase don't reappear for a new/existing account.
+   */
+  function clearLocalData(includeRoster) {
+    try {
+      if (includeRoster) {
+        var keys = [];
+
+        for (var i = 0; i < window.localStorage.length; i += 1) {
+          var key = window.localStorage.key(i);
+          if (key && key.indexOf("tcgc_paytrack_students") === 0) {
+            keys.push(key);
+          }
+        }
+
+        keys.forEach(function (key) {
+          window.localStorage.removeItem(key);
+        });
+      }
+
+      window.localStorage.removeItem("tcgc_paytrack_users");
+      window.localStorage.removeItem("tcgc_paytrack_profiles");
+    } catch (error) {
+      /* ignore storage failures */
+    }
+  }
+
   /* ---------- field error helpers ---------- */
   function fieldOf(input) {
     return input.closest(".field");
@@ -191,6 +219,10 @@
         function finish(account, idToken) {
           if (window.TCGCFirebase && window.TCGCFirebase.setAuthToken) {
             window.TCGCFirebase.setAuthToken(idToken || "");
+          }
+
+          if (idToken) {
+            clearLocalData(false);
           }
 
           api.setSession(
@@ -583,7 +615,11 @@
             council: account.council,
             password: passwordInput.value
           })
-            .then(done)
+            .then(function (result) {
+              clearLocalData(true);
+              api.clearSession();
+              done(result);
+            })
             .catch(function (error) {
               var code = error && error.code;
 

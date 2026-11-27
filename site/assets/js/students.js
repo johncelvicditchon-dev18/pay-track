@@ -145,22 +145,6 @@
     return error && error.message ? error.message : "Firebase sync failed.";
   }
 
-  function mergeStudents(local, remote) {
-    var byId = {};
-
-    local.forEach(function (student) {
-      byId[student.studentId] = student;
-    });
-
-    remote.forEach(function (student) {
-      byId[student.studentId] = student;
-    });
-
-    return Object.keys(byId).map(function (key) {
-      return byId[key];
-    });
-  }
-
   function syncImported(students, summaryText) {
     if (!window.TCGCFirebase || !window.TCGCFirebase.available) {
       setStatus(
@@ -191,41 +175,17 @@
 
     window.TCGCFirebase.loadStudents(COUNCIL)
       .then(function (remote) {
-        var local = readStore();
-        var remoteIds = {};
+        // Firestore is the source of truth. Clear any stale browser rows
+        // instead of showing or re-uploading deleted records.
+        writeStore(remote || []);
 
-        remote.forEach(function (student) {
-          remoteIds[student.studentId] = true;
-        });
-
-        var localOnly = local.filter(function (student) {
-          return !remoteIds[student.studentId];
-        });
-
-        if (remote.length) {
-          var merged = mergeStudents(local, remote);
-          writeStore(merged);
-          render();
+        try {
+          window.localStorage.removeItem(STORAGE_KEY);
+        } catch (error) {
+          /* ignore storage failures */
         }
 
-        if (localOnly.length) {
-          // Backfill records that were imported before Firebase sync existed.
-          window.TCGCFirebase.saveStudents(localOnly)
-            .then(function () {
-              if (!statusEl.textContent.trim()) {
-                setStatus(
-                  "Saved " + localOnly.length + " local record(s) to Firebase.",
-                  "success"
-                );
-              }
-            })
-            .catch(function (error) {
-              console.warn("[students] Firebase backfill failed:", error);
-              if (!statusEl.textContent.trim()) {
-                setStatus(firebaseHint(error), "error");
-              }
-            });
-        }
+        render();
       })
       .catch(function (error) {
         console.warn("[students] Firebase load failed:", error);
