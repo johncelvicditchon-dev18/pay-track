@@ -1014,7 +1014,7 @@ ol {
 .accounts-table-wrap {
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 7px;
   background: #fff;
   box-shadow: var(--shadow-sm);
 }

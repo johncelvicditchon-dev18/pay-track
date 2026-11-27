@@ -1167,7 +1167,7 @@ html:has(.dashboard-page) {
 }
 
 .dashboard-page .accounts-table-wrap {
-  border-radius: 16px;
+  border-radius: 7px;
 }
 
 .dashboard-page .records-toolbar {
