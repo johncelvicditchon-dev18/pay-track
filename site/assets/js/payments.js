@@ -267,9 +267,7 @@
           })
           .join("") +
         "<td>" +
-        (grandBalance > 0
-          ? '<span class="row-note">' + money(grandBalance) + " balance</span>"
-          : '<span class="pay-status pay-status--paid">Paid</span>') +
+        '<span class="row-note">' + money(grandBalance) + " balance</span>" +
         "</td>" +
         "</tr>";
     }
