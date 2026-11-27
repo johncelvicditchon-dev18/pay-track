@@ -32,7 +32,6 @@
   var amountInput = document.getElementById("payment-amount");
   var dateInput = document.getElementById("payment-date");
   var refInput = document.getElementById("payment-ref");
-  var methodInput = document.getElementById("payment-method");
 
   var records = [];
   var types = [];
@@ -410,7 +409,6 @@
       dateInput.value = new Date().toISOString().slice(0, 10);
     }
     if (refInput) refInput.value = "";
-    if (methodInput) methodInput.value = "Cash · Finance Office";
 
     setError("");
     if (typeof dialog.showModal === "function") dialog.showModal();
@@ -473,7 +471,6 @@
       var amount = Number(amountInput.value);
       var date = dateInput.value;
       var ref = refInput.value.trim();
-      var method = methodInput.value.trim();
       var type = types.filter(function (item) {
         return typeSelect && item.id === typeSelect.value;
       })[0];
@@ -511,7 +508,7 @@
         amount: amount,
         date: date,
         ref: ref,
-        method: method,
+        method: "",
         officer: {
           name: session && session.name ? session.name : "",
           position: session && session.position ? session.position : "",
