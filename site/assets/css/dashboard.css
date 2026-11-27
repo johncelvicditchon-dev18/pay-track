@@ -727,6 +727,16 @@ html:has(.dashboard-page) {
   color: var(--orange-800);
 }
 
+.payment-dialog__student {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--green-50);
+  color: var(--green-900);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 /* ---------- payment types + charge posting ---------- */
 .pay-tools {
   display: grid;

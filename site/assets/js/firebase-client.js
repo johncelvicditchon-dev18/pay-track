@@ -881,6 +881,112 @@
     });
   };
 
+  client.recordPayment = function (options) {
+    var council = String(options.council || "").toUpperCase();
+    var studentId = String(options.studentId || "").trim().toUpperCase();
+    var amount = Number(options.amount || 0);
+    var date = String(options.date || "");
+    var ref = String(options.ref || "").trim();
+    var method = String(options.method || "").trim();
+    var docId = council + "::" + studentId;
+    var path = PAYMENTS_COLLECTION + "/" + encodeURIComponent(docId);
+
+    if (!council || !studentId) {
+      return Promise.reject(
+        makeError("Missing council or Student ID.", "invalid-argument")
+      );
+    }
+
+    return getDocumentOrNull(path).then(function (document) {
+      if (!document) {
+        throw makeError("No payment record was found for that student.", "not-found");
+      }
+
+      var record = decodeFields(document.fields || {});
+      var charges = (Array.isArray(record.charges) ? record.charges : []).map(
+        function (charge) {
+          return Object.assign({}, charge, {
+            amount: Number(charge.amount || 0),
+            paid: Number(charge.paid || 0)
+          });
+        }
+      );
+
+      var remaining = amount;
+      var openCharges = charges
+        .map(function (charge, index) {
+          return { charge: charge, index: index };
+        })
+        .filter(function (entry) {
+          return entry.charge.amount - entry.charge.paid > 0;
+        })
+        .sort(function (a, b) {
+          var da = Date.parse(a.charge.dueDate || "");
+          var db = Date.parse(b.charge.dueDate || "");
+          if (isNaN(da) && isNaN(db)) return a.index - b.index;
+          if (isNaN(da)) return 1;
+          if (isNaN(db)) return -1;
+          return da - db;
+        });
+
+      openCharges.forEach(function (entry) {
+        if (remaining <= 0) return;
+        var charge = entry.charge;
+        var due = charge.amount - charge.paid;
+        var apply = Math.min(due, remaining);
+        charge.paid += apply;
+        remaining -= apply;
+      });
+
+      var payments = (Array.isArray(record.payments) ? record.payments : []).slice();
+      payments.push({
+        id: "pay-" + Date.now(),
+        label: "Payment",
+        date: date,
+        ref: ref,
+        method: method,
+        amount: amount,
+        status: "Verified"
+      });
+
+      var total = charges.reduce(function (sum, charge) {
+        return sum + charge.amount;
+      }, 0);
+      var paidTotal = charges.reduce(function (sum, charge) {
+        return sum + charge.paid;
+      }, 0);
+      var openDates = charges
+        .filter(function (charge) {
+          return charge.amount - charge.paid > 0;
+        })
+        .map(function (charge) {
+          return charge.dueDate || "";
+        })
+        .filter(Boolean)
+        .sort();
+
+      var nextRecord = Object.assign({}, record, {
+        council: council,
+        studentId: studentId,
+        charges: charges,
+        payments: payments,
+        updated: new Date().toLocaleDateString("en-PH", {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        }),
+        nextDue:
+          total - paidTotal > 0
+            ? openDates[0] || "See charges"
+            : "Fully paid for this semester"
+      });
+
+      return patchDocument(path, nextRecord).then(function () {
+        return nextRecord;
+      });
+    });
+  };
+
   function encodeValue(value) {
     if (value === null || value === undefined) return { nullValue: null };
     if (typeof value === "string") return { stringValue: value };

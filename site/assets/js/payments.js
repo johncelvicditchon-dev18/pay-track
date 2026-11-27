@@ -22,6 +22,20 @@
   var balanceEl = document.getElementById("payments-balance");
   var openEl = document.getElementById("payments-open");
 
+  var dialog = document.getElementById("payment-dialog");
+  var form = document.getElementById("payment-form");
+  var dialogClose = document.getElementById("payment-dialog-close");
+  var cancelButton = document.getElementById("payment-cancel");
+  var errorEl = document.getElementById("payment-error");
+  var studentEl = document.getElementById("payment-student");
+  var amountInput = document.getElementById("payment-amount");
+  var dateInput = document.getElementById("payment-date");
+  var refInput = document.getElementById("payment-ref");
+  var methodInput = document.getElementById("payment-method");
+
+  var records = [];
+  var activeRecord = null;
+
   function money(value) {
     return (
       "₱" +
@@ -69,8 +83,9 @@
     };
   }
 
-  function render(records) {
-    var rows = (records || [])
+  function render(loaded) {
+    records = loaded || [];
+    var rows = records
       .map(function (record) {
         return { record: record, summary: summarize(record) };
       })
@@ -130,10 +145,153 @@
           '">' +
           (settled ? "Fully paid" : summary.open + " open") +
           "</span></td>" +
+          '<td class="cell-actions"><button class="row-action" type="button" data-record-payment="' +
+          escapeHtml(record.studentId) +
+          '">Record Payment</button></td>' +
           "</tr>"
         );
       })
       .join("");
+  }
+
+  function setError(message) {
+    if (!errorEl) return;
+    errorEl.textContent = message || "";
+    errorEl.hidden = !message;
+  }
+
+  function closeDialog() {
+    if (!dialog) return;
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+    activeRecord = null;
+  }
+
+  function openDialog(studentId) {
+    if (!dialog) return;
+
+    activeRecord =
+      records.filter(function (record) {
+        return api.normalizeStudentId(record.studentId) === studentId;
+      })[0] || null;
+
+    if (!activeRecord) return;
+
+    var summary = summarize(activeRecord);
+
+    if (studentEl) {
+      studentEl.textContent =
+        (activeRecord.name || "Student") +
+        " · " +
+        studentId +
+        " · Balance " +
+        money(summary.balance);
+    }
+
+    if (amountInput) {
+      amountInput.value =
+        summary.balance > 0 ? summary.balance.toFixed(2) : "";
+    }
+    if (dateInput) {
+      dateInput.value = new Date().toISOString().slice(0, 10);
+    }
+    if (refInput) refInput.value = "";
+    if (methodInput) methodInput.value = "Cash · Finance Office";
+
+    setError("");
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "open");
+
+    window.setTimeout(function () {
+      if (amountInput) {
+        amountInput.focus();
+        if (amountInput.select) amountInput.select();
+      }
+    }, 60);
+  }
+
+  if (body) {
+    body.addEventListener("click", function (event) {
+      var button =
+        event.target && event.target.closest
+          ? event.target.closest("[data-record-payment]")
+          : null;
+      if (!button) return;
+      openDialog(button.getAttribute("data-record-payment"));
+    });
+  }
+
+  if (form) {
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (!activeRecord) return;
+
+      var amount = Number(amountInput.value);
+      var date = dateInput.value;
+      var ref = refInput.value.trim();
+      var method = methodInput.value.trim();
+
+      if (!(amount > 0)) {
+        setError("Enter an amount greater than zero.");
+        if (amountInput) amountInput.focus();
+        return;
+      }
+      if (!date) {
+        setError("Select the payment date.");
+        if (dateInput) dateInput.focus();
+        return;
+      }
+      if (!ref) {
+        setError("Enter the OR or reference number.");
+        if (refInput) refInput.focus();
+        return;
+      }
+
+      var submit = form.querySelector('button[type="submit"]');
+      if (submit) submit.disabled = true;
+      var studentName = activeRecord.name || "the student";
+      var studentId = activeRecord.studentId;
+
+      window.TCGCFirebase.recordPayment({
+        council: COUNCIL,
+        studentId: studentId,
+        amount: amount,
+        date: date,
+        ref: ref,
+        method: method
+      })
+        .then(function () {
+          closeDialog();
+          if (api.toast) {
+            api.toast(
+              "Payment recorded",
+              money(amount) + " recorded for " + studentName + ".",
+              "success"
+            );
+          }
+          load();
+        })
+        .catch(function (error) {
+          console.warn("[payments] Record payment failed:", error);
+          setError(
+            "Couldn't save the payment. Check your session and Firestore rules, then try again."
+          );
+        })
+        .then(function () {
+          if (submit) submit.disabled = false;
+        });
+    });
+  }
+
+  if (dialogClose) dialogClose.addEventListener("click", closeDialog);
+  if (cancelButton) cancelButton.addEventListener("click", closeDialog);
+  if (dialog) {
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) closeDialog();
+    });
+    dialog.addEventListener("close", function () {
+      activeRecord = null;
+    });
   }
 
   function load() {
