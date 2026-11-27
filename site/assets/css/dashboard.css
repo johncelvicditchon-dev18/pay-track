@@ -1284,6 +1284,21 @@ html:has(.dashboard-page) {
   gap: 5px;
 }
 
+.edit-grid .field--wide {
+  grid-column: 1 / -1;
+}
+
+.edit-grid select {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.86rem;
+}
+
 .edit-grid label {
   color: var(--muted);
   font-size: 0.64rem;

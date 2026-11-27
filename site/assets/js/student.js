@@ -126,7 +126,8 @@
           date: String(payment.date || "—"),
           ref: String(payment.ref || "—"),
           method: String(payment.method || ""),
-          amount: Number(payment.amount || 0)
+          amount: Number(payment.amount || 0),
+          recordedBy: String(payment.recordedBy || "")
         });
       });
 
@@ -248,6 +249,7 @@
               "</b><br /><small>" +
               esc(receipt.date) +
               (receipt.method ? " · " + esc(receipt.method) : "") +
+              (receipt.recordedBy ? " · Assisted by " + esc(receipt.recordedBy) : "") +
               "</small></span><span><b>" +
               money(receipt.amount) +
               "</b><br /><small>" +

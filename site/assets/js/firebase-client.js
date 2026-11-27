@@ -1092,6 +1092,120 @@
     });
   };
 
+  client.recordTypedPayment = function (options) {
+    var council = String(options.council || "").toUpperCase();
+    var studentId = String(options.studentId || "").trim().toUpperCase();
+    var type = options.type || {};
+    var amount = Number(options.amount || 0);
+    var date = String(options.date || "");
+    var ref = String(options.ref || "").trim();
+    var method = String(options.method || "").trim();
+    var officer = options.officer || {};
+    var typeName = String(type.name || type.label || "Payment").trim();
+    var chargeAmount = Number(type.amount || 0) || amount;
+    var docId = council + "::" + studentId;
+    var path = PAYMENTS_COLLECTION + "/" + encodeURIComponent(docId);
+
+    if (!council || !studentId || !typeName || !(amount > 0)) {
+      return Promise.reject(
+        makeError("Missing student, payment type, or amount.", "invalid-argument")
+      );
+    }
+
+    return getDocumentOrNull(path).then(function (document) {
+      var record = document ? decodeFields(document.fields || {}) : {
+        council: council,
+        studentId: studentId,
+        name: "",
+        charges: [],
+        payments: []
+      };
+
+      var charges = (Array.isArray(record.charges) ? record.charges : []).map(
+        function (charge) {
+          return Object.assign({}, charge, {
+            amount: Number(charge.amount || 0),
+            paid: Number(charge.paid || 0)
+          });
+        }
+      );
+
+      var existing = charges.filter(function (charge) {
+        var label = String(charge.typeLabel || charge.label || "");
+        return (
+          !charge.locked &&
+          label.toLowerCase() === typeName.toLowerCase() &&
+          charge.paid < charge.amount
+        );
+      })[0];
+
+      if (existing) {
+        existing.paid = Math.min(existing.amount, existing.paid + amount);
+        existing.assessedBy = officer.name || existing.assessedBy || "";
+        existing.assessedById = officer.studentId || existing.assessedById || "";
+      } else {
+        charges.push({
+          id: "charge-" + Date.now(),
+          label: typeName,
+          category: type.category || "Miscellaneous",
+          scope: type.scope || "Organization",
+          unit: type.council || council,
+          typeLabel: typeName,
+          semester: type.semester || "",
+          academicYear: type.academicYear || "",
+          amount: chargeAmount,
+          paid: Math.min(amount, chargeAmount),
+          dueDate: "",
+          locked: false,
+          assessedBy: officer.name || "",
+          assessedById: officer.studentId || ""
+        });
+      }
+
+      var payments = (Array.isArray(record.payments) ? record.payments : []).slice();
+      payments.push({
+        id: "pay-" + Date.now(),
+        label: typeName,
+        date: date,
+        ref: ref,
+        method: method,
+        amount: amount,
+        status: "Verified",
+        recordedBy: officer.name || "",
+        recordedByPosition: officer.position || "",
+        recordedById: officer.studentId || "",
+        recordedAt: new Date().toISOString()
+      });
+
+      var total = charges.reduce(function (sum, charge) {
+        return sum + charge.amount;
+      }, 0);
+      var paidTotal = charges.reduce(function (sum, charge) {
+        return sum + charge.paid;
+      }, 0);
+
+      var nextRecord = Object.assign({}, record, {
+        council: council,
+        studentId: studentId,
+        charges: charges,
+        payments: payments,
+        updated: new Date().toLocaleDateString("en-PH", {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        }),
+        nextDue:
+          total - paidTotal > 0
+            ? "See charges"
+            : "Fully paid for this semester"
+      });
+
+      return patchDocument(path, nextRecord).then(function () {
+        return nextRecord;
+      });
+    });
+  };
+
   client.setChargeLock = function (options) {
     var council = String(options.council || "").toUpperCase();
     var studentId = String(options.studentId || "").trim().toUpperCase();

@@ -215,7 +215,7 @@
                 Amount
                 <input type="number" id="payment-type-amount" min="0" step="0.01" placeholder="0.00" required />
               </label>
-              <button class="btn btn--primary btn--sm" type="submit">Add Payment Type</button>
+              <button class="btn btn--primary btn--sm" type="submit">Create Payment Type</button>
               <p class="pay-form__hint" id="payment-hint" role="status"></p>
             </form>
 
@@ -229,6 +229,7 @@
                       <th scope="col">Payment Type</th>
                       <th scope="col" class="num">Amount</th>
                       <th scope="col">Status</th>
+                      <th scope="col">Recorded By</th>
                       <th scope="col">Actions</th>
                     </tr>
                   </thead>
@@ -238,7 +239,7 @@
 
               <div class="accounts-empty" id="payments-empty">
                 <p>No payment records for this council yet.</p>
-                <small>Add a payment type above to create records for your students.</small>
+                <small>Create a payment type above, then use Record Payment on a student.</small>
               </div>
             </div>
           </section>
@@ -417,6 +418,12 @@
         <p class="payment-dialog__student" id="payment-student">—</p>
 
         <div class="edit-grid">
+          <div class="field field--wide">
+            <label for="payment-type-select">Payment Type</label>
+            <select id="payment-type-select" required>
+              <option value="" disabled selected>Select a payment type</option>
+            </select>
+          </div>
           <div class="field">
             <label for="payment-amount">Amount paid</label>
             <input type="number" id="payment-amount" min="0" step="0.01" placeholder="0.00" required />
