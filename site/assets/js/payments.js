@@ -194,9 +194,12 @@
             var paid = matches.reduce(function (sum, charge) {
               return sum + Number(charge.paid || 0);
             }, 0);
+            var settled = amount > 0 && paid >= amount;
 
             return (
-              '<td class="num pay-cell"><b>' +
+              '<td class="num pay-cell' +
+              (settled ? " is-paid" : "") +
+              '"><b>' +
               money(paid) +
               "</b><small>of " +
               money(amount) +
