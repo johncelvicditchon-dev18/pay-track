@@ -11,7 +11,12 @@
 }
 
 .student-main {
+  width: min(1360px, calc(100% - 32px));
   padding: calc(var(--header-h, 76px) + 46px) 0 70px;
+}
+
+.student-page {
+  overflow-x: hidden;
 }
 
 .student-gate {
@@ -150,16 +155,46 @@
 
 .student-table-wrap {
   margin-top: 14px;
+  max-height: min(62vh, 620px);
   border: 1px solid var(--line);
   border-radius: 7px;
-  overflow-x: auto;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #9dcdb6 #eef6f1;
+}
+
+.student-table-wrap::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.student-table-wrap::-webkit-scrollbar-track {
+  background: #eef6f1;
+  border-radius: 7px;
+}
+
+.student-table-wrap::-webkit-scrollbar-thumb {
+  border: 2px solid #eef6f1;
+  border-radius: 7px;
+  background: #9dcdb6;
+}
+
+.student-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--green-500, #2f8f68);
 }
 
 .student-payments-table {
   width: 100%;
-  min-width: 840px;
+  min-width: 780px;
   border-collapse: collapse;
   font-size: 0.76rem;
+}
+
+.student-payments-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .student-payments-table th {
@@ -241,6 +276,7 @@
   min-width: 200px;
   font-weight: 800;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .student-payments-table__date,
@@ -301,6 +337,7 @@
 
 @media (max-width: 720px) {
   .student-main {
+    width: calc(100% - 24px);
     padding-top: calc(var(--header-h, 76px) + 28px);
   }
 
@@ -321,6 +358,6 @@
   }
 
   .student-payments-table {
-    min-width: 760px;
+    min-width: 720px;
   }
 }
