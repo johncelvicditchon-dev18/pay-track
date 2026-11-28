@@ -1835,8 +1835,8 @@ html:has(.dashboard-page) {
 }
 
 .payments-table {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: max-content;
 }
 
 .payments-table th,
@@ -1846,10 +1846,51 @@ html:has(.dashboard-page) {
 
 .payments-table th:first-child,
 .payments-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 110px;
   min-width: 110px;
+  background: #fff;
 }
 
 .payments-table th:nth-child(2),
 .payments-table td:nth-child(2) {
+  position: sticky;
+  left: 110px;
+  z-index: 3;
+  width: 220px;
   min-width: 220px;
+  background: #fff;
+  box-shadow: 2px 0 0 var(--line);
+}
+
+.payments-table thead th:first-child,
+.payments-table thead th:nth-child(2) {
+  z-index: 5;
+  background: var(--green-50);
+}
+
+.payments-table tfoot td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: #f4f9f2;
+}
+
+.payments-table tbody tr:hover td:first-child,
+.payments-table tbody tr:hover td:nth-child(2) {
+  background: var(--cream);
+}
+
+@media (max-width: 720px) {
+  .payments-table th:first-child,
+  .payments-table td:first-child,
+  .payments-table th:nth-child(2),
+  .payments-table td:nth-child(2),
+  .payments-table tfoot td:first-child {
+    position: static;
+    left: auto;
+    box-shadow: none;
+  }
 }
