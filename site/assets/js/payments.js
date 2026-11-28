@@ -103,6 +103,21 @@
     return String(student.year || student.yearLevel || "").trim();
   }
 
+  function recordYear(record) {
+    var year = String(
+      (record && (record.yearLevel || record.year)) || ""
+    ).trim();
+
+    if (year) return year;
+
+    var studentId = api.normalizeStudentId(record && record.studentId);
+    var match = roster().filter(function (student) {
+      return api.normalizeStudentId(student.studentId) === studentId;
+    })[0];
+
+    return match ? studentYear(match) : "";
+  }
+
   function render() {
     var allStudents = roster().slice().sort(function (a, b) {
       return (
@@ -122,9 +137,7 @@
           return (
             String(student.studentId || "") +
             " " +
-            studentName(student) +
-            " " +
-            studentYear(student)
+            studentName(student)
           )
             .toLowerCase()
             .indexOf(query) !== -1;
@@ -163,7 +176,6 @@
         "<tr>" +
         '<th scope="col">Student ID</th>' +
         '<th scope="col">Full Name</th>' +
-        '<th scope="col">Year</th>' +
         columns
           .map(function (type) {
             return (
@@ -251,7 +263,6 @@
           "<tr>" +
           "<td>" + text(studentId) + "</td>" +
           '<td class="cell-name">' + text(studentName(student)) + "</td>" +
-          '<td class="cell-year">' + text(studentYear(student)) + "</td>" +
           cells +
           "<td>" + status + "</td>" +
           "</tr>"
@@ -299,7 +310,7 @@
     if (tableFoot) {
       tableFoot.innerHTML =
         '<tr class="pay-total-row">' +
-        '<td colspan="3" class="cell-name">TOTAL</td>' +
+        '<td colspan="2" class="cell-name">TOTAL</td>' +
         typeTotals
           .map(function (total) {
             return (
@@ -544,8 +555,12 @@
 
     activeRecord = record;
     if (studentEl) {
+      var year = recordYear(record);
       studentEl.textContent =
-        (record.name || "Student") + " · " + record.studentId;
+        (record.name || "Student") +
+        " · " +
+        record.studentId +
+        (year ? " · " + year : "");
     }
 
     renderPaymentRows(record);
