@@ -434,8 +434,75 @@ body.student-page.is-dashboard #student-groups .student-empty {
   }
 
   .student-brand-id strong {
-    max-width: 46vw;
-    font-size: 0.84rem;
+    max-width: none;
+    font-size: 0.82rem;
+  }
+
+  .student-page .site-header .header-inner {
+    gap: 8px;
+  }
+
+  .student-page .brand {
+    flex: 1 1 auto;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .student-page .brand-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .student-page .brand-text {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .student-page .site-header .brand-text strong {
+    display: block;
+    max-width: none;
+    overflow: hidden;
+    font-size: 0.82rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .student-page .site-header .brand-text span {
+    display: block;
+    overflow: hidden;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .student-page .header-actions {
+    flex: none;
+  }
+
+  .student-page .header-actions .btn {
+    padding: 0.5rem 0.78rem;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .student-toolbar {
+    align-items: stretch;
+  }
+
+  .student-toolbar__filters {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .student-filter select {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .student-toolbar .btn {
+    width: 100%;
   }
 
   body.student-page.is-dashboard .student-main {
