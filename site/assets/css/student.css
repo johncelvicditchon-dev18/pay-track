@@ -198,7 +198,7 @@ body.student-page.is-dashboard .student-updated {
 
 .student-payments-table {
   width: 100%;
-  min-width: 780px;
+  min-width: 900px;
   border-collapse: collapse;
   font-size: 0.76rem;
 }
@@ -320,6 +320,11 @@ body.student-page.is-dashboard .student-updated {
   color: var(--muted);
 }
 
+.student-payments-table__amount {
+  color: var(--green-800);
+  font-weight: 700;
+}
+
 .student-updated {
   margin-top: 18px;
   color: var(--muted);
@@ -371,6 +376,6 @@ body.student-page.is-dashboard .student-updated {
   }
 
   .student-payments-table {
-    min-width: 720px;
+    min-width: 840px;
   }
 }

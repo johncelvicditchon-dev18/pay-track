@@ -14,6 +14,10 @@
   var input = document.getElementById("student-id-input");
   var errorEl = document.getElementById("student-error");
   var logoutButton = document.getElementById("student-logout");
+  var identityEl = document.getElementById("student-identity");
+  var identityAvatarEl = document.getElementById("student-identity-avatar");
+  var identityNameEl = document.getElementById("student-identity-name");
+  var identityIdEl = document.getElementById("student-identity-id");
   var nameEl = document.getElementById("student-name");
   var metaEl = document.getElementById("student-meta");
   var groupsEl = document.getElementById("student-groups");
@@ -69,11 +73,28 @@
     return session && session.role === "student" ? session : null;
   }
 
+  function updateIdentity(name, studentId) {
+    if (!identityEl) return;
+
+    var label = name || "Student";
+
+    if (identityNameEl) identityNameEl.textContent = label;
+    if (identityIdEl) identityIdEl.textContent = studentId || "";
+
+    if (identityAvatarEl) {
+      identityAvatarEl.textContent =
+        (api.initials && api.initials(label)) || "S";
+    }
+
+    identityEl.hidden = !(name || studentId);
+  }
+
   function showGate() {
     document.body.classList.remove("is-dashboard");
     if (gate) gate.hidden = false;
     if (panel) panel.hidden = true;
     if (logoutButton) logoutButton.hidden = true;
+    if (identityEl) identityEl.hidden = true;
   }
 
   function showPanel() {
@@ -190,6 +211,7 @@
           leadCells() +
           '<td class="student-payments-table__empty">—</td>' +
           '<td class="student-payments-table__empty">—</td>' +
+          '<td class="student-payments-table__empty">—</td>' +
           '<td class="student-payments-table__by">' +
           (charge.locked
             ? "Locked"
@@ -220,6 +242,9 @@
         "</td>" +
         '<td class="student-payments-table__ref">' +
         (payment.ref ? esc(payment.ref) : "—") +
+        "</td>" +
+        '<td class="num student-payments-table__amount">' +
+        money(payment.amount) +
         "</td>" +
         '<td class="student-payments-table__by">' +
         assisted +
@@ -298,6 +323,7 @@
         "<th>Status</th>" +
         "<th>Payment Date</th>" +
         "<th>Official Receipt Number</th>" +
+        '<th class="num">Amount Paid</th>' +
         "<th>Assisted By</th>" +
         "</tr></thead>" +
         "<tbody>" +
@@ -324,6 +350,7 @@
     showPanel();
     if (nameEl) nameEl.textContent = label || "Student";
     if (metaEl) metaEl.textContent = studentId;
+    updateIdentity(label || "", studentId);
     if (groupsEl) {
       groupsEl.innerHTML =
         '<div class="student-empty"><p><span class="spinner"></span> Loading your payments…</p></div>';
@@ -337,6 +364,7 @@
       if (!displayName) return;
 
       if (nameEl) nameEl.textContent = displayName;
+      updateIdentity(displayName, studentId);
 
       if (api.updateSession) {
         api.updateSession({ name: displayName });
