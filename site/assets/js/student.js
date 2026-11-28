@@ -141,6 +141,31 @@
     });
   }
 
+  function paymentStamp(payment) {
+    var dateLabel = formatDate(payment.date);
+    var stamp = String(payment.recordedAt || "").trim();
+    var parsed = stamp ? new Date(stamp) : null;
+
+    if (parsed && !isNaN(parsed.getTime())) {
+      var timeLabel = parsed.toLocaleTimeString("en-PH", {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+
+      if (!dateLabel) {
+        dateLabel = parsed.toLocaleDateString("en-PH", {
+          month: "short",
+          day: "numeric",
+          year: "numeric"
+        });
+      }
+
+      return dateLabel + " · " + timeLabel;
+    }
+
+    return dateLabel || "";
+  }
+
   function chargeRows(charge) {
     var remaining = Math.max(charge.amount - charge.paid, 0);
     var state = charge.locked
@@ -247,7 +272,7 @@
             : balanceAfter > 0
             ? "Partial"
             : "Full",
-          date: esc(formatDate(payment.date) || "—"),
+          date: esc(paymentStamp(payment) || "—"),
           ref: payment.ref ? esc(payment.ref) : "—",
           amount: payment.amount > 0 ? money(payment.amount) : "—",
           by: assisted
@@ -287,6 +312,7 @@
           payments: matches.map(function (payment) {
             return {
               date: String(payment.date || ""),
+              recordedAt: String(payment.recordedAt || ""),
               ref: String(payment.ref || ""),
               amount: Number(payment.amount || 0),
               paymentStatus: String(payment.paymentStatus || ""),
