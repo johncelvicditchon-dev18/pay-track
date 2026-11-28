@@ -1355,6 +1355,10 @@
       }
 
       var payments = (Array.isArray(record.payments) ? record.payments : []).slice();
+      var chargeTotal = existing ? existing.amount : chargeAmount;
+      var paidAfter = existing ? existing.paid : appliedAmount;
+      var balanceAfter = Math.max(chargeTotal - paidAfter, 0);
+
       payments.push({
         id: "pay-" + Date.now(),
         label: typeLabel,
@@ -1363,6 +1367,8 @@
         method: method,
         amount: appliedAmount,
         status: "Verified",
+        paymentStatus: balanceAfter > 0 ? "Partial" : "Full",
+        balanceAfter: balanceAfter,
         recordedBy: officer.name || "",
         recordedByPosition: officer.position || "",
         recordedById: officer.studentId || "",

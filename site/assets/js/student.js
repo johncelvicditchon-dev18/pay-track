@@ -14,10 +14,9 @@
   var input = document.getElementById("student-id-input");
   var errorEl = document.getElementById("student-error");
   var logoutButton = document.getElementById("student-logout");
-  var identityEl = document.getElementById("student-identity");
-  var identityAvatarEl = document.getElementById("student-identity-avatar");
-  var identityNameEl = document.getElementById("student-identity-name");
-  var identityIdEl = document.getElementById("student-identity-id");
+  var identityEl = document.getElementById("student-header-identity");
+  var identityNameEl = document.getElementById("student-header-name");
+  var identityIdEl = document.getElementById("student-header-id");
   var nameEl = document.getElementById("student-name");
   var metaEl = document.getElementById("student-meta");
   var groupsEl = document.getElementById("student-groups");
@@ -76,15 +75,8 @@
   function updateIdentity(name, studentId) {
     if (!identityEl) return;
 
-    var label = name || "Student";
-
-    if (identityNameEl) identityNameEl.textContent = label;
+    if (identityNameEl) identityNameEl.textContent = name || "Student";
     if (identityIdEl) identityIdEl.textContent = studentId || "";
-
-    if (identityAvatarEl) {
-      identityAvatarEl.textContent =
-        (api.initials && api.initials(label)) || "S";
-    }
 
     identityEl.hidden = !(name || studentId);
   }
@@ -212,6 +204,7 @@
           '<td class="student-payments-table__empty">—</td>' +
           '<td class="student-payments-table__empty">—</td>' +
           '<td class="student-payments-table__empty">—</td>' +
+          '<td class="student-payments-table__empty">—</td>' +
           '<td class="student-payments-table__by">' +
           (charge.locked
             ? "Locked"
@@ -223,7 +216,22 @@
       return rows.join("");
     }
 
+    var matchedTotal = payments.reduce(function (sum, payment) {
+      return sum + payment.amount;
+    }, 0);
+    var runningPaid = Math.max(charge.paid - matchedTotal, 0);
+
     payments.forEach(function (payment, index) {
+      runningPaid += payment.amount;
+
+      var balanceAfter =
+        payment.balanceAfter == null
+          ? Math.max(charge.amount - runningPaid, 0)
+          : payment.balanceAfter;
+      var txnState = balanceAfter > 0 ? "partial" : "full";
+      var txnLabel =
+        payment.paymentStatus || (balanceAfter > 0 ? "Partial" : "Full");
+
       var cells = index === 0 ? leadCells() : "";
       var assisted = payment.recordedBy
         ? "<b>" +
@@ -244,7 +252,17 @@
         (payment.ref ? esc(payment.ref) : "—") +
         "</td>" +
         '<td class="num student-payments-table__amount">' +
+        '<span class="student-payments-table__amount-value">' +
         money(payment.amount) +
+        "</span>" +
+        '<span class="student-payments-table__txn is-' +
+        txnState +
+        '">' +
+        esc(txnLabel) +
+        "</span>" +
+        "</td>" +
+        '<td class="num student-payments-table__remaining">' +
+        money(balanceAfter) +
         "</td>" +
         '<td class="student-payments-table__by">' +
         assisted +
@@ -287,6 +305,11 @@
               date: String(payment.date || ""),
               ref: String(payment.ref || ""),
               amount: Number(payment.amount || 0),
+              paymentStatus: String(payment.paymentStatus || ""),
+              balanceAfter:
+                payment.balanceAfter == null
+                  ? null
+                  : Number(payment.balanceAfter),
               recordedBy: String(payment.recordedBy || ""),
               recordedByPosition: String(payment.recordedByPosition || "")
             };
@@ -324,6 +347,7 @@
         "<th>Payment Date</th>" +
         "<th>Official Receipt Number</th>" +
         '<th class="num">Amount Paid</th>' +
+        '<th class="num">Remaining Balance</th>' +
         "<th>Assisted By</th>" +
         "</tr></thead>" +
         "<tbody>" +
