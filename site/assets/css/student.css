@@ -144,11 +144,16 @@
   white-space: nowrap;
 }
 
+.student-semester__total.is-clear {
+  color: var(--green-700, #1c7f57);
+}
+
+.student-semester__body {
+  padding-top: 4px;
+}
+
 .student-type {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  padding: 14px 0;
+  padding: 16px 0;
   border-bottom: 1px dashed var(--line);
 }
 
@@ -157,84 +162,130 @@
   padding-bottom: 0;
 }
 
-.student-type__maintop {
-  min-width: 0;
+.student-type__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.student-type strong {
-  display: block;
-  font-size: 0.86rem;
+.student-type__head h3 {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.4;
   letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 
-.student-type small {
+.student-type__status {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f1f4f2;
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.student-type__status.is-paid {
+  background: #e4f7ec;
+  color: #126445;
+}
+
+.student-type__status.is-partial {
+  background: #fff2e2;
+  color: #a8621a;
+}
+
+.student-type__status.is-unpaid {
+  background: #fdecea;
+  color: #a5372b;
+}
+
+.student-type__status.is-locked {
+  background: #eef1ef;
+  color: #6b7a72;
+}
+
+.student-type__figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfdfb;
+}
+
+.student-type.is-paid .student-type__figures {
+  border-color: #d3eddf;
+  background: linear-gradient(135deg, #f6fcf9 0%, #eef9f3 100%);
+}
+
+.student-type.is-unpaid .student-type__figures,
+.student-type.is-partial .student-type__figures {
+  border-color: #f2e3d2;
+  background: #fffdf9;
+}
+
+.student-type__figure span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.student-type__figure strong {
   display: block;
   margin-top: 3px;
-  color: var(--muted);
-  font-size: 0.72rem;
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.student-type__amounts {
-  text-align: right;
-  font-size: 0.78rem;
-  white-space: nowrap;
+.student-type__figure:nth-child(2) strong {
+  color: var(--green-800);
 }
 
-.student-type__amounts b {
-  display: block;
-  color: var(--green-900);
-}
-
-.student-type__amounts span {
-  color: var(--muted);
-}
-
-.student-type__amounts .is-due {
+.student-type__figure strong.is-due {
   color: #a5372b;
+}
+
+.student-type__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.student-type__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.student-type__meta-item b {
+  color: var(--ink);
   font-weight: 700;
 }
 
-.student-receipts {
-  margin-top: 22px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
+.student-type__meta-item.is-quiet {
+  font-style: italic;
 }
 
-.student-receipts h2 {
-  margin-bottom: 10px;
-  font-size: 1rem;
-}
-
-.student-receipts ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.student-receipts li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px 14px;
-  padding: 10px 0;
-  border-top: 1px dashed var(--line);
-  font-size: 0.8rem;
-}
-
-.student-receipts li:first-child {
-  border-top: 0;
-}
-
-.student-receipts b {
-  color: var(--green-900);
-}
-
-.student-receipts small {
-  color: var(--muted);
+.student-type__icon {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  color: var(--green-600, #2f8f68);
 }
 
 .student-updated {
@@ -281,11 +332,12 @@
     width: 100%;
   }
 
-  .student-type {
-    grid-template-columns: 1fr;
+  .student-type__figures {
+    gap: 6px;
+    padding: 9px 10px;
   }
 
-  .student-type__amounts {
-    text-align: left;
+  .student-type__figure strong {
+    font-size: 0.84rem;
   }
 }

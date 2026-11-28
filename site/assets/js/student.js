@@ -17,8 +17,6 @@
   var nameEl = document.getElementById("student-name");
   var metaEl = document.getElementById("student-meta");
   var groupsEl = document.getElementById("student-groups");
-  var receiptsEl = document.getElementById("student-receipts");
-  var receiptListEl = document.getElementById("student-receipt-list");
   var updatedEl = document.getElementById("student-updated");
 
   var SEMESTER_ORDER = ["1ST SEMESTER", "2ND SEMESTER", "SUMMER"];
@@ -117,33 +115,171 @@
       });
   }
 
+  function formatDate(value) {
+    var raw = String(value || "").trim();
+    if (!raw || raw === "—") return "";
+
+    var parsed = new Date(raw.length <= 10 ? raw + "T00:00:00" : raw);
+    if (isNaN(parsed.getTime())) return raw;
+
+    return parsed.toLocaleDateString("en-PH", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+  }
+
+  function icon(paths) {
+    return (
+      '<svg class="student-type__icon" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+      'stroke-linejoin="round" aria-hidden="true">' +
+      paths +
+      "</svg>"
+    );
+  }
+
+  function chargeCard(charge) {
+    var remaining = Math.max(charge.amount - charge.paid, 0);
+    var state = charge.locked
+      ? "locked"
+      : remaining <= 0
+      ? "paid"
+      : charge.paid > 0
+      ? "partial"
+      : "unpaid";
+    var stateLabel = charge.locked
+      ? "Locked"
+      : remaining <= 0
+      ? "Paid"
+      : charge.paid > 0
+      ? "Partial"
+      : "Unpaid";
+    var last = charge.lastPayment;
+    var meta = [];
+
+    if (last && (last.date || last.recordedBy || last.ref)) {
+      if (last.date) {
+        meta.push(
+          '<span class="student-type__meta-item">' +
+            icon(
+              '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>'
+            ) +
+            "Paid on " +
+            esc(formatDate(last.date)) +
+            "</span>"
+        );
+      }
+
+      if (last.recordedBy) {
+        meta.push(
+          '<span class="student-type__meta-item">' +
+            icon(
+              '<circle cx="12" cy="8" r="3.2"/><path d="M5 20a7 7 0 0 1 14 0"/>'
+            ) +
+            "Assisted by <b>" +
+            esc(last.recordedBy) +
+            "</b>" +
+            (last.recordedByPosition
+              ? " · " + esc(last.recordedByPosition)
+              : "") +
+            "</span>"
+        );
+      }
+
+      if (last.ref) {
+        meta.push(
+          '<span class="student-type__meta-item">' +
+            icon(
+              '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/>'
+            ) +
+            "OR <b>" +
+            esc(last.ref) +
+            "</b></span>"
+        );
+      }
+
+      if (charge.paymentCount > 1) {
+        meta.push(
+          '<span class="student-type__meta-item is-quiet">' +
+            charge.paymentCount +
+            " payments recorded</span>"
+        );
+      }
+    } else {
+      meta.push(
+        '<span class="student-type__meta-item is-quiet">' +
+          (charge.locked
+            ? "Payment type locked"
+            : charge.paid > 0
+            ? "Payment details unavailable"
+            : "No payment recorded yet") +
+          "</span>"
+      );
+    }
+
+    return (
+      '<article class="student-type is-' +
+      state +
+      '">' +
+      '<header class="student-type__head">' +
+      "<h3>" +
+      esc(charge.typeLabel) +
+      "</h3>" +
+      '<span class="student-type__status is-' +
+      state +
+      '">' +
+      stateLabel +
+      "</span>" +
+      "</header>" +
+      '<div class="student-type__figures">' +
+      '<div class="student-type__figure"><span>Amount due</span><strong>' +
+      money(charge.amount) +
+      "</strong></div>" +
+      '<div class="student-type__figure"><span>Paid</span><strong>' +
+      money(charge.paid) +
+      "</strong></div>" +
+      '<div class="student-type__figure"><span>Balance</span><strong' +
+      (remaining > 0 ? ' class="is-due"' : "") +
+      ">" +
+      money(remaining) +
+      "</strong></div>" +
+      "</div>" +
+      '<div class="student-type__meta">' +
+      meta.join("") +
+      "</div>" +
+      "</article>"
+    );
+  }
+
   function render(payments) {
     var charges = [];
-    var receipts = [];
     var updated = "";
 
     payments.forEach(function (record) {
+      var receipts = Array.isArray(record.payments) ? record.payments : [];
+
       (Array.isArray(record.charges) ? record.charges : []).forEach(function (charge) {
+        var typeLabel = String(charge.typeLabel || charge.label || "Payment");
+        var typeName = String(charge.label || typeLabel);
+        var matches = receipts
+          .filter(function (payment) {
+            var label = String(payment.label || "");
+            return label === typeLabel || label === typeName;
+          })
+          .sort(function (a, b) {
+            return String(a.date || "").localeCompare(String(b.date || ""));
+          });
+
         charges.push({
-          label: String(charge.label || charge.typeLabel || "Payment"),
-          typeLabel: String(charge.typeLabel || charge.label || "Payment"),
+          typeLabel: typeLabel,
           semester: String(charge.semester || ""),
           academicYear: String(charge.academicYear || ""),
           amount: Number(charge.amount || 0),
           paid: Number(charge.paid || 0),
-          dueDate: String(charge.dueDate || "—"),
-          locked: Boolean(charge.locked)
-        });
-      });
-
-      (Array.isArray(record.payments) ? record.payments : []).forEach(function (payment) {
-        receipts.push({
-          label: String(payment.label || "Payment"),
-          date: String(payment.date || "—"),
-          ref: String(payment.ref || "—"),
-          method: String(payment.method || ""),
-          amount: Number(payment.amount || 0),
-          recordedBy: String(payment.recordedBy || "")
+          locked: Boolean(charge.locked),
+          paymentCount: matches.length,
+          lastPayment: matches.length ? matches[matches.length - 1] : null
         });
       });
 
@@ -155,62 +291,15 @@
         groupsEl.innerHTML =
           '<div class="student-empty"><p>No charges posted yet.</p><small>Your assessment will appear here once the Finance Office posts it.</small></div>';
       }
-      if (receiptsEl) receiptsEl.hidden = true;
       return;
     }
 
     if (groupsEl) {
       groupsEl.innerHTML = groupCharges(charges)
         .map(function (group) {
-          var groupTotal = group.charges.reduce(function (sum, charge) {
-            return sum + charge.amount;
+          var groupBalance = group.charges.reduce(function (sum, charge) {
+            return sum + Math.max(charge.amount - charge.paid, 0);
           }, 0);
-          var groupPaid = group.charges.reduce(function (sum, charge) {
-            return sum + charge.paid;
-          }, 0);
-
-          var rows = group.charges
-            .map(function (charge) {
-              var remaining = Math.max(charge.amount - charge.paid, 0);
-              var status = charge.locked
-                ? "Locked"
-                : remaining <= 0
-                ? "Paid"
-                : charge.paid > 0
-                ? "Partial"
-                : "Unpaid";
-
-              return (
-                '<div class="student-type">' +
-                '<div class="student-type__maintop">' +
-                "<strong>" +
-                esc(charge.typeLabel) +
-                "</strong>" +
-                "<small>" +
-                esc(charge.label) +
-                " · Due " +
-                esc(charge.dueDate) +
-                " · " +
-                status +
-                "</small>" +
-                "</div>" +
-                '<div class="student-type__amounts">' +
-                "<b>" +
-                money(charge.amount) +
-                "</b>" +
-                "<span>Paid " +
-                money(charge.paid) +
-                "</span>" +
-                '<span class="' +
-                (remaining > 0 ? "is-due" : "") +
-                '">Balance ' +
-                money(remaining) +
-                "</span>" +
-                "</div>" +
-                "</div>"
-              );
-            })
-            .join("");
 
           return (
             '<article class="student-semester">' +
@@ -222,40 +311,21 @@
             group.charges.length +
             (group.charges.length === 1 ? " payment type" : " payment types") +
             "</p></div>" +
-            '<span class="student-semester__total">' +
-            money(groupTotal - groupPaid) +
-            " balance</span>" +
+            '<span class="student-semester__total' +
+            (groupBalance > 0 ? "" : " is-clear") +
+            '">' +
+            (groupBalance > 0
+              ? money(groupBalance) + " balance"
+              : "Fully paid") +
+            "</span>" +
             "</header>" +
-            rows +
+            '<div class="student-semester__body">' +
+            group.charges.map(chargeCard).join("") +
+            "</div>" +
             "</article>"
           );
         })
         .join("");
-    }
-
-    if (receiptsEl && receiptListEl) {
-      if (receipts.length) {
-        receiptsEl.hidden = false;
-        receiptListEl.innerHTML = receipts
-          .map(function (receipt) {
-            return (
-              "<li><span><b>" +
-              esc(receipt.label) +
-              "</b><br /><small>" +
-              esc(receipt.date) +
-              (receipt.method ? " · " + esc(receipt.method) : "") +
-              (receipt.recordedBy ? " · Assisted by " + esc(receipt.recordedBy) : "") +
-              "</small></span><span><b>" +
-              money(receipt.amount) +
-              "</b><br /><small>" +
-              esc(receipt.ref) +
-              "</small></span></li>"
-            );
-          })
-          .join("");
-      } else {
-        receiptsEl.hidden = true;
-      }
     }
 
     if (updatedEl) {
@@ -338,7 +408,6 @@
               ? '<div class="student-empty"><p>No assessment posted yet.</p><small>Your payment record will appear here once the Finance Office posts it.</small></div>'
               : '<div class="student-empty"><p>No payment record found.</p><small>Check your Student ID, or contact the Finance Office if your assessment has not been posted.</small></div>';
           }
-          if (receiptsEl) receiptsEl.hidden = true;
           return;
         }
 
