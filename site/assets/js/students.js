@@ -130,12 +130,15 @@
     var code = error && error.code ? String(error.code) : "";
     var authError = window.TCGCFirebase && window.TCGCFirebase.authError;
 
-    if (code === "auth" || (authError && code === "permission-denied")) {
-      return "Enable Anonymous sign-in in Firebase Authentication, then reload.";
+    if (code === "auth") {
+      return "Your session expired. Log out and log in again.";
     }
 
     if (code === "permission-denied") {
-      return "Firestore denied access. Deploy the updated students rules.";
+      if (authError) {
+        return "Your session expired, or this account is not allowed to write. Log out and log in again, then deploy the latest firestore.rules.";
+      }
+      return "Firestore denied access. Log out and log in again, then deploy the latest firestore.rules.";
     }
 
     if (code === "unavailable") {

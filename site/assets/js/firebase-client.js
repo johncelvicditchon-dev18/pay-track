@@ -160,6 +160,7 @@
               );
             }
             token = data.idToken || null;
+            client.authError = null;
             return token;
           });
         })
@@ -210,18 +211,27 @@
   }
 
   function request(url, options) {
-    // Try without auth first (works while Firestore is in test mode). If the
-    // rules reject it, sign in anonymously and retry once.
+    // Try with the current token first. Public collections answer even without
+    // one. If the rules reject the request, refresh the signed-in officer's
+    // session and retry; only then fall back to an anonymous token. This keeps
+    // the dashboard working when anonymous sign-in is disabled or a session
+    // token has expired.
     return perform(url, options, token).catch(function (error) {
       if (error.code !== "permission-denied") throw error;
 
-      token = null;
-      tokenPromise = null;
+      return refreshAuthToken()
+        .then(function () {
+          return perform(url, options, token);
+        })
+        .catch(function () {
+          token = null;
+          tokenPromise = null;
 
-      return ensureToken().then(function (authToken) {
-        if (!authToken) throw error;
-        return perform(url, options, authToken);
-      });
+          return ensureToken().then(function (authToken) {
+            if (!authToken) throw error;
+            return perform(url, options, authToken);
+          });
+        });
     });
   }
 

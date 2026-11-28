@@ -30,9 +30,10 @@ service cloud.firestore {
     }
 
     // Payment types created by officers, e.g.
-    // "2ND SEMESTER - 2026-2027 | MEMBERSHIP FEE".
+    // "2ND SEMESTER - 2026-2027 | MEMBERSHIP FEE". Publicly readable so the
+    // tracker can list them without an anonymous Firebase session.
     match /paymentTypes/{typeId} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create, update: if request.auth != null
         && request.resource.data.council == signedInCouncil();
       allow delete: if request.auth != null
