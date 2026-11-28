@@ -2100,3 +2100,12 @@ html:has(.dashboard-page) {
 .pay-form-table tr[data-balance="0.00"] td:first-child {
   box-shadow: inset 3px 0 0 var(--green-500);
 }
+
+.pay-status__balance {
+  display: block;
+  margin-top: 4px;
+  color: #a5372b;
+  font-size: 0.62rem;
+  font-weight: 700;
+  white-space: nowrap;
+}

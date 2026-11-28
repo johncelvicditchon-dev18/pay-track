@@ -229,24 +229,29 @@
           })
           .join("");
 
-        var fullyPaid =
-          types.length > 0 &&
-          types.every(function (type) {
-            var matches = charges.filter(function (charge) {
-              return chargeMatchesType(charge, type);
-            });
+        var fullyPaid = types.length > 0;
+        var outstanding = 0;
 
-            if (!matches.length) return false;
-
-            var amount = matches.reduce(function (sum, charge) {
-              return sum + Number(charge.amount || 0);
-            }, 0);
-            var paid = matches.reduce(function (sum, charge) {
-              return sum + Number(charge.paid || 0);
-            }, 0);
-
-            return amount > 0 && paid >= amount;
+        types.forEach(function (type) {
+          var matches = charges.filter(function (charge) {
+            return chargeMatchesType(charge, type);
           });
+
+          var amount = matches.length
+            ? matches.reduce(function (sum, charge) {
+                return sum + Number(charge.amount || 0);
+              }, 0)
+            : Number(type.amount || 0);
+          var paid = matches.reduce(function (sum, charge) {
+            return sum + Number(charge.paid || 0);
+          }, 0);
+
+          outstanding += Math.max(amount - paid, 0);
+
+          if (!matches.length || !(amount > 0) || paid < amount) {
+            fullyPaid = false;
+          }
+        });
 
         var hasAnyPaid = charges.some(function (charge) {
           return Number(charge.paid || 0) > 0;
@@ -258,7 +263,10 @@
             'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
             '<path d="M20 6 9 17l-5-5" /></svg>Paid</span>'
           : hasAnyPaid
-          ? '<span class="pay-status pay-status--lack">LACKING PAYMENT</span>'
+          ? '<span class="pay-status pay-status--lack">LACKING PAYMENT</span>' +
+            '<small class="pay-status__balance">' +
+            money(outstanding) +
+            " remaining</small>"
           : "";
 
         return (
