@@ -163,30 +163,6 @@ body.student-page.is-dashboard .student-updated {
   font-size: 0.84rem;
 }
 
-.student-payments-table__group td {
-  position: sticky;
-  top: 31px;
-  z-index: 1;
-  padding: 8px 12px;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: #eef6f1;
-  color: var(--green-800);
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.student-payments-table__group-title {
-  margin-right: 10px;
-}
-
-.student-payments-table__group-meta {
-  color: var(--muted);
-  font-weight: 700;
-}
-
 .student-table-wrap {
   flex: 1;
   min-height: 0;
@@ -261,7 +237,7 @@ body.student-page.is-dashboard .student-updated {
   border-top: 0;
 }
 
-.student-payments-table tbody tr:not(.student-payments-table__group):hover td {
+.student-payments-table tbody tr:hover td {
   background: #fbfdfb;
 }
 
@@ -396,9 +372,5 @@ body.student-page.is-dashboard .student-updated {
 
   .student-payments-table {
     min-width: 720px;
-  }
-
-  .student-payments-table__group td {
-    top: 29px;
   }
 }

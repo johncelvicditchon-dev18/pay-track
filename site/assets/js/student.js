@@ -284,31 +284,7 @@
     if (groupsEl) {
       var bodyRows = groupCharges(charges)
         .map(function (group) {
-          var groupBalance = group.charges.reduce(function (sum, charge) {
-            return sum + Math.max(charge.amount - charge.paid, 0);
-          }, 0);
-
-          return (
-            '<tr class="student-payments-table__group">' +
-            '<td colspan="8">' +
-            '<span class="student-payments-table__group-title">' +
-            esc(group.semester) +
-            (group.year ? " · " + esc(group.year) : "") +
-            "</span>" +
-            '<span class="student-payments-table__group-meta">' +
-            group.charges.length +
-            (group.charges.length === 1
-              ? " payment type"
-              : " payment types") +
-            " · " +
-            (groupBalance > 0
-              ? money(groupBalance) + " balance"
-              : "Fully paid") +
-            "</span>" +
-            "</td>" +
-            "</tr>" +
-            group.charges.map(chargeRows).join("")
-          );
+          return group.charges.map(chargeRows).join("");
         })
         .join("");
 
