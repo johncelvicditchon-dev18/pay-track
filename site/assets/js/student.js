@@ -605,8 +605,7 @@
   if (logoutButton) {
     logoutButton.addEventListener("click", function () {
       api.clearSession();
-      api.toast("Signed out", "You have been logged out.", "info");
-      showGate();
+      window.location.href = "../index.html";
     });
   }
 
