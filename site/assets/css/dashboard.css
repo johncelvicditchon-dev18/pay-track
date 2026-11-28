@@ -2080,3 +2080,23 @@ html:has(.dashboard-page) {
 .payments-table tbody tr:hover td.pay-cell.is-balance {
   background: linear-gradient(135deg, #ffeedd 0%, #ffd4ab 100%);
 }
+
+/* record payment status badges */
+.pay-form-badge {
+  display: block;
+  margin-top: 5px;
+}
+
+.pay-form-badge .pay-status {
+  padding: 3px 8px;
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+}
+
+.pay-form-table tr[data-balance="0.00"] td {
+  background: #fbfefc;
+}
+
+.pay-form-table tr[data-balance="0.00"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--green-500);
+}

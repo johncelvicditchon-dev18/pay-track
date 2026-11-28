@@ -511,9 +511,17 @@
           '<tr data-balance="' + remaining.toFixed(2) + '">' +
           '<td class="cell-name">' +
           esc(type.label || type.name || "Payment") +
-          '<small class="pay-form-note">' +
-          (type.locked ? "Locked" : remaining <= 0 ? "Fully paid" : "") +
-          "</small></td>" +
+          (disabled
+            ? '<span class="pay-form-badge">' +
+              (type.locked
+                ? '<span class="pay-status pay-status--due">Locked</span>'
+                : '<span class="pay-status pay-status--paid">' +
+                  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" ' +
+                  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                  '<path d="M20 6 9 17l-5-5" /></svg>Fully paid</span>') +
+              "</span>"
+            : "") +
+          "</td>" +
           '<td class="num">' + money(amount) + "</td>" +
           '<td class="num">' + money(paid) + "</td>" +
           '<td class="num">' + money(remaining) + "</td>" +
