@@ -905,19 +905,17 @@
   };
 
   client.deletePaymentType = function (typeId) {
-    return window
-      .fetch(
-        BASE_URL +
-          "/" +
-          TYPES_COLLECTION +
-          "/" +
-          encodeURIComponent(typeId) +
-          KEY_PARAM,
-        {
-          method: "DELETE",
-          headers: { Authorization: "Bearer " + (token || "") }
-        }
-      )
+    return authorizedFetch(
+      BASE_URL +
+        "/" +
+        TYPES_COLLECTION +
+        "/" +
+        encodeURIComponent(typeId) +
+        KEY_PARAM,
+      {
+        method: "DELETE"
+      }
+    )
       .then(function (response) {
         if (!response.ok) {
           throw makeError("Could not delete the payment type.", "delete-failed");
@@ -1423,23 +1421,17 @@
   }
 
   function patchDocument(path, data) {
-    return window
-      .fetch(BASE_URL + "/" + path + KEY_PARAM, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + (token || "")
-        },
-        body: JSON.stringify({ fields: encodeFields(data) })
-      })
-      .then(readJson);
+    return authorizedFetch(BASE_URL + "/" + path + KEY_PARAM, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ fields: encodeFields(data) })
+    }).then(readJson);
   }
 
   function getDocumentOrNull(path) {
-    return window
-      .fetch(BASE_URL + "/" + path + KEY_PARAM, {
-        headers: token ? { Authorization: "Bearer " + token } : {}
-      })
+    return authorizedFetch(BASE_URL + "/" + path + KEY_PARAM, {})
       .then(readJson)
       .catch(function (error) {
         if (error && error.code === "not-found") return null;

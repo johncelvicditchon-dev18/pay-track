@@ -759,6 +759,14 @@
             setError(
               "A selected payment type is locked. Unlock it in Payment Types first."
             );
+          } else if (error && error.code === "overpaid") {
+            setError("That amount is more than the remaining balance.");
+          } else if (error && error.code === "permission-denied") {
+            setError(
+              "Firestore denied the payment. Log out and log in again, then make sure the latest firestore.rules are deployed."
+            );
+          } else if (error && error.code === "auth") {
+            setError("Your session expired. Log out and log in again.");
           } else {
             setError(
               "Couldn't save the payment. Check your session and Firestore rules, then try again."
