@@ -315,12 +315,73 @@
 
     if (!form || !input || !dialog || !result) return;
 
+    var submitButton = form.querySelector('button[type="submit"]');
+    var submitLabel = submitButton ? submitButton.innerHTML : "";
+    var checking = false;
+
     function openDialog() {
       document.body.classList.add("track-open");
       if (!dialog.open) dialog.showModal();
     }
 
-    function show(id) {
+    function setBusy(busy) {
+      checking = busy;
+      if (!submitButton) return;
+
+      submitButton.disabled = busy;
+      submitButton.innerHTML = busy ? "Checking&hellip;" : submitLabel;
+    }
+
+    function setError(message) {
+      if (!error) return;
+      error.textContent = message || "";
+      error.hidden = !message;
+    }
+
+    function displayName(match, studentId) {
+      var student = (match && match.student) || {};
+      var record = (match && match.record) || {};
+      var last = String(student.lastName || "").trim();
+      var given = [student.firstName, student.middleName]
+        .map(function (part) { return String(part || "").trim(); })
+        .filter(Boolean)
+        .join(" ");
+      var name = "";
+
+      if (last && given) name = last + ", " + given;
+      else if (last) name = last;
+      else if (given) name = given;
+      else name = String(student.name || record.name || "").trim();
+
+      return name || studentId;
+    }
+
+    /* Only imported students can enter the student portal. A Student ID is
+       accepted when it exists in the class list or has a payment record. */
+    function lookup(id) {
+      var fb = window.TCGCFirebase;
+
+      if (!fb || (!fb.findStudents && !fb.findStudentPayments)) {
+        return Promise.reject(new Error("lookup-unavailable"));
+      }
+
+      var roster = fb.findStudents ? fb.findStudents(id) : Promise.resolve([]);
+      var payments = fb.findStudentPayments
+        ? fb.findStudentPayments(id)
+        : Promise.resolve([]);
+
+      return Promise.all([roster, payments]).then(function (results) {
+        var students = Array.isArray(results[0]) ? results[0] : [];
+        var records = Array.isArray(results[1]) ? results[1] : [];
+
+        return {
+          student: students[0] || null,
+          record: records[0] || null
+        };
+      });
+    }
+
+    function show(id, match) {
       var normalized = id.trim().toUpperCase();
 
       if (api && api.setSession) {
@@ -328,7 +389,7 @@
           {
             role: "student",
             studentId: normalized,
-            name: "",
+            name: displayName(match, normalized),
             signedInAt: new Date().toISOString()
           },
           true
@@ -339,22 +400,53 @@
     }
 
     function submit() {
+      if (checking) return;
+
       var id = input.value.trim();
 
       if (!id) {
-        if (error) error.textContent = "Enter your Student ID to track your payment.";
+        setError("Enter your Student ID to track your payment.");
         input.focus();
         return;
       }
 
       if (!ID_RE.test(id)) {
-        if (error) error.textContent = "Enter a valid Student ID.";
+        setError("Enter a valid Student ID.");
         input.focus();
         return;
       }
 
-      if (error) error.textContent = "";
-      show(id);
+      var normalized =
+        api && api.normalizeStudentId ? api.normalizeStudentId(id) : id.toUpperCase();
+
+      setError("");
+      setBusy(true);
+
+      lookup(normalized)
+        .then(function (match) {
+          setBusy(false);
+
+          if (!match.student && !match.record) {
+            setError(
+              'No student record found for "' + normalized +
+              '". Only students on the imported class list can view payments.'
+            );
+            input.focus();
+            input.select();
+            return;
+          }
+
+          show(normalized, match);
+        })
+        .catch(function (lookupError) {
+          setBusy(false);
+          console.warn("[track] Student lookup failed:", lookupError);
+
+          setError(
+            "We couldn't verify that Student ID right now. Check your connection and try again."
+          );
+          input.focus();
+        });
     }
 
     form.addEventListener("submit", function (event) {
@@ -363,7 +455,7 @@
     });
 
     input.addEventListener("input", function () {
-      if (error) error.textContent = "";
+      setError("");
     });
 
     if (close) {

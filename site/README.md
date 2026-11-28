@@ -44,15 +44,16 @@ locally and the page explains what to enable.
 
 ## Student payment lookup
 
-Students don't create accounts. On `login.html` they switch to the **Student**
-tab and enter their Student ID; the page matches it against the `students`
-roster (imported by officers) and opens `pages/student.html`, which shows their
-balance and charges grouped by semester and payment type, plus official
-receipts.
+Students don't create accounts. On the home page they enter their Student ID;
+the tracker matches it against the `students` roster (imported by officers) and
+only then opens `pages/student.html`, which shows their balance and charges
+grouped by semester and payment type, plus official receipts. Unknown Student
+IDs stay on the landing page with an error, and `pages/student.html` re-checks
+the ID before showing the portal, so it cannot be opened without a record.
 
-The landing-page tracker also looks a record up by Student ID. Both use public
-reads of `students`/`paymentRecords`, so `firestore.rules` keeps writes
-disabled — only signed-in officers can add or change data.
+Both lookups use public reads of `students`/`paymentRecords`, so
+`firestore.rules` keeps writes disabled — only signed-in officers can add or
+change data.
 
 ## Payment types and charges
 

@@ -101,6 +101,29 @@
     if (logoutButton) logoutButton.hidden = false;
   }
 
+  /* An unknown Student ID must never open the portal, even when the visitor
+     typed it directly on this page or restored a stale session. */
+  function denyAccess(studentId) {
+    if (api.clearSession) api.clearSession();
+
+    allRecords = [];
+    rosterCouncils = [];
+    activeCouncil = "";
+    activeSemester = "";
+    if (councilFilter) councilFilter.value = "";
+    if (semesterFilter) semesterFilter.value = "";
+    if (groupsEl) groupsEl.innerHTML = "";
+    showGate();
+    setError(
+      'No student record found for "' + studentId +
+        '". Only students on the imported class list can view payments.'
+    );
+    if (input) {
+      input.value = "";
+      input.focus();
+    }
+  }
+
   function groupCharges(charges) {
     var groups = {};
 
@@ -471,6 +494,7 @@
   function load(studentId, label) {
     if (!window.TCGCFirebase || !window.TCGCFirebase.findStudentPayments) {
       setError("Can't reach Firebase right now. Check your connection and try again.");
+      showGate();
       return;
     }
 
@@ -489,7 +513,6 @@
     }
 
     var displayName = label || "";
-    var rosterStudent = null;
 
     function applyName(name) {
       if (name) displayName = name;
@@ -505,43 +528,44 @@
     var rosterPromise;
 
     if (window.TCGCFirebase.findStudents) {
-      rosterPromise = window.TCGCFirebase.findStudents(studentId).catch(
-        function () {
-          return [];
+      rosterPromise = window.TCGCFirebase.findStudents(studentId);
+    } else if (window.TCGCFirebase.findStudent) {
+      rosterPromise = window.TCGCFirebase.findStudent(studentId).then(
+        function (student) {
+          return student ? [student] : [];
         }
       );
-    } else if (window.TCGCFirebase.findStudent) {
-      rosterPromise = window.TCGCFirebase.findStudent(studentId)
-        .then(function (student) {
-          return student ? [student] : [];
-        })
-        .catch(function () {
-          return [];
-        });
     } else {
       rosterPromise = Promise.resolve([]);
     }
 
-    rosterPromise.then(function (students) {
-      var list = Array.isArray(students) ? students : [];
+    Promise.all([
+      rosterPromise.catch(function () {
+        return [];
+      }),
+      window.TCGCFirebase.findStudentPayments(studentId)
+    ])
+      .then(function (results) {
+        var students = Array.isArray(results[0]) ? results[0] : [];
+        var payments = Array.isArray(results[1]) ? results[1] : [];
+        var rosterStudent = students[0] || null;
 
-      rosterStudent = list[0] || null;
-      rosterCouncils = list
-        .map(function (student) {
-          return String(student.council || "").trim().toUpperCase();
-        })
-        .filter(Boolean);
+        if (!rosterStudent && !payments.length) {
+          denyAccess(studentId);
+          return;
+        }
 
-      if (rosterStudent) {
-        applyName(label || formatName(rosterStudent));
-      }
+        rosterCouncils = students
+          .map(function (student) {
+            return String(student.council || "").trim().toUpperCase();
+          })
+          .filter(Boolean);
 
-      populateFilters(allRecords);
-    });
+        if (rosterStudent) {
+          applyName(label || formatName(rosterStudent));
+        }
 
-    window.TCGCFirebase.findStudentPayments(studentId)
-      .then(function (payments) {
-        var record = payments && payments[0];
+        var record = payments[0];
 
         applyName(
           label ||
@@ -550,12 +574,12 @@
             ""
         );
 
-        if (!payments || !payments.length) {
+        if (!payments.length) {
           if (groupsEl) {
-            groupsEl.innerHTML = rosterStudent
-              ? '<div class="student-empty"><p>No assessment posted yet.</p><small>Your payment record will appear here once the Finance Office posts it.</small></div>'
-              : '<div class="student-empty"><p>No payment record found.</p><small>Check your Student ID, or contact the Finance Office if your assessment has not been posted.</small></div>';
+            groupsEl.innerHTML =
+              '<div class="student-empty"><p>No assessment posted yet.</p><small>Your payment record will appear here once the Finance Office posts it.</small></div>';
           }
+          populateFilters(allRecords);
           return;
         }
 
