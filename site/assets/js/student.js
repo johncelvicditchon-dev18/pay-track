@@ -158,58 +158,58 @@
       ? "Partial"
       : "Unpaid";
     var payments = Array.isArray(charge.payments) ? charge.payments : [];
-    var rowspan = Math.max(payments.length, 1);
     var rows = [];
 
-    function leadCells() {
+    function rowHtml(options) {
       return (
-        '<td class="student-payments-table__type" rowspan="' +
-        rowspan +
-        '">' +
+        "<tr>" +
+        '<td class="student-payments-table__type">' +
         esc(charge.typeLabel) +
         "</td>" +
-        '<td class="num" rowspan="' +
-        rowspan +
-        '">' +
+        '<td class="num">' +
         money(charge.amount) +
         "</td>" +
-        '<td class="num" rowspan="' +
-        rowspan +
-        '">' +
-        money(charge.paid) +
+        '<td class="num">' +
+        money(options.paid) +
         "</td>" +
         '<td class="num' +
-        (remaining > 0 ? " is-due" : "") +
-        '" rowspan="' +
-        rowspan +
+        (options.balance > 0 ? " is-due" : "") +
         '">' +
-        money(remaining) +
+        money(options.balance) +
         "</td>" +
-        '<td rowspan="' +
-        rowspan +
-        '"><span class="student-type__status is-' +
-        state +
+        '<td><span class="student-type__status is-' +
+        options.state +
         '">' +
-        stateLabel +
-        "</span></td>"
+        options.label +
+        "</span></td>" +
+        '<td class="student-payments-table__date">' +
+        options.date +
+        "</td>" +
+        '<td class="student-payments-table__ref">' +
+        options.ref +
+        "</td>" +
+        '<td class="num student-payments-table__amount">' +
+        options.amount +
+        "</td>" +
+        '<td class="student-payments-table__by">' +
+        options.by +
+        "</td>" +
+        "</tr>"
       );
     }
 
     if (!payments.length) {
       rows.push(
-        "<tr>" +
-          leadCells() +
-          '<td class="student-payments-table__empty">—</td>' +
-          '<td class="student-payments-table__empty">—</td>' +
-          '<td class="student-payments-table__empty">—</td>' +
-          '<td class="student-payments-table__empty">—</td>' +
-          '<td class="student-payments-table__by">' +
-          (charge.locked
-            ? "Locked"
-            : charge.paid > 0
-            ? "Details unavailable"
-            : "No payment yet") +
-          "</td></tr>"
+        rowHtml({
+          paid: charge.paid,
+          balance: remaining,
+          state: state,
+          label: stateLabel,
+          date: '<span class="student-payments-table__empty">—</span>',
+          ref: '<span class="student-payments-table__empty">—</span>',
+          amount: '<span class="student-payments-table__empty">—</span>',
+          by: charge.locked ? "Locked" : "No payment yet"
+        })
       );
       return rows.join("");
     }
@@ -219,18 +219,13 @@
     }, 0);
     var runningPaid = Math.max(charge.paid - matchedTotal, 0);
 
-    payments.forEach(function (payment, index) {
+    payments.forEach(function (payment) {
       runningPaid += payment.amount;
 
       var balanceAfter =
         payment.balanceAfter == null
           ? Math.max(charge.amount - runningPaid, 0)
           : payment.balanceAfter;
-      var txnState = balanceAfter > 0 ? "partial" : "full";
-      var txnLabel =
-        payment.paymentStatus || (balanceAfter > 0 ? "Partial" : "Full");
-
-      var cells = index === 0 ? leadCells() : "";
       var assisted = payment.recordedBy
         ? "<b>" +
           esc(payment.recordedBy) +
@@ -242,31 +237,22 @@
             : "")
         : "—";
 
-      cells +=
-        '<td class="student-payments-table__date">' +
-        esc(formatDate(payment.date) || "—") +
-        "</td>" +
-        '<td class="student-payments-table__ref">' +
-        (payment.ref ? esc(payment.ref) : "—") +
-        "</td>" +
-        '<td class="num student-payments-table__amount">' +
-        '<span class="student-payments-table__amount-value">' +
-        money(payment.amount) +
-        "</span>" +
-        '<span class="student-payments-table__txn is-' +
-        txnState +
-        '">' +
-        esc(txnLabel) +
-        "</span>" +
-        "</td>" +
-        '<td class="num student-payments-table__remaining">' +
-        money(balanceAfter) +
-        "</td>" +
-        '<td class="student-payments-table__by">' +
-        assisted +
-        "</td>";
-
-      rows.push("<tr>" + cells + "</tr>");
+      rows.push(
+        rowHtml({
+          paid: runningPaid,
+          balance: balanceAfter,
+          state: balanceAfter > 0 ? "partial" : "paid",
+          label: payment.paymentStatus
+            ? esc(payment.paymentStatus)
+            : balanceAfter > 0
+            ? "Partial"
+            : "Full",
+          date: esc(formatDate(payment.date) || "—"),
+          ref: payment.ref ? esc(payment.ref) : "—",
+          amount: payment.amount > 0 ? money(payment.amount) : "—",
+          by: assisted
+        })
+      );
     });
 
     return rows.join("");
@@ -345,7 +331,6 @@
         "<th>Payment Date</th>" +
         "<th>Official Receipt Number</th>" +
         '<th class="num">Amount Paid</th>' +
-        '<th class="num">Remaining Balance</th>' +
         "<th>Assisted By</th>" +
         "</tr></thead>" +
         "<tbody>" +

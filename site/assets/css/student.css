@@ -316,36 +316,6 @@ body.student-page.is-dashboard .student-updated {
   font-weight: 700;
 }
 
-.student-payments-table__amount-value {
-  display: block;
-}
-
-.student-payments-table__txn {
-  display: inline-block;
-  margin-top: 3px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  font-size: 0.54rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.student-payments-table__txn.is-partial {
-  background: #fff2e2;
-  color: #a8621a;
-}
-
-.student-payments-table__txn.is-full {
-  background: #e4f7ec;
-  color: #126445;
-}
-
-.student-payments-table__remaining {
-  color: var(--ink);
-  font-weight: 700;
-}
-
 .student-updated {
   margin-top: 18px;
   color: var(--muted);
