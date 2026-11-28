@@ -1281,8 +1281,20 @@
         );
       })[0];
 
+      var available = existing
+        ? Math.max(existing.amount - existing.paid, 0)
+        : chargeAmount;
+
+      if (!(available > 0)) {
+        return Promise.reject(
+          makeError("This payment is already settled.", "overpaid")
+        );
+      }
+
+      var appliedAmount = Math.min(amount, available);
+
       if (existing) {
-        existing.paid = Math.min(existing.amount, existing.paid + amount);
+        existing.paid = existing.paid + appliedAmount;
         existing.assessedBy = officer.name || existing.assessedBy || "";
         existing.assessedById = officer.studentId || existing.assessedById || "";
       } else {
@@ -1296,7 +1308,7 @@
           semester: type.semester || "",
           academicYear: type.academicYear || "",
           amount: chargeAmount,
-          paid: Math.min(amount, chargeAmount),
+          paid: appliedAmount,
           dueDate: "",
           locked: false,
           assessedBy: officer.name || "",
@@ -1311,7 +1323,7 @@
         date: date,
         ref: ref,
         method: method,
-        amount: amount,
+        amount: appliedAmount,
         status: "Verified",
         recordedBy: officer.name || "",
         recordedByPosition: officer.position || "",

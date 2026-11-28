@@ -599,7 +599,15 @@
 
   if (typeRows) {
     typeRows.addEventListener("input", function (event) {
-      if (!event.target || !event.target.matches("input.pay-input")) return;
+      var input = event.target;
+      if (!input || !input.matches("input.pay-input")) return;
+
+      var max = Number(input.getAttribute("max") || 0);
+      var value = Number(input.value || 0);
+
+      if (value > max) input.value = max.toFixed(2);
+      if (value < 0) input.value = "";
+
       updatePaymentTotal();
     });
 
