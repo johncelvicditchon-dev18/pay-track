@@ -139,11 +139,6 @@ body.student-page.is-dashboard #student-groups .student-empty {
   justify-content: center;
 }
 
-body.student-page.is-dashboard .student-updated {
-  flex: none;
-  margin-top: 10px;
-}
-
 .student-gate {
   max-width: 560px;
   margin: 0 auto;
@@ -395,20 +390,6 @@ body.student-page.is-dashboard .student-updated {
   font-weight: 700;
 }
 
-.student-updated {
-  margin-top: 12px;
-  padding: 10px 14px;
-  border: 1px dashed var(--line);
-  border-radius: 9px;
-  background: #f5faf7;
-  color: var(--muted);
-  font-size: 0.66rem;
-  letter-spacing: 0.05em;
-  line-height: 1.5;
-  text-align: center;
-  text-transform: uppercase;
-}
-
 .student-empty {
   padding: 38px 20px;
   border: 1px dashed var(--line);
@@ -482,8 +463,7 @@ body.student-page.is-dashboard .student-updated {
   }
 
   .site-header,
-  .student-toolbar,
-  .student-updated {
+  .student-toolbar {
     display: none !important;
   }
 

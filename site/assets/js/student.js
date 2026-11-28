@@ -18,7 +18,6 @@
   var identityNameEl = document.getElementById("student-header-name");
   var identityIdEl = document.getElementById("student-header-id");
   var groupsEl = document.getElementById("student-groups");
-  var updatedEl = document.getElementById("student-updated");
   var councilFilter = document.getElementById("student-council-filter");
   var semesterFilter = document.getElementById("student-semester-filter");
   var printButton = document.getElementById("student-print");
@@ -388,7 +387,6 @@
     payments = applyRecordFilters(payments);
 
     var charges = [];
-    var updated = "";
 
     payments.forEach(function (record) {
       var receipts = Array.isArray(record.payments) ? record.payments : [];
@@ -429,8 +427,6 @@
           })
         });
       });
-
-      if (record.updated) updated = String(record.updated);
     });
 
     if (!charges.length) {
@@ -469,14 +465,6 @@
         "</tbody>" +
         "</table>" +
         "</div>";
-    }
-
-    if (updatedEl) {
-      updatedEl.textContent = updated
-        ? "Print this statement and present it as proof of payment. Balances updated " +
-          updated +
-          ". For questions, contact the Finance Office."
-        : "Print this statement and present it as proof of payment.";
     }
   }
 
