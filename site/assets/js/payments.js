@@ -220,7 +220,11 @@
         if (!charges.length) {
           status = '<span class="row-note">No charges</span>';
         } else if (balance <= 0) {
-          status = '<span class="pay-status pay-status--paid">Paid</span>';
+          status =
+            '<span class="pay-status pay-status--paid">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" ' +
+            'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<path d="M20 6 9 17l-5-5" /></svg>Paid</span>';
         } else if (paid > 0) {
           status = '<span class="pay-status pay-status--due">Partial</span>';
         } else {
