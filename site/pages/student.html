@@ -80,6 +80,26 @@
       </section>
 
       <section class="student-dashboard" id="student-panel" hidden>
+        <div class="student-toolbar">
+          <div class="student-toolbar__filters">
+            <label class="student-filter" for="student-council-filter">
+              <span>Council / Organization</span>
+              <select id="student-council-filter">
+                <option value="">All councils / orgs</option>
+              </select>
+            </label>
+            <label class="student-filter" for="student-semester-filter">
+              <span>Semester</span>
+              <select id="student-semester-filter">
+                <option value="">All semesters</option>
+              </select>
+            </label>
+          </div>
+          <button class="btn btn--outline student-print" type="button" id="student-print">
+            Print PDF
+          </button>
+        </div>
+
         <div id="student-groups"></div>
 
         <p class="student-updated" id="student-updated"></p>

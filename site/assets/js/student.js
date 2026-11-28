@@ -19,6 +19,13 @@
   var identityIdEl = document.getElementById("student-header-id");
   var groupsEl = document.getElementById("student-groups");
   var updatedEl = document.getElementById("student-updated");
+  var councilFilter = document.getElementById("student-council-filter");
+  var semesterFilter = document.getElementById("student-semester-filter");
+  var printButton = document.getElementById("student-print");
+
+  var allRecords = [];
+  var activeCouncil = "";
+  var activeSemester = "";
 
   var SEMESTER_ORDER = ["1ST SEMESTER", "2ND SEMESTER", "SUMMER"];
 
@@ -166,6 +173,95 @@
     return dateLabel || "";
   }
 
+  function semesterKey(charge) {
+    var semester = String(charge.semester || "").trim();
+    var year = String(charge.academicYear || "").trim();
+
+    if (!semester && !year) return "";
+
+    return (semester || "Unassigned") + (year ? " · " + year : "");
+  }
+
+  function applyRecordFilters(records) {
+    return records
+      .map(function (record) {
+        var council = String(record.council || "").toUpperCase();
+
+        if (activeCouncil && council !== activeCouncil) return null;
+
+        var charges = (Array.isArray(record.charges) ? record.charges : []).filter(
+          function (charge) {
+            return !activeSemester || semesterKey(charge) === activeSemester;
+          }
+        );
+
+        if (!charges.length) return null;
+
+        return Object.assign({}, record, { charges: charges });
+      })
+      .filter(Boolean);
+  }
+
+  function populateFilters(records) {
+    if (councilFilter) {
+      var councils = {};
+
+      records.forEach(function (record) {
+        if (!Array.isArray(record.charges) || !record.charges.length) return;
+
+        var council = String(record.council || "").trim().toUpperCase();
+        if (!council) return;
+        councils[council] = true;
+      });
+
+      councilFilter.innerHTML =
+        '<option value="">All councils / orgs</option>' +
+        Object.keys(councils)
+          .sort()
+          .map(function (council) {
+            return (
+              '<option value="' +
+              esc(council) +
+              '">' +
+              esc(council) +
+              "</option>"
+            );
+          })
+          .join("");
+
+      councilFilter.value = councils[activeCouncil] ? activeCouncil : "";
+      activeCouncil = councilFilter.value;
+    }
+
+    if (semesterFilter) {
+      var semesters = {};
+
+      records.forEach(function (record) {
+        (Array.isArray(record.charges) ? record.charges : []).forEach(
+          function (charge) {
+            var key = semesterKey(charge);
+            if (!key) return;
+            semesters[key] = true;
+          }
+        );
+      });
+
+      semesterFilter.innerHTML =
+        '<option value="">All semesters</option>' +
+        Object.keys(semesters)
+          .sort()
+          .map(function (key) {
+            return (
+              '<option value="' + esc(key) + '">' + esc(key) + "</option>"
+            );
+          })
+          .join("");
+
+      semesterFilter.value = semesters[activeSemester] ? activeSemester : "";
+      activeSemester = semesterFilter.value;
+    }
+  }
+
   function chargeRows(charge) {
     var remaining = Math.max(charge.amount - charge.paid, 0);
     var state = charge.locked
@@ -284,6 +380,8 @@
   }
 
   function render(payments) {
+    payments = applyRecordFilters(payments);
+
     var charges = [];
     var updated = "";
 
@@ -333,7 +431,9 @@
     if (!charges.length) {
       if (groupsEl) {
         groupsEl.innerHTML =
-          '<div class="student-empty"><p>No charges posted yet.</p><small>Your assessment will appear here once the Finance Office posts it.</small></div>';
+          activeCouncil || activeSemester
+            ? '<div class="student-empty"><p>No records match the selected filters.</p><small>Choose a different council/organization or semester.</small></div>'
+            : '<div class="student-empty"><p>No charges posted yet.</p><small>Your assessment will appear here once the Finance Office posts it.</small></div>';
       }
       return;
     }
@@ -382,6 +482,11 @@
     setError("");
     showPanel();
     updateIdentity(label || "", studentId);
+    allRecords = [];
+    activeCouncil = "";
+    activeSemester = "";
+    if (councilFilter) councilFilter.value = "";
+    if (semesterFilter) semesterFilter.value = "";
     if (groupsEl) {
       groupsEl.innerHTML =
         '<div class="student-empty"><p><span class="spinner"></span> Loading your payments…</p></div>';
@@ -436,7 +541,9 @@
           return;
         }
 
-        render(payments);
+        allRecords = payments.slice();
+        populateFilters(allRecords);
+        render(allRecords);
       })
       .catch(function (error) {
         console.warn("[student] Payment load failed:", error);
@@ -482,6 +589,26 @@
       api.clearSession();
       api.toast("Signed out", "You have been logged out.", "info");
       showGate();
+    });
+  }
+
+  if (councilFilter) {
+    councilFilter.addEventListener("change", function () {
+      activeCouncil = councilFilter.value;
+      render(allRecords);
+    });
+  }
+
+  if (semesterFilter) {
+    semesterFilter.addEventListener("change", function () {
+      activeSemester = semesterFilter.value;
+      render(allRecords);
+    });
+  }
+
+  if (printButton) {
+    printButton.addEventListener("click", function () {
+      window.print();
     });
   }
 

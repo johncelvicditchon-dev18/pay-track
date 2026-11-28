@@ -62,6 +62,61 @@ body.student-page.is-dashboard .student-main {
   display: none;
 }
 
+.student-toolbar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.student-toolbar__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.student-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-filter span {
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.student-filter select {
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px 30px 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.student-filter select:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(21, 125, 84, 0.12);
+}
+
+.student-toolbar .btn {
+  padding: 0.62rem 1.15rem;
+  font-size: 0.78rem;
+}
+
 #student-groups {
   display: flex;
   flex: 1;
@@ -394,5 +449,74 @@ body.student-page.is-dashboard .student-updated {
 
   .student-payments-table {
     min-width: 840px;
+  }
+}
+
+@media print {
+  body.student-page,
+  body.student-page.is-dashboard {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body.student-page.is-dashboard .student-main {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  .site-header,
+  .student-toolbar,
+  .student-updated {
+    display: none !important;
+  }
+
+  .student-dashboard {
+    display: block !important;
+  }
+
+  .student-dashboard[hidden] {
+    display: none !important;
+  }
+
+  #student-groups {
+    display: block !important;
+  }
+
+  .student-table-wrap {
+    overflow: visible !important;
+    max-height: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .student-payments-table {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 8pt;
+  }
+
+  .student-payments-table th,
+  .student-payments-table td {
+    padding: 5px 7px;
+    border-color: #b9c9c0 !important;
+  }
+
+  .student-payments-table thead th {
+    position: static !important;
+    background: #eef6f1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .student-type__status {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .student-table-wrap::-webkit-scrollbar {
+    display: none;
   }
 }
