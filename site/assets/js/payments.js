@@ -19,9 +19,10 @@
   var empty = document.getElementById("payments-empty");
   var tableHead = document.getElementById("payments-head");
   var tableFoot = document.getElementById("payments-foot");
-  var typeSelect = document.getElementById("payment-type-select");
   var filterSelect = document.getElementById("payment-record-filter");
   var searchInput = document.getElementById("payment-record-search");
+  var typeRows = document.getElementById("payment-type-rows");
+  var totalEl = document.getElementById("payment-total");
 
   var dialog = document.getElementById("payment-dialog");
   var form = document.getElementById("payment-form");
@@ -29,7 +30,6 @@
   var cancelButton = document.getElementById("payment-cancel");
   var errorEl = document.getElementById("payment-error");
   var studentEl = document.getElementById("payment-student");
-  var amountInput = document.getElementById("payment-amount");
   var dateInput = document.getElementById("payment-date");
   var refInput = document.getElementById("payment-ref");
 
@@ -349,27 +349,6 @@
   }
 
   function fillTypeSelect() {
-    if (typeSelect) {
-      typeSelect.innerHTML =
-        '<option value="" disabled selected>Select a payment type</option>' +
-        types
-          .map(function (type) {
-            return (
-              '<option value="' +
-              esc(type.id) +
-              '"' +
-              (type.locked ? " disabled" : "") +
-              ">" +
-              esc(type.label || type.name || "Payment") +
-              " · " +
-              money(type.amount) +
-              (type.locked ? " \uD83D\uDD12\uFE0E" : "") +
-              "</option>"
-            );
-          })
-          .join("");
-    }
-
     if (filterSelect) {
       var current = filterSelect.value;
 
@@ -406,6 +385,14 @@
         types = rows || [];
         fillTypeSelect();
         render();
+
+        if (
+          activeRecord &&
+          typeRows &&
+          !typeRows.querySelector("input[data-type-id]")
+        ) {
+          renderPaymentRows(activeRecord);
+        }
       })
       .catch(function (error) {
         console.warn("[payments] Could not load payment types:", error);
@@ -447,22 +434,96 @@
     );
   }
 
+  function updatePaymentTotal() {
+    if (!typeRows || !totalEl) return;
+
+    var total = 0;
+    Array.prototype.forEach.call(
+      typeRows.querySelectorAll("input[data-type-id]"),
+      function (input) {
+        total += Number(input.value || 0);
+      }
+    );
+
+    totalEl.textContent = money(total);
+  }
+
+  function renderPaymentRows(record) {
+    if (!typeRows) return;
+
+    var charges = record && Array.isArray(record.charges) ? record.charges : [];
+
+    if (!types.length) {
+      typeRows.innerHTML =
+        '<tr><td colspan="4" class="row-note">No payment types created yet.</td></tr>';
+      updatePaymentTotal();
+      return;
+    }
+
+    typeRows.innerHTML = types
+      .map(function (type) {
+        var matches = charges.filter(function (charge) {
+          return chargeMatchesType(charge, type);
+        });
+
+        var amount = matches.length
+          ? matches.reduce(function (sum, charge) {
+              return sum + Number(charge.amount || 0);
+            }, 0)
+          : Number(type.amount || 0);
+        var paid = matches.reduce(function (sum, charge) {
+          return sum + Number(charge.paid || 0);
+        }, 0);
+        var remaining = Math.max(amount - paid, 0);
+        var disabled = type.locked || remaining <= 0;
+        var note = type.locked
+          ? "Locked"
+          : remaining <= 0
+          ? "Fully paid"
+          : "Balance " + money(remaining);
+
+        return (
+          "<tr>" +
+          '<td class="cell-name">' +
+          esc(type.label || type.name || "Payment") +
+          '<small class="pay-form-note">' +
+          esc(note) +
+          "</small></td>" +
+          '<td class="num">' + money(amount) + "</td>" +
+          '<td class="num">' + money(paid) + "</td>" +
+          '<td class="num">' +
+          (disabled
+            ? '<span class="row-note">' +
+              (type.locked ? "Locked" : "—") +
+              "</span>"
+            : '<input class="pay-input" type="number" min="0" step="0.01" data-type-id="' +
+              esc(type.id) +
+              '" max="' +
+              remaining.toFixed(2) +
+              '" placeholder="' +
+              remaining.toFixed(2) +
+              '" />') +
+          "</td>" +
+          "</tr>"
+        );
+      })
+      .join("");
+
+    updatePaymentTotal();
+  }
+
   function openDialog(record) {
     if (!dialog || !record) return;
 
     activeRecord = record;
-
     if (studentEl) {
       studentEl.textContent =
         (record.name || "Student") + " · " + record.studentId;
     }
 
-    loadTypes();
-    if (typeSelect) typeSelect.value = "";
-    if (amountInput) amountInput.value = "";
-    if (dateInput) {
-      dateInput.value = new Date().toISOString().slice(0, 10);
-    }
+    renderPaymentRows(record);
+
+    if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
     if (refInput) refInput.value = "";
 
     setError("");
@@ -470,30 +531,31 @@
     else dialog.setAttribute("open", "open");
 
     window.setTimeout(function () {
-      if (typeSelect) typeSelect.focus();
+      var input = typeRows
+        ? typeRows.querySelector("input[data-type-id]")
+        : null;
+      if (input) input.focus();
     }, 60);
   }
 
-  if (typeSelect) {
-    typeSelect.addEventListener("change", function () {
-      var type = types.filter(function (item) {
-        return item.id === typeSelect.value;
-      })[0];
-      if (type && amountInput) {
-        amountInput.value = Number(type.amount || 0)
-          ? Number(type.amount).toFixed(2)
-          : "";
-      }
+  if (typeRows) {
+    typeRows.addEventListener("input", function (event) {
+      if (!event.target || !event.target.matches("input[data-type-id]")) return;
+      updatePaymentTotal();
     });
   }
 
   window.TCGCStartPayment = function (studentId, name) {
     if (!COUNCIL) return;
 
+    function open(record) {
+      if (!record.name && name) record.name = name;
+      openDialog(record);
+    }
+
     var existing = recordFor(studentId);
     if (existing) {
-      if (!existing.name && name) existing.name = name;
-      openDialog(existing);
+      open(existing);
       return;
     }
 
@@ -501,17 +563,15 @@
 
     window.TCGCFirebase.findPaymentRecord(studentId, COUNCIL)
       .then(function (found) {
-        if (!found) {
-          found = {
+        open(
+          found || {
             council: COUNCIL,
             studentId: studentId,
             name: name || "",
             charges: [],
             payments: []
-          };
-        }
-        if (!found.name && name) found.name = name;
-        openDialog(found);
+          }
+        );
       })
       .catch(function (error) {
         console.warn("[payments] Could not load the student's record:", error);
@@ -521,30 +581,29 @@
   if (form) {
     form.addEventListener("submit", function (event) {
       event.preventDefault();
-      if (!activeRecord) return;
+      if (!activeRecord || !typeRows) return;
 
-      var amount = Number(amountInput.value);
       var date = dateInput.value;
       var ref = refInput.value.trim();
-      var type = types.filter(function (item) {
-        return typeSelect && item.id === typeSelect.value;
-      })[0];
+      var entries = [];
 
-      if (!type) {
-        setError("Select a payment type.");
-        if (typeSelect) typeSelect.focus();
-        return;
-      }
-      if (type.locked) {
-        setError(
-          "This payment type is locked. Unlock it in Payment Types before recording."
-        );
-        if (typeSelect) typeSelect.focus();
-        return;
-      }
-      if (!(amount > 0)) {
-        setError("Enter an amount greater than zero.");
-        if (amountInput) amountInput.focus();
+      Array.prototype.forEach.call(
+        typeRows.querySelectorAll("input[data-type-id]"),
+        function (input) {
+          var value = Number(input.value || 0);
+          if (!(value > 0)) return;
+
+          var type = types.filter(function (item) {
+            return item.id === input.getAttribute("data-type-id");
+          })[0];
+
+          if (!type || type.locked) return;
+          entries.push({ type: type, amount: value });
+        }
+      );
+
+      if (!entries.length) {
+        setError("Enter a payment amount for at least one payment type.");
         return;
       }
       if (!date) {
@@ -553,36 +612,47 @@
         return;
       }
       if (!ref) {
-        setError("Enter the OR or reference number.");
+        setError("Enter the Official Receipt Number.");
         if (refInput) refInput.focus();
         return;
       }
 
       var submit = form.querySelector('button[type="submit"]');
       if (submit) submit.disabled = true;
+
       var studentName = activeRecord.name || "the student";
       var studentId = activeRecord.studentId;
+      var officer = {
+        name: session && session.name ? session.name : "",
+        position: session && session.position ? session.position : "",
+        studentId: session && session.studentId ? session.studentId : ""
+      };
+      var total = entries.reduce(function (sum, entry) {
+        return sum + entry.amount;
+      }, 0);
 
-      window.TCGCFirebase.recordTypedPayment({
-        council: COUNCIL,
-        studentId: studentId,
-        type: type,
-        amount: amount,
-        date: date,
-        ref: ref,
-        method: "",
-        officer: {
-          name: session && session.name ? session.name : "",
-          position: session && session.position ? session.position : "",
-          studentId: session && session.studentId ? session.studentId : ""
-        }
-      })
+      var chain = entries.reduce(function (previous, entry) {
+        return previous.then(function () {
+          return window.TCGCFirebase.recordTypedPayment({
+            council: COUNCIL,
+            studentId: studentId,
+            type: entry.type,
+            amount: entry.amount,
+            date: date,
+            ref: ref,
+            method: "",
+            officer: officer
+          });
+        });
+      }, Promise.resolve());
+
+      chain
         .then(function () {
           closeDialog();
           if (api.toast) {
             api.toast(
               "Payment recorded",
-              money(amount) + " recorded for " + studentName + ".",
+              money(total) + " recorded for " + studentName + ".",
               "success"
             );
           }
@@ -592,15 +662,14 @@
           console.warn("[payments] Record payment failed:", error);
           if (error && error.code === "locked-type") {
             setError(
-              "This payment type is locked. Unlock it in Payment Types before recording."
+              "A selected payment type is locked. Unlock it in Payment Types first."
             );
-          } else if (error && error.code === "locked") {
-            setError("All open charges for this student are locked.");
           } else {
             setError(
               "Couldn't save the payment. Check your session and Firestore rules, then try again."
             );
           }
+          load();
         })
         .then(function () {
           if (submit) submit.disabled = false;

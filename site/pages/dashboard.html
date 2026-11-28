@@ -457,26 +457,35 @@
 
         <p class="payment-dialog__student" id="payment-student">—</p>
 
+        <div class="pay-form-wrap">
+          <table class="pay-form-table">
+            <thead>
+              <tr>
+                <th scope="col">Payment Type</th>
+                <th scope="col" class="num">Due</th>
+                <th scope="col" class="num">Paid</th>
+                <th scope="col" class="num">Payment</th>
+              </tr>
+            </thead>
+            <tbody id="payment-type-rows"></tbody>
+          </table>
+        </div>
+
         <div class="edit-grid">
-          <div class="field field--wide">
-            <label for="payment-type-select">Payment Type</label>
-            <select id="payment-type-select" required>
-              <option value="" disabled selected>Select a payment type</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="payment-amount">Amount paid</label>
-            <input type="number" id="payment-amount" min="0" step="0.01" placeholder="0.00" required />
-          </div>
           <div class="field">
             <label for="payment-date">Payment date</label>
             <input type="date" id="payment-date" required />
           </div>
-          <div class="field field--wide">
+          <div class="field">
             <label for="payment-ref">Official Receipt Number</label>
             <input type="text" id="payment-ref" placeholder="#01" required />
           </div>
         </div>
+
+        <p class="pay-form-total">
+          Total payment:
+          <strong id="payment-total">₱0.00</strong>
+        </p>
 
         <p class="edit-form__error" id="payment-error" role="alert" hidden></p>
 
