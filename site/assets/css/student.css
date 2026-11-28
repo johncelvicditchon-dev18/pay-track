@@ -108,6 +108,7 @@ body.student-page.is-dashboard .student-main {
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
+  text-transform: uppercase;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;

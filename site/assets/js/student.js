@@ -219,7 +219,7 @@
       });
 
       councilFilter.innerHTML =
-        '<option value="">All councils / orgs</option>' +
+        '<option value="">ALL COUNCILS/ORGS</option>' +
         Object.keys(councils)
           .sort()
           .map(function (council) {
@@ -251,7 +251,7 @@
       });
 
       semesterFilter.innerHTML =
-        '<option value="">All semesters</option>' +
+        '<option value="">ALL SEMESTERS</option>' +
         Object.keys(semesters)
           .sort()
           .map(function (key) {
