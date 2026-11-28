@@ -21,6 +21,17 @@
   margin-inline: auto;
 }
 
+.student-page .header-actions .btn {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.student-page .header-actions .btn:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.16);
+}
+
 .student-page {
   overflow-x: hidden;
 }
