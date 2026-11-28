@@ -129,52 +129,7 @@
     });
   }
 
-  function icon(paths) {
-    return (
-      '<svg class="student-type__icon" viewBox="0 0 24 24" fill="none" ' +
-      'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
-      'stroke-linejoin="round" aria-hidden="true">' +
-      paths +
-      "</svg>"
-    );
-  }
-
-  function paymentRow(payment) {
-    var when = formatDate(payment.date);
-    var position = payment.recordedByPosition
-      ? " · " + esc(payment.recordedByPosition)
-      : "";
-
-    return (
-      '<div class="student-type__payment">' +
-      '<div class="student-type__payment-row">' +
-      '<span class="student-type__payment-when">' +
-      icon(
-        '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>'
-      ) +
-      esc(when || "Date not set") +
-      "</span>" +
-      "<strong>" +
-      money(payment.amount) +
-      "</strong>" +
-      "</div>" +
-      '<div class="student-type__payment-row is-meta">' +
-      (payment.ref
-        ? "<span>Official Receipt Number <b>" + esc(payment.ref) + "</b></span>"
-        : "<span>No receipt number</span>") +
-      (payment.recordedBy
-        ? '<span class="student-type__payment-by">Assisted by <b>' +
-          esc(payment.recordedBy) +
-          "</b>" +
-          position +
-          "</span>"
-        : "") +
-      "</div>" +
-      "</div>"
-    );
-  }
-
-  function chargeCard(charge) {
+  function chargeRows(charge) {
     var remaining = Math.max(charge.amount - charge.paid, 0);
     var state = charge.locked
       ? "locked"
@@ -191,58 +146,88 @@
       ? "Partial"
       : "Unpaid";
     var payments = Array.isArray(charge.payments) ? charge.payments : [];
-    var history;
+    var rowspan = Math.max(payments.length, 1);
+    var rows = [];
 
-    if (payments.length) {
-      history =
-        '<div class="student-type__payments">' +
-        '<span class="student-type__payments-label">' +
-        (payments.length === 1 ? "1 payment" : payments.length + " payments") +
-        "</span>" +
-        payments.map(paymentRow).join("") +
-        "</div>";
-    } else {
-      history =
-        '<div class="student-type__meta">' +
-        '<span class="student-type__meta-item is-quiet">' +
-        (charge.locked
-          ? "Payment type locked"
-          : charge.paid > 0
-          ? "Payment details unavailable"
-          : "No payment recorded yet") +
-        "</span></div>";
+    function leadCells() {
+      return (
+        '<td class="student-payments-table__type" rowspan="' +
+        rowspan +
+        '">' +
+        esc(charge.typeLabel) +
+        "</td>" +
+        '<td class="num" rowspan="' +
+        rowspan +
+        '">' +
+        money(charge.amount) +
+        "</td>" +
+        '<td class="num" rowspan="' +
+        rowspan +
+        '">' +
+        money(charge.paid) +
+        "</td>" +
+        '<td class="num' +
+        (remaining > 0 ? " is-due" : "") +
+        '" rowspan="' +
+        rowspan +
+        '">' +
+        money(remaining) +
+        "</td>" +
+        '<td rowspan="' +
+        rowspan +
+        '"><span class="student-type__status is-' +
+        state +
+        '">' +
+        stateLabel +
+        "</span></td>"
+      );
     }
 
-    return (
-      '<article class="student-type is-' +
-      state +
-      '">' +
-      '<header class="student-type__head">' +
-      "<h3>" +
-      esc(charge.typeLabel) +
-      "</h3>" +
-      '<span class="student-type__status is-' +
-      state +
-      '">' +
-      stateLabel +
-      "</span>" +
-      "</header>" +
-      '<div class="student-type__figures">' +
-      '<div class="student-type__figure"><span>Amount due</span><strong>' +
-      money(charge.amount) +
-      "</strong></div>" +
-      '<div class="student-type__figure"><span>Paid</span><strong>' +
-      money(charge.paid) +
-      "</strong></div>" +
-      '<div class="student-type__figure"><span>Balance</span><strong' +
-      (remaining > 0 ? ' class="is-due"' : "") +
-      ">" +
-      money(remaining) +
-      "</strong></div>" +
-      "</div>" +
-      history +
-      "</article>"
-    );
+    if (!payments.length) {
+      rows.push(
+        "<tr>" +
+          leadCells() +
+          '<td class="student-payments-table__empty">—</td>' +
+          '<td class="student-payments-table__empty">—</td>' +
+          '<td class="student-payments-table__by">' +
+          (charge.locked
+            ? "Locked"
+            : charge.paid > 0
+            ? "Details unavailable"
+            : "No payment yet") +
+          "</td></tr>"
+      );
+      return rows.join("");
+    }
+
+    payments.forEach(function (payment, index) {
+      var cells = index === 0 ? leadCells() : "";
+      var assisted = payment.recordedBy
+        ? "<b>" +
+          esc(payment.recordedBy) +
+          "</b>" +
+          (payment.recordedByPosition
+            ? '<span class="student-payments-table__position">' +
+              esc(payment.recordedByPosition) +
+              "</span>"
+            : "")
+        : "—";
+
+      cells +=
+        '<td class="student-payments-table__date">' +
+        esc(formatDate(payment.date) || "—") +
+        "</td>" +
+        '<td class="student-payments-table__ref">' +
+        (payment.ref ? esc(payment.ref) : "—") +
+        "</td>" +
+        '<td class="student-payments-table__by">' +
+        assisted +
+        "</td>";
+
+      rows.push("<tr>" + cells + "</tr>");
+    });
+
+    return rows.join("");
   }
 
   function render(payments) {
@@ -319,8 +304,22 @@
               : "Fully paid") +
             "</span>" +
             "</header>" +
-            '<div class="student-semester__body">' +
-            group.charges.map(chargeCard).join("") +
+            '<div class="student-table-wrap">' +
+            '<table class="student-payments-table">' +
+            "<thead><tr>" +
+            "<th>Payment Type</th>" +
+            '<th class="num">Amount Due</th>' +
+            '<th class="num">Paid</th>' +
+            '<th class="num">Balance</th>' +
+            "<th>Status</th>" +
+            "<th>Payment Date</th>" +
+            "<th>Official Receipt Number</th>" +
+            "<th>Assisted By</th>" +
+            "</tr></thead>" +
+            "<tbody>" +
+            group.charges.map(chargeRows).join("") +
+            "</tbody>" +
+            "</table>" +
             "</div>" +
             "</article>"
           );
