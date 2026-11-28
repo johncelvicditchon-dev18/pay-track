@@ -3,6 +3,7 @@
    ========================================================= */
 
 .student-page {
+  --student-gutter: 16px;
   min-height: 100vh;
   background:
     radial-gradient(ellipse at 12% 0%, rgba(38, 154, 105, 0.14), transparent 55%),
@@ -11,8 +12,13 @@
 }
 
 .student-main {
-  width: calc(100% - 32px);
+  width: calc(100% - (var(--student-gutter) * 2));
   padding: calc(var(--header-h, 76px) + 46px) 0 70px;
+}
+
+.student-page .site-header .header-inner {
+  width: calc(100% - (var(--student-gutter) * 2));
+  margin-inline: auto;
 }
 
 .student-page {
@@ -344,8 +350,12 @@ body.student-page.is-dashboard .student-updated {
 }
 
 @media (max-width: 720px) {
+  .student-page {
+    --student-gutter: 12px;
+  }
+
   .student-main {
-    width: calc(100% - 24px);
+    width: calc(100% - (var(--student-gutter) * 2));
     padding-top: calc(var(--header-h, 76px) + 28px);
   }
 
