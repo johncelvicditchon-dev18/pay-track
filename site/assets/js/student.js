@@ -43,6 +43,23 @@
     );
   }
 
+  function formatName(student) {
+    if (!student) return "";
+
+    var lastName = String(student.lastName || "").trim();
+    var given = [student.firstName, student.middleName]
+      .map(function (part) {
+        return String(part || "").trim();
+      })
+      .filter(Boolean)
+      .join(" ");
+
+    if (lastName && given) return lastName + ", " + given;
+    if (lastName) return lastName;
+    if (given) return given;
+    return String(student.name || "").trim();
+  }
+
   function setError(message) {
     if (!errorEl) return;
     errorEl.textContent = message || "";
@@ -286,15 +303,52 @@
         '<div class="student-empty"><p><span class="spinner"></span> Loading your payments…</p></div>';
     }
 
+    var displayName = label || "";
+    var rosterStudent = null;
+
+    function applyName(name) {
+      if (name) displayName = name;
+      if (!displayName) return;
+
+      if (nameEl) nameEl.textContent = displayName;
+      document.title = displayName + " · My payments · TCGC PayTrack";
+
+      if (api.updateSession) {
+        api.updateSession({ name: displayName });
+      }
+    }
+
+    var rosterPromise =
+      window.TCGCFirebase.findStudent
+        ? window.TCGCFirebase.findStudent(studentId).catch(function () {
+            return null;
+          })
+        : Promise.resolve(null);
+
+    rosterPromise.then(function (student) {
+      rosterStudent = student || null;
+
+      if (!rosterStudent) return;
+
+      applyName(label || formatName(rosterStudent));
+
+      var details = [studentId];
+      if (rosterStudent.council) details.push(rosterStudent.council);
+      if (rosterStudent.year) details.push(rosterStudent.year);
+      if (rosterStudent.program) details.push(rosterStudent.program);
+      if (metaEl) metaEl.textContent = details.join(" · ");
+    });
+
     window.TCGCFirebase.findStudentPayments(studentId)
       .then(function (payments) {
         var record = payments && payments[0];
-        var name = label;
 
-        if (!name && record) {
-          name = record.name || "";
-        }
-        if (nameEl) nameEl.textContent = name || "Student";
+        applyName(
+          label ||
+            formatName(rosterStudent) ||
+            (record && record.name) ||
+            ""
+        );
 
         var details = [studentId];
         if (record && record.council) details.push(record.council);
@@ -304,8 +358,9 @@
         if (!payments || !payments.length) {
           if (statsEl) statsEl.innerHTML = "";
           if (groupsEl) {
-            groupsEl.innerHTML =
-              '<div class="student-empty"><p>No payment record found.</p><small>Check your Student ID, or contact the Finance Office if your assessment has not been posted.</small></div>';
+            groupsEl.innerHTML = rosterStudent
+              ? '<div class="student-empty"><p>No assessment posted yet.</p><small>Your payment record will appear here once the Finance Office posts it.</small></div>'
+              : '<div class="student-empty"><p>No payment record found.</p><small>Check your Student ID, or contact the Finance Office if your assessment has not been posted.</small></div>';
           }
           if (receiptsEl) receiptsEl.hidden = true;
           return;

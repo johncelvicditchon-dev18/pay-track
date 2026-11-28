@@ -386,6 +386,36 @@
     return loadPage(null);
   };
 
+  client.findStudent = function (studentId) {
+    var id = String(studentId || "").trim().toUpperCase();
+    if (!id) return Promise.resolve(null);
+
+    return request(BASE_URL + ":runQuery" + KEY_PARAM, {
+      method: "POST",
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: COLLECTION }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: "studentId" },
+              op: "EQUAL",
+              value: { stringValue: id }
+            }
+          },
+          limit: 1
+        }
+      })
+    }).then(function (rows) {
+      var found = (rows || [])
+        .map(function (row) {
+          return row && row.document;
+        })
+        .filter(Boolean)[0];
+
+      return found ? fromDocument(found) : null;
+    });
+  };
+
   client.saveStudents = function (students) {
     if (!students || !students.length) return Promise.resolve();
 
