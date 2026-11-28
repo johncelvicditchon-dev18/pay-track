@@ -473,8 +473,10 @@
 
     if (updatedEl) {
       updatedEl.textContent = updated
-        ? "Balances updated " + updated + ". Questions? Contact the Finance Office."
-        : "";
+        ? "Print this statement and present it as proof of payment. Balances updated " +
+          updated +
+          ". For questions, contact the Finance Office."
+        : "Print this statement and present it as proof of payment.";
     }
   }
 

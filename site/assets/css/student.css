@@ -396,10 +396,17 @@ body.student-page.is-dashboard .student-updated {
 }
 
 .student-updated {
-  margin-top: 18px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: #f5faf7;
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
   text-align: center;
+  text-transform: uppercase;
 }
 
 .student-empty {
