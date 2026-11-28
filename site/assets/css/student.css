@@ -11,12 +11,63 @@
 }
 
 .student-main {
-  width: min(1360px, calc(100% - 32px));
+  width: calc(100% - 32px);
   padding: calc(var(--header-h, 76px) + 46px) 0 70px;
 }
 
 .student-page {
   overflow-x: hidden;
+}
+
+body.student-page.is-dashboard {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.student-page.is-dashboard .student-main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  padding-top: calc(var(--header-h, 76px) + 22px);
+  padding-bottom: 16px;
+}
+
+.student-dashboard {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.student-dashboard[hidden] {
+  display: none;
+}
+
+body.student-page.is-dashboard .student-head {
+  flex: none;
+  margin-bottom: 12px;
+}
+
+#student-groups {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+body.student-page.is-dashboard #student-groups .student-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+body.student-page.is-dashboard .student-updated {
+  flex: none;
+  margin-top: 10px;
 }
 
 .student-gate {
@@ -112,52 +163,37 @@
   font-size: 0.84rem;
 }
 
-.student-semester {
-  margin-top: 18px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(6, 35, 24, 0.06));
-}
-
-.student-semester__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 14px;
+.student-payments-table__group td {
+  position: sticky;
+  top: 31px;
+  z-index: 1;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-}
-
-.student-semester__head h2 {
-  font-size: 1rem;
-  letter-spacing: -0.01em;
-}
-
-.student-semester__head p {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 0.74rem;
-}
-
-.student-semester__total {
+  background: #eef6f1;
   color: var(--green-800);
-  font-size: 0.82rem;
+  font-size: 0.62rem;
   font-weight: 800;
-  white-space: nowrap;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
-.student-semester__total.is-clear {
-  color: var(--green-700, #1c7f57);
+.student-payments-table__group-title {
+  margin-right: 10px;
+}
+
+.student-payments-table__group-meta {
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .student-table-wrap {
-  margin-top: 14px;
-  max-height: min(62vh, 620px);
+  flex: 1;
+  min-height: 0;
+  margin-top: 0;
   border: 1px solid var(--line);
   border-radius: 7px;
+  background: #fff;
   overflow: auto;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
@@ -225,7 +261,7 @@
   border-top: 0;
 }
 
-.student-payments-table tbody tr:hover td {
+.student-payments-table tbody tr:not(.student-payments-table__group):hover td {
   background: #fbfdfb;
 }
 
@@ -353,11 +389,16 @@
     width: 100%;
   }
 
-  .student-semester {
-    padding: 16px 14px;
+  body.student-page.is-dashboard .student-main {
+    padding-top: calc(var(--header-h, 76px) + 16px);
+    padding-bottom: 12px;
   }
 
   .student-payments-table {
     min-width: 720px;
+  }
+
+  .student-payments-table__group td {
+    top: 29px;
   }
 }

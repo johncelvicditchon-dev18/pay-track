@@ -70,6 +70,7 @@
   }
 
   function showGate() {
+    document.body.classList.remove("is-dashboard");
     if (gate) gate.hidden = false;
     if (panel) panel.hidden = true;
     if (logoutButton) logoutButton.hidden = true;
@@ -77,6 +78,7 @@
   }
 
   function showPanel() {
+    document.body.classList.add("is-dashboard");
     if (gate) gate.hidden = true;
     if (panel) panel.hidden = false;
     if (logoutButton) logoutButton.hidden = false;
@@ -280,51 +282,54 @@
     }
 
     if (groupsEl) {
-      groupsEl.innerHTML = groupCharges(charges)
+      var bodyRows = groupCharges(charges)
         .map(function (group) {
           var groupBalance = group.charges.reduce(function (sum, charge) {
             return sum + Math.max(charge.amount - charge.paid, 0);
           }, 0);
 
           return (
-            '<article class="student-semester">' +
-            '<header class="student-semester__head">' +
-            "<div><h2>" +
+            '<tr class="student-payments-table__group">' +
+            '<td colspan="8">' +
+            '<span class="student-payments-table__group-title">' +
             esc(group.semester) +
             (group.year ? " · " + esc(group.year) : "") +
-            "</h2><p>" +
+            "</span>" +
+            '<span class="student-payments-table__group-meta">' +
             group.charges.length +
-            (group.charges.length === 1 ? " payment type" : " payment types") +
-            "</p></div>" +
-            '<span class="student-semester__total' +
-            (groupBalance > 0 ? "" : " is-clear") +
-            '">' +
+            (group.charges.length === 1
+              ? " payment type"
+              : " payment types") +
+            " · " +
             (groupBalance > 0
               ? money(groupBalance) + " balance"
               : "Fully paid") +
             "</span>" +
-            "</header>" +
-            '<div class="student-table-wrap">' +
-            '<table class="student-payments-table">' +
-            "<thead><tr>" +
-            "<th>Payment Type</th>" +
-            '<th class="num">Amount Due</th>' +
-            '<th class="num">Paid</th>' +
-            '<th class="num">Balance</th>' +
-            "<th>Status</th>" +
-            "<th>Payment Date</th>" +
-            "<th>Official Receipt Number</th>" +
-            "<th>Assisted By</th>" +
-            "</tr></thead>" +
-            "<tbody>" +
-            group.charges.map(chargeRows).join("") +
-            "</tbody>" +
-            "</table>" +
-            "</div>" +
-            "</article>"
+            "</td>" +
+            "</tr>" +
+            group.charges.map(chargeRows).join("")
           );
         })
         .join("");
+
+      groupsEl.innerHTML =
+        '<div class="student-table-wrap">' +
+        '<table class="student-payments-table">' +
+        "<thead><tr>" +
+        "<th>Payment Type</th>" +
+        '<th class="num">Amount Due</th>' +
+        '<th class="num">Paid</th>' +
+        '<th class="num">Balance</th>' +
+        "<th>Status</th>" +
+        "<th>Payment Date</th>" +
+        "<th>Official Receipt Number</th>" +
+        "<th>Assisted By</th>" +
+        "</tr></thead>" +
+        "<tbody>" +
+        bodyRows +
+        "</tbody>" +
+        "</table>" +
+        "</div>";
     }
 
     if (updatedEl) {
