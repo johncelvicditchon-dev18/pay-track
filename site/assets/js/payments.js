@@ -372,7 +372,7 @@
           empty.hidden = false;
           empty.innerHTML =
             "<p>We couldn't load the payment records right now.</p>" +
-            "<small>Check your Firebase rules and connection, then try again.</small>";
+            "<small>Log out and log in again. If it still fails, deploy the latest firestore.rules and check your connection.</small>";
         }
       });
   }

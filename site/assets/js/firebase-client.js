@@ -109,12 +109,12 @@
 
   // Reuse the signed-in account's token when the page reloads.
   try {
-    var storedSession =
+    var cachedSessionRaw =
       window.localStorage.getItem("tcgc_paytrack_session") ||
       window.sessionStorage.getItem("tcgc_paytrack_session");
-    var storedSessionData = storedSession ? JSON.parse(storedSession) : null;
-    if (storedSessionData && storedSessionData.idToken) {
-      client.setAuthToken(storedSessionData.idToken);
+    var cachedSession = cachedSessionRaw ? JSON.parse(cachedSessionRaw) : null;
+    if (cachedSession && cachedSession.idToken) {
+      client.setAuthToken(cachedSession.idToken);
     }
   } catch (error) {
     /* ignore unreadable sessions */
