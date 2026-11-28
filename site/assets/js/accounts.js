@@ -52,6 +52,18 @@
 
   if (!api || !body) return;
 
+  function populateCouncilOptions() {
+    if (!fields.council) return;
+
+    fields.council.innerHTML =
+      '<option value="" disabled>Select council or organization</option>' +
+      api.COUNCILS.map(function (council) {
+        return '<option value="' + council + '">' + council + "</option>";
+      }).join("");
+  }
+
+  populateCouncilOptions();
+
   var session = api.getSession ? api.getSession() : null;
   var COUNCIL = session && session.council ? api.normalizeCouncil(session.council) : "";
 

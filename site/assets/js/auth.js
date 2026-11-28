@@ -378,6 +378,7 @@
     var nameInput = document.getElementById("signup-name");
     var studentIdInput = document.getElementById("signup-student-id");
     var positionInput = document.getElementById("signup-position");
+    var positionOtherInput = document.getElementById("signup-position-other");
     var yearLevelInput = document.getElementById("signup-year-level");
     var councilInput = document.getElementById("signup-council");
     var passwordInput = document.getElementById("signup-password");
@@ -391,6 +392,28 @@
     var signupBusy = false;
 
     attachClearHandlers(signupForm);
+
+    function populateCouncils() {
+      councilInput.innerHTML =
+        '<option value="" disabled selected>Select your council or organization</option>' +
+        api.COUNCILS.map(function (council) {
+          return '<option value="' + council + '">' + council + "</option>";
+        }).join("");
+    }
+
+    function syncPositionOther() {
+      if (!positionOtherInput) return;
+
+      var isOther = positionInput.value === api.OTHER_POSITION;
+
+      positionOtherInput.hidden = !isOther;
+
+      if (isOther) {
+        positionOtherInput.focus();
+      } else {
+        positionOtherInput.value = "";
+      }
+    }
 
     function populatePositions() {
       var positions = api.positionsForCouncil(councilInput.value);
@@ -413,17 +436,27 @@
       });
 
       positionInput.disabled = !positions.length;
+      syncPositionOther();
     }
 
     if (councilInput && positionInput) {
       councilInput.addEventListener("change", function () {
         populatePositions();
         clearError(positionInput);
+        clearError(positionOtherInput);
       });
+
+      positionInput.addEventListener("change", function () {
+        syncPositionOther();
+        clearError(positionInput);
+        clearError(positionOtherInput);
+      });
+
+      populateCouncils();
       populatePositions();
     }
 
-    [nameInput].forEach(function (input) {
+    [nameInput, positionOtherInput].forEach(function (input) {
       if (!input) return;
 
       input.addEventListener("input", function () {
@@ -461,6 +494,7 @@
       clearError(nameInput);
       clearError(studentIdInput);
       clearError(positionInput);
+      clearError(positionOtherInput);
       clearError(yearLevelInput);
       clearError(councilInput);
       clearError(passwordInput);
@@ -508,6 +542,18 @@
       if (!position) {
         showError(positionInput, "Select your position.");
         invalid.push(positionInput);
+      } else if (position === api.OTHER_POSITION) {
+        var customPosition = positionOtherInput
+          ? positionOtherInput.value.trim()
+          : "";
+
+        if (customPosition.length < 2) {
+          showError(
+            positionOtherInput || positionInput,
+            "Enter your position."
+          );
+          invalid.push(positionOtherInput || positionInput);
+        }
       } else if (
         api.positionsForCouncil(council).indexOf(position.toUpperCase()) === -1
       ) {
@@ -568,7 +614,13 @@
         var account = {
           name: nameInput.value.trim().toUpperCase(),
           studentId: studentId,
-          position: positionInput.value.trim().toUpperCase(),
+          position:
+            (positionInput.value === api.OTHER_POSITION
+              ? positionOtherInput.value
+              : positionInput.value
+            )
+              .trim()
+              .toUpperCase(),
           yearLevel: yearLevelInput.value,
           council: api.normalizeCouncil(councilInput.value),
           createdAt: new Date().toISOString()

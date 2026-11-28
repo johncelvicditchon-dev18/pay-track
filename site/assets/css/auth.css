@@ -801,3 +801,12 @@ input[type="password"]::-ms-clear {
   text-transform: uppercase;
 }
 
+
+/* Custom position field shown when OTHERS is selected */
+#signup-position-other {
+  margin-top: 8px;
+}
+
+#signup-position-other[hidden] {
+  display: none;
+}

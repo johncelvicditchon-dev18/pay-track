@@ -10,6 +10,7 @@
   var memory = Object.create(null);
 
   var COUNCILS = [
+    "SSC",
     "ISC-ICS",
     "ISC-IAS",
     "ISC-IHS",
@@ -35,6 +36,17 @@
   ];
 
   /* Positions offered by each council type. Add or edit here to maintain. */
+  var SSC_POSITIONS = [
+    "PRESIDENT",
+    "VICE-PRESIDENT",
+    "SECRETARY",
+    "TREASURER",
+    "AUDITOR",
+    "PUBLIC INFORMATION OFFICER",
+    "BUSINESS MANAGER",
+    "REPRESENTATIVE"
+  ];
+
   var ISC_POSITIONS = [
     "GOVERNOR",
     "VICE-GOVERNOR",
@@ -60,11 +72,34 @@
     "4TH YEAR REPRESENTATIVE"
   ];
 
+  /* "OTHERS" lets an officer type a position that is not in the list. */
+  var OTHER_POSITION = "OTHERS";
+
+  /* Exact council codes first, then prefix-based councils. */
+  var POSITIONS_BY_COUNCIL = {
+    SSC: SSC_POSITIONS
+  };
+
+  var POSITIONS_BY_PREFIX = {
+    "ISC-": ISC_POSITIONS,
+    "SRO-": SRO_POSITIONS
+  };
+
   function positionsForCouncil(council) {
     var code = normalizeCouncil(council);
-    if (code.indexOf("ISC-") === 0) return ISC_POSITIONS.slice();
-    if (code.indexOf("SRO-") === 0) return SRO_POSITIONS.slice();
-    return [];
+    var base = POSITIONS_BY_COUNCIL[code] || null;
+
+    if (!base) {
+      Object.keys(POSITIONS_BY_PREFIX).some(function (prefix) {
+        if (code.indexOf(prefix) !== 0) return false;
+        base = POSITIONS_BY_PREFIX[prefix];
+        return true;
+      });
+    }
+
+    if (!base) return [];
+
+    return base.concat([OTHER_POSITION]);
   }
 
   /* ---------- storage (with in-memory fallback) ---------- */
@@ -259,8 +294,10 @@
 
   window.TCGC = {
     COUNCILS: COUNCILS,
+    SSC_POSITIONS: SSC_POSITIONS,
     ISC_POSITIONS: ISC_POSITIONS,
     SRO_POSITIONS: SRO_POSITIONS,
+    OTHER_POSITION: OTHER_POSITION,
     positionsForCouncil: positionsForCouncil,
     getUsers: getUsers,
     saveUsers: saveUsers,
