@@ -139,6 +139,41 @@
     );
   }
 
+  function paymentRow(payment) {
+    var when = formatDate(payment.date);
+    var position = payment.recordedByPosition
+      ? " · " + esc(payment.recordedByPosition)
+      : "";
+
+    return (
+      '<div class="student-type__payment">' +
+      '<div class="student-type__payment-row">' +
+      '<span class="student-type__payment-when">' +
+      icon(
+        '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>'
+      ) +
+      esc(when || "Date not set") +
+      "</span>" +
+      "<strong>" +
+      money(payment.amount) +
+      "</strong>" +
+      "</div>" +
+      '<div class="student-type__payment-row is-meta">' +
+      (payment.ref
+        ? "<span>Official Receipt Number <b>" + esc(payment.ref) + "</b></span>"
+        : "<span>No receipt number</span>") +
+      (payment.recordedBy
+        ? '<span class="student-type__payment-by">Assisted by <b>' +
+          esc(payment.recordedBy) +
+          "</b>" +
+          position +
+          "</span>"
+        : "") +
+      "</div>" +
+      "</div>"
+    );
+  }
+
   function chargeCard(charge) {
     var remaining = Math.max(charge.amount - charge.paid, 0);
     var state = charge.locked
@@ -155,67 +190,27 @@
       : charge.paid > 0
       ? "Partial"
       : "Unpaid";
-    var last = charge.lastPayment;
-    var meta = [];
+    var payments = Array.isArray(charge.payments) ? charge.payments : [];
+    var history;
 
-    if (last && (last.date || last.recordedBy || last.ref)) {
-      if (last.date) {
-        meta.push(
-          '<span class="student-type__meta-item">' +
-            icon(
-              '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>'
-            ) +
-            "Paid on " +
-            esc(formatDate(last.date)) +
-            "</span>"
-        );
-      }
-
-      if (last.recordedBy) {
-        meta.push(
-          '<span class="student-type__meta-item">' +
-            icon(
-              '<circle cx="12" cy="8" r="3.2"/><path d="M5 20a7 7 0 0 1 14 0"/>'
-            ) +
-            "Assisted by <b>" +
-            esc(last.recordedBy) +
-            "</b>" +
-            (last.recordedByPosition
-              ? " · " + esc(last.recordedByPosition)
-              : "") +
-            "</span>"
-        );
-      }
-
-      if (last.ref) {
-        meta.push(
-          '<span class="student-type__meta-item">' +
-            icon(
-              '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/>'
-            ) +
-            "Official Receipt Number <b>" +
-            esc(last.ref) +
-            "</b></span>"
-        );
-      }
-
-      if (charge.paymentCount > 1) {
-        meta.push(
-          '<span class="student-type__meta-item is-quiet">' +
-            charge.paymentCount +
-            " payments recorded</span>"
-        );
-      }
+    if (payments.length) {
+      history =
+        '<div class="student-type__payments">' +
+        '<span class="student-type__payments-label">' +
+        (payments.length === 1 ? "1 payment" : payments.length + " payments") +
+        "</span>" +
+        payments.map(paymentRow).join("") +
+        "</div>";
     } else {
-      meta.push(
+      history =
+        '<div class="student-type__meta">' +
         '<span class="student-type__meta-item is-quiet">' +
-          (charge.locked
-            ? "Payment type locked"
-            : charge.paid > 0
-            ? "Payment details unavailable"
-            : "No payment recorded yet") +
-          "</span>"
-      );
+        (charge.locked
+          ? "Payment type locked"
+          : charge.paid > 0
+          ? "Payment details unavailable"
+          : "No payment recorded yet") +
+        "</span></div>";
     }
 
     return (
@@ -245,9 +240,7 @@
       money(remaining) +
       "</strong></div>" +
       "</div>" +
-      '<div class="student-type__meta">' +
-      meta.join("") +
-      "</div>" +
+      history +
       "</article>"
     );
   }
@@ -278,8 +271,15 @@
           amount: Number(charge.amount || 0),
           paid: Number(charge.paid || 0),
           locked: Boolean(charge.locked),
-          paymentCount: matches.length,
-          lastPayment: matches.length ? matches[matches.length - 1] : null
+          payments: matches.map(function (payment) {
+            return {
+              date: String(payment.date || ""),
+              ref: String(payment.ref || ""),
+              amount: Number(payment.amount || 0),
+              recordedBy: String(payment.recordedBy || ""),
+              recordedByPosition: String(payment.recordedByPosition || "")
+            };
+          })
         });
       });
 
