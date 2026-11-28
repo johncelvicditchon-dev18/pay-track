@@ -45,11 +45,6 @@ body.student-page.is-dashboard .student-main {
   display: none;
 }
 
-body.student-page.is-dashboard .student-head {
-  flex: none;
-  margin-bottom: 12px;
-}
-
 #student-groups {
   display: flex;
   flex: 1;
@@ -159,26 +154,6 @@ body.student-page.is-dashboard .student-updated {
 }
 
 /* ---------- loaded dashboard ---------- */
-.student-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.student-head h1 {
-  margin: 6px 0 4px;
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  letter-spacing: -0.02em;
-}
-
-.student-head p {
-  color: var(--muted);
-  font-size: 0.84rem;
-}
-
 .student-table-wrap {
   flex: 1;
   min-height: 0;

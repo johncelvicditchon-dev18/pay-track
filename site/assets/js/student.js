@@ -17,8 +17,6 @@
   var identityEl = document.getElementById("student-header-identity");
   var identityNameEl = document.getElementById("student-header-name");
   var identityIdEl = document.getElementById("student-header-id");
-  var nameEl = document.getElementById("student-name");
-  var metaEl = document.getElementById("student-meta");
   var groupsEl = document.getElementById("student-groups");
   var updatedEl = document.getElementById("student-updated");
 
@@ -372,8 +370,6 @@
 
     setError("");
     showPanel();
-    if (nameEl) nameEl.textContent = label || "Student";
-    if (metaEl) metaEl.textContent = studentId;
     updateIdentity(label || "", studentId);
     if (groupsEl) {
       groupsEl.innerHTML =
@@ -387,7 +383,6 @@
       if (name) displayName = name;
       if (!displayName) return;
 
-      if (nameEl) nameEl.textContent = displayName;
       updateIdentity(displayName, studentId);
 
       if (api.updateSession) {
@@ -408,12 +403,6 @@
       if (!rosterStudent) return;
 
       applyName(label || formatName(rosterStudent));
-
-      var details = [studentId];
-      if (rosterStudent.council) details.push(rosterStudent.council);
-      if (rosterStudent.year) details.push(rosterStudent.year);
-      if (rosterStudent.program) details.push(rosterStudent.program);
-      if (metaEl) metaEl.textContent = details.join(" · ");
     });
 
     window.TCGCFirebase.findStudentPayments(studentId)
@@ -426,11 +415,6 @@
             (record && record.name) ||
             ""
         );
-
-        var details = [studentId];
-        if (record && record.council) details.push(record.council);
-        if (record && record.yearLevel) details.push(record.yearLevel);
-        if (metaEl) metaEl.textContent = details.join(" · ");
 
         if (!payments || !payments.length) {
           if (groupsEl) {
