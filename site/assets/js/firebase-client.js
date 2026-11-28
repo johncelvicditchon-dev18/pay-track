@@ -416,6 +416,34 @@
     });
   };
 
+  client.findStudents = function (studentId) {
+    var id = String(studentId || "").trim().toUpperCase();
+    if (!id) return Promise.resolve([]);
+
+    return request(BASE_URL + ":runQuery" + KEY_PARAM, {
+      method: "POST",
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: COLLECTION }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: "studentId" },
+              op: "EQUAL",
+              value: { stringValue: id }
+            }
+          }
+        }
+      })
+    }).then(function (rows) {
+      return (rows || [])
+        .map(function (row) {
+          return row && row.document;
+        })
+        .filter(Boolean)
+        .map(fromDocument);
+    });
+  };
+
   client.saveStudents = function (students) {
     if (!students || !students.length) return Promise.resolve();
 

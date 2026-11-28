@@ -24,6 +24,7 @@
   var printButton = document.getElementById("student-print");
 
   var allRecords = [];
+  var rosterCouncils = [];
   var activeCouncil = "";
   var activeSemester = "";
 
@@ -205,6 +206,10 @@
   function populateFilters(records) {
     if (councilFilter) {
       var councils = {};
+
+      (rosterCouncils || []).forEach(function (council) {
+        councils[String(council || "").toUpperCase()] = true;
+      });
 
       records.forEach(function (record) {
         if (!Array.isArray(record.charges) || !record.charges.length) return;
@@ -483,6 +488,7 @@
     showPanel();
     updateIdentity(label || "", studentId);
     allRecords = [];
+    rosterCouncils = [];
     activeCouncil = "";
     activeSemester = "";
     if (councilFilter) councilFilter.value = "";
@@ -506,19 +512,41 @@
       }
     }
 
-    var rosterPromise =
-      window.TCGCFirebase.findStudent
-        ? window.TCGCFirebase.findStudent(studentId).catch(function () {
-            return null;
-          })
-        : Promise.resolve(null);
+    var rosterPromise;
 
-    rosterPromise.then(function (student) {
-      rosterStudent = student || null;
+    if (window.TCGCFirebase.findStudents) {
+      rosterPromise = window.TCGCFirebase.findStudents(studentId).catch(
+        function () {
+          return [];
+        }
+      );
+    } else if (window.TCGCFirebase.findStudent) {
+      rosterPromise = window.TCGCFirebase.findStudent(studentId)
+        .then(function (student) {
+          return student ? [student] : [];
+        })
+        .catch(function () {
+          return [];
+        });
+    } else {
+      rosterPromise = Promise.resolve([]);
+    }
 
-      if (!rosterStudent) return;
+    rosterPromise.then(function (students) {
+      var list = Array.isArray(students) ? students : [];
 
-      applyName(label || formatName(rosterStudent));
+      rosterStudent = list[0] || null;
+      rosterCouncils = list
+        .map(function (student) {
+          return String(student.council || "").trim().toUpperCase();
+        })
+        .filter(Boolean);
+
+      if (rosterStudent) {
+        applyName(label || formatName(rosterStudent));
+      }
+
+      populateFilters(allRecords);
     });
 
     window.TCGCFirebase.findStudentPayments(studentId)
