@@ -464,7 +464,10 @@
                 <th scope="col">Payment Type</th>
                 <th scope="col" class="num">Due</th>
                 <th scope="col" class="num">Paid</th>
+                <th scope="col" class="num">Balance</th>
+                <th scope="col">Full</th>
                 <th scope="col" class="num">Payment</th>
+                <th scope="col">OR Number</th>
               </tr>
             </thead>
             <tbody id="payment-type-rows"></tbody>
@@ -472,20 +475,16 @@
         </div>
 
         <div class="edit-grid">
-          <div class="field">
+          <div class="field field--wide">
             <label for="payment-date">Payment date</label>
             <input type="date" id="payment-date" required />
           </div>
-          <div class="field">
-            <label for="payment-ref">Official Receipt Number</label>
-            <input type="text" id="payment-ref" placeholder="#01" required />
-          </div>
         </div>
 
-        <p class="pay-form-total">
-          Total payment:
-          <strong id="payment-total">₱0.00</strong>
-        </p>
+        <div class="pay-form-total">
+          <span>Total payment <strong id="payment-total">₱0.00</strong></span>
+          <span>Remaining <strong id="payment-remaining">₱0.00</strong></span>
+        </div>
 
         <p class="edit-form__error" id="payment-error" role="alert" hidden></p>
 

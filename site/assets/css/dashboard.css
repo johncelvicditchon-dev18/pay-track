@@ -2021,3 +2021,43 @@ html:has(.dashboard-page) {
   letter-spacing: -0.01em;
   text-transform: none;
 }
+
+#payment-dialog {
+  width: min(960px, 96vw);
+  max-width: 96vw;
+}
+
+.pay-full-check {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--green-600);
+  cursor: pointer;
+}
+
+.pay-or {
+  width: 110px;
+  max-width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdfa;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.pay-or:focus {
+  outline: none;
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(21, 125, 84, 0.12);
+}
+
+.pay-form-total span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pay-form-wrap {
+  overflow-x: auto;
+}

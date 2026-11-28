@@ -31,7 +31,7 @@
   var errorEl = document.getElementById("payment-error");
   var studentEl = document.getElementById("payment-student");
   var dateInput = document.getElementById("payment-date");
-  var refInput = document.getElementById("payment-ref");
+  var remainingEl = document.getElementById("payment-remaining");
 
   var records = [];
   var types = [];
@@ -435,17 +435,25 @@
   }
 
   function updatePaymentTotal() {
-    if (!typeRows || !totalEl) return;
+    if (!typeRows) return;
 
     var total = 0;
+    var remaining = 0;
+
     Array.prototype.forEach.call(
-      typeRows.querySelectorAll("input[data-type-id]"),
-      function (input) {
-        total += Number(input.value || 0);
+      typeRows.querySelectorAll("tr[data-balance]"),
+      function (row) {
+        var balance = Number(row.getAttribute("data-balance") || 0);
+        var input = row.querySelector("input.pay-input");
+        var entered = input ? Math.max(Number(input.value || 0), 0) : 0;
+
+        total += entered;
+        remaining += Math.max(balance - entered, 0);
       }
     );
 
-    totalEl.textContent = money(total);
+    if (totalEl) totalEl.textContent = money(total);
+    if (remainingEl) remainingEl.textContent = money(remaining);
   }
 
   function renderPaymentRows(record) {
@@ -455,7 +463,7 @@
 
     if (!types.length) {
       typeRows.innerHTML =
-        '<tr><td colspan="4" class="row-note">No payment types created yet.</td></tr>';
+        '<tr><td colspan="7" class="row-note">No payment types created yet.</td></tr>';
       updatePaymentTotal();
       return;
     }
@@ -476,33 +484,44 @@
         }, 0);
         var remaining = Math.max(amount - paid, 0);
         var disabled = type.locked || remaining <= 0;
-        var note = type.locked
-          ? "Locked"
-          : remaining <= 0
-          ? "Fully paid"
-          : "Balance " + money(remaining);
+        var typeId = esc(type.id);
 
         return (
-          "<tr>" +
+          '<tr data-balance="' + remaining.toFixed(2) + '">' +
           '<td class="cell-name">' +
           esc(type.label || type.name || "Payment") +
           '<small class="pay-form-note">' +
-          esc(note) +
+          (type.locked ? "Locked" : remaining <= 0 ? "Fully paid" : "") +
           "</small></td>" +
           '<td class="num">' + money(amount) + "</td>" +
           '<td class="num">' + money(paid) + "</td>" +
+          '<td class="num">' + money(remaining) + "</td>" +
+          "<td>" +
+          (disabled
+            ? '<span class="row-note">—</span>'
+            : '<input type="checkbox" class="pay-full-check" data-type-id="' +
+              typeId +
+              '" aria-label="Full payment" />') +
+          "</td>" +
           '<td class="num">' +
           (disabled
             ? '<span class="row-note">' +
               (type.locked ? "Locked" : "—") +
               "</span>"
             : '<input class="pay-input" type="number" min="0" step="0.01" data-type-id="' +
-              esc(type.id) +
+              typeId +
               '" max="' +
               remaining.toFixed(2) +
               '" placeholder="' +
               remaining.toFixed(2) +
               '" />') +
+          "</td>" +
+          "<td>" +
+          (disabled
+            ? '<span class="row-note">—</span>'
+            : '<input class="pay-or" type="text" data-type-id="' +
+              typeId +
+              '" placeholder="#01" aria-label="Official Receipt Number" />') +
           "</td>" +
           "</tr>"
         );
@@ -524,7 +543,6 @@
     renderPaymentRows(record);
 
     if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
-    if (refInput) refInput.value = "";
 
     setError("");
     if (typeof dialog.showModal === "function") dialog.showModal();
@@ -532,7 +550,7 @@
 
     window.setTimeout(function () {
       var input = typeRows
-        ? typeRows.querySelector("input[data-type-id]")
+        ? typeRows.querySelector("input.pay-input")
         : null;
       if (input) input.focus();
     }, 60);
@@ -540,7 +558,26 @@
 
   if (typeRows) {
     typeRows.addEventListener("input", function (event) {
-      if (!event.target || !event.target.matches("input[data-type-id]")) return;
+      if (!event.target || !event.target.matches("input.pay-input")) return;
+      updatePaymentTotal();
+    });
+
+    typeRows.addEventListener("change", function (event) {
+      var checkbox = event.target;
+      if (!checkbox || !checkbox.matches(".pay-full-check")) return;
+
+      var row = checkbox.closest("tr");
+      var input = row ? row.querySelector("input.pay-input") : null;
+      if (!input) return;
+
+      if (checkbox.checked) {
+        input.value = Number(input.getAttribute("max") || 0).toFixed(2);
+        input.readOnly = true;
+      } else {
+        input.value = "";
+        input.readOnly = false;
+      }
+
       updatePaymentTotal();
     });
   }
@@ -584,11 +621,11 @@
       if (!activeRecord || !typeRows) return;
 
       var date = dateInput.value;
-      var ref = refInput.value.trim();
       var entries = [];
+      var missingRef = null;
 
       Array.prototype.forEach.call(
-        typeRows.querySelectorAll("input[data-type-id]"),
+        typeRows.querySelectorAll("input.pay-input"),
         function (input) {
           var value = Number(input.value || 0);
           if (!(value > 0)) return;
@@ -598,7 +635,14 @@
           })[0];
 
           if (!type || type.locked) return;
-          entries.push({ type: type, amount: value });
+
+          var row = input.closest("tr");
+          var orInput = row ? row.querySelector(".pay-or") : null;
+          var orValue = orInput ? orInput.value.trim() : "";
+
+          if (!orValue && !missingRef) missingRef = orInput;
+
+          entries.push({ type: type, amount: value, ref: orValue });
         }
       );
 
@@ -611,9 +655,11 @@
         if (dateInput) dateInput.focus();
         return;
       }
-      if (!ref) {
-        setError("Enter the Official Receipt Number.");
-        if (refInput) refInput.focus();
+      if (missingRef) {
+        setError(
+          "Enter the Official Receipt Number for every payment you entered."
+        );
+        missingRef.focus();
         return;
       }
 
@@ -639,7 +685,7 @@
             type: entry.type,
             amount: entry.amount,
             date: date,
-            ref: ref,
+            ref: entry.ref,
             method: "",
             officer: officer
           });
