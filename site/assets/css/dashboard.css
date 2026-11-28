@@ -2061,3 +2061,16 @@ html:has(.dashboard-page) {
 .pay-form-wrap {
   overflow-x: auto;
 }
+
+.payments-table th:nth-child(3),
+.payments-table td:nth-child(3) {
+  width: 90px;
+  min-width: 90px;
+}
+
+.cell-year {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}

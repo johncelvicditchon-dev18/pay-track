@@ -99,6 +99,10 @@
     return student.studentId;
   }
 
+  function studentYear(student) {
+    return String(student.year || student.yearLevel || "").trim();
+  }
+
   function render() {
     var allStudents = roster().slice().sort(function (a, b) {
       return (
@@ -118,7 +122,9 @@
           return (
             String(student.studentId || "") +
             " " +
-            studentName(student)
+            studentName(student) +
+            " " +
+            studentYear(student)
           )
             .toLowerCase()
             .indexOf(query) !== -1;
@@ -157,6 +163,7 @@
         "<tr>" +
         '<th scope="col">Student ID</th>' +
         '<th scope="col">Full Name</th>' +
+        '<th scope="col">Year</th>' +
         columns
           .map(function (type) {
             return (
@@ -244,6 +251,7 @@
           "<tr>" +
           "<td>" + text(studentId) + "</td>" +
           '<td class="cell-name">' + text(studentName(student)) + "</td>" +
+          '<td class="cell-year">' + text(studentYear(student)) + "</td>" +
           cells +
           "<td>" + status + "</td>" +
           "</tr>"
@@ -291,7 +299,7 @@
     if (tableFoot) {
       tableFoot.innerHTML =
         '<tr class="pay-total-row">' +
-        '<td colspan="2" class="cell-name">TOTAL</td>' +
+        '<td colspan="3" class="cell-name">TOTAL</td>' +
         typeTotals
           .map(function (total) {
             return (
