@@ -527,3 +527,9 @@ body.student-page.is-dashboard .student-updated {
     display: none;
   }
 }
+
+/* Normal text weight across the student portal */
+.student-page,
+.student-page * {
+  font-weight: 400 !important;
+}
