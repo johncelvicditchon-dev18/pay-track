@@ -74,7 +74,6 @@
     if (gate) gate.hidden = false;
     if (panel) panel.hidden = true;
     if (logoutButton) logoutButton.hidden = true;
-    document.title = "My payments · TCGC PayTrack";
   }
 
   function showPanel() {
@@ -338,7 +337,6 @@
       if (!displayName) return;
 
       if (nameEl) nameEl.textContent = displayName;
-      document.title = displayName + " · My payments · TCGC PayTrack";
 
       if (api.updateSession) {
         api.updateSession({ name: displayName });
@@ -405,7 +403,6 @@
   function start(studentId, label) {
     showPanel();
     load(studentId, label);
-    document.title = (label ? label + " · " : "") + "My payments · TCGC PayTrack";
   }
 
   if (form && input) {
