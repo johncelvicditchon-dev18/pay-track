@@ -107,43 +107,6 @@
   font-size: 0.84rem;
 }
 
-.student-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 22px;
-}
-
-.student-stat {
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(6, 35, 24, 0.06));
-}
-
-.student-stat--accent {
-  border-color: var(--green-100);
-  background: linear-gradient(140deg, #fff 0%, var(--green-50) 100%);
-}
-
-.student-stat span {
-  display: block;
-  color: var(--muted);
-  font-size: 0.64rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.student-stat strong {
-  display: block;
-  margin-top: 5px;
-  color: var(--green-900);
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
-}
-
 .student-semester {
   margin-top: 18px;
   padding: 20px;
@@ -316,10 +279,6 @@
 
   .student-id-row .btn {
     width: 100%;
-  }
-
-  .student-stats {
-    grid-template-columns: 1fr;
   }
 
   .student-type {

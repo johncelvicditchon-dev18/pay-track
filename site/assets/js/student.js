@@ -16,7 +16,6 @@
   var logoutButton = document.getElementById("student-logout");
   var nameEl = document.getElementById("student-name");
   var metaEl = document.getElementById("student-meta");
-  var statsEl = document.getElementById("student-stats");
   var groupsEl = document.getElementById("student-groups");
   var receiptsEl = document.getElementById("student-receipts");
   var receiptListEl = document.getElementById("student-receipt-list");
@@ -151,27 +150,6 @@
       if (record.updated) updated = String(record.updated);
     });
 
-    var total = charges.reduce(function (sum, charge) {
-      return sum + charge.amount;
-    }, 0);
-    var paid = charges.reduce(function (sum, charge) {
-      return sum + charge.paid;
-    }, 0);
-    var balance = Math.max(total - paid, 0);
-
-    if (statsEl) {
-      statsEl.innerHTML =
-        '<article class="student-stat"><span>Total billed</span><strong>' +
-        money(total) +
-        "</strong></article>" +
-        '<article class="student-stat"><span>Total paid</span><strong>' +
-        money(paid) +
-        "</strong></article>" +
-        '<article class="student-stat student-stat--accent"><span>Balance</span><strong>' +
-        money(balance) +
-        "</strong></article>";
-    }
-
     if (!charges.length) {
       if (groupsEl) {
         groupsEl.innerHTML =
@@ -297,7 +275,6 @@
     showPanel();
     if (nameEl) nameEl.textContent = label || "Student";
     if (metaEl) metaEl.textContent = studentId;
-    if (statsEl) statsEl.innerHTML = "";
     if (groupsEl) {
       groupsEl.innerHTML =
         '<div class="student-empty"><p><span class="spinner"></span> Loading your payments…</p></div>';
@@ -356,7 +333,6 @@
         if (metaEl) metaEl.textContent = details.join(" · ");
 
         if (!payments || !payments.length) {
-          if (statsEl) statsEl.innerHTML = "";
           if (groupsEl) {
             groupsEl.innerHTML = rosterStudent
               ? '<div class="student-empty"><p>No assessment posted yet.</p><small>Your payment record will appear here once the Finance Office posts it.</small></div>'
