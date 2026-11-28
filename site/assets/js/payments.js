@@ -214,10 +214,12 @@
               return sum + Number(charge.paid || 0);
             }, 0);
             var settled = amount > 0 && paid >= amount;
+            var hasBalance = amount > 0 && paid < amount;
 
             return (
               '<td class="num pay-cell' +
               (settled ? " is-paid" : "") +
+              (hasBalance ? " is-balance" : "") +
               '"><b>' +
               money(paid) +
               "</b><small>of " +
