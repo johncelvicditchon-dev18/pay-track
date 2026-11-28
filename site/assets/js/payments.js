@@ -208,22 +208,31 @@
           })
           .join("");
 
-        var total = charges.reduce(function (sum, charge) {
-          return sum + Number(charge.amount || 0);
-        }, 0);
-        var paid = charges.reduce(function (sum, charge) {
-          return sum + Number(charge.paid || 0);
-        }, 0);
-        var balance = Math.max(total - paid, 0);
-        var status = "";
+        var fullyPaid =
+          types.length > 0 &&
+          types.every(function (type) {
+            var matches = charges.filter(function (charge) {
+              return chargeMatchesType(charge, type);
+            });
 
-        if (charges.length && balance <= 0) {
-          status =
-            '<span class="pay-status pay-status--paid">' +
+            if (!matches.length) return false;
+
+            var amount = matches.reduce(function (sum, charge) {
+              return sum + Number(charge.amount || 0);
+            }, 0);
+            var paid = matches.reduce(function (sum, charge) {
+              return sum + Number(charge.paid || 0);
+            }, 0);
+
+            return amount > 0 && paid >= amount;
+          });
+
+        var status = fullyPaid
+          ? '<span class="pay-status pay-status--paid">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" ' +
             'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-            '<path d="M20 6 9 17l-5-5" /></svg>Paid</span>';
-        }
+            '<path d="M20 6 9 17l-5-5" /></svg>Paid</span>'
+          : "";
 
         return (
           "<tr>" +
