@@ -193,7 +193,7 @@
             icon(
               '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/>'
             ) +
-            "OR <b>" +
+            "Official Receipt Number <b>" +
             esc(last.ref) +
             "</b></span>"
         );
