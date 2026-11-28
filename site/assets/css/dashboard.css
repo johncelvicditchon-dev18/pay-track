@@ -1918,3 +1918,8 @@ html:has(.dashboard-page) {
   height: 11px;
   flex: none;
 }
+
+.pay-status--lack {
+  background: #fdecea;
+  color: #a5372b;
+}
